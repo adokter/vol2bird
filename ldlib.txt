@@ -1,0 +1,5 @@
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:\
+/opt/baltrad/rave/lib:\
+/opt/baltrad/hlhdf/lib:\
+/opt/baltrad/third_party/lib:\
+/opt/baltrad/bbufr/lib
