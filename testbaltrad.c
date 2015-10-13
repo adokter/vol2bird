@@ -113,9 +113,9 @@ int main(int argc, char** argv) {
         vol2birdTearDown();
 
         // output some performance data
-        clock_gettime(CLOCK_REALTIME, &ts);
-        double nSeconds = ((double) ts.tv_nsec)/1e9;
-        fprintf(stderr, "Processing done in %.2f seconds\n",nSeconds);
+        //clock_gettime(CLOCK_REALTIME, &ts);
+        //double nSeconds = ((double) ts.tv_nsec)/1e9;
+        //fprintf(stderr, "Processing done in %.2f seconds\n",nSeconds);
 
     }
 

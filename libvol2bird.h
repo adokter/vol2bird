@@ -90,6 +90,12 @@ typedef struct scanmeta SCANMETA;
 
 void vol2birdCalcProfiles();
 
+float* vol2birdGetProfile(int iProfileType);
+
+int vol2birdGetNColsProfile(void);
+    
+int vol2birdGetNRowsProfile(void);
+
 void vol2birdPrintIndexArrays(void);
 
 void vol2birdPrintOptions(void);
