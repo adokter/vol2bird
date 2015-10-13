@@ -51,10 +51,10 @@ all : libvol2bird
 	#
 	#
 	# ------------------------------------
-	#       making testbaltrad.exe        
+	#       making vol2bird        
 	# ------------------------------------
 	#
-	$(CC) $(CFLAGS) testbaltrad.c \
+	$(CC) $(CFLAGS) vol2bird.c \
 	-I$(INCLUDE_RAVE_DIR) \
 	-I$(INCLUDE_THIRD_PARTY_DIR) \
 	-I$(SRC_VOL2BIRD_DIR) \
@@ -63,7 +63,7 @@ all : libvol2bird
 	-L$(LIB_PROJ_EXPAT_DIR) \
 	-L$(LIB_BBUFR_DIR) \
 	-L$(PWD) \
-	-lravetoolbox -lhdf5 -lhlhdf -lproj -lexpat -lOperaBufr -lm -lvol2bird -o testbaltrad.exe
+	-lravetoolbox -lhdf5 -lhlhdf -lproj -lexpat -lOperaBufr -lm -lvol2bird -o vol2bird
 	
 	#
 	# (You may still have to change your LD_LIBRARY_PATH)
@@ -94,8 +94,8 @@ clean :
 	if [ -f "./libvol2bird.so" ]; then \
 		rm libvol2bird.so; \
 	fi
-	if [ -f "./testbaltrad.exe" ]; then \
-		rm testbaltrad.exe; \
+	if [ -f "./vol2bird" ]; then \
+		rm vol2bird; \
 	fi
 
 
