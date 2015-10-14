@@ -24,7 +24,8 @@
 
 
 int main(int argc, char** argv) {
-
+    cfg_t* cfg;
+    vol2bird_t alldata;
 
     // check to see if we have the right number of input arguments
     if (argc != 2) {
@@ -54,14 +55,14 @@ int main(int argc, char** argv) {
         volume = (PolarVolume_t*) RaveIO_getObject(raveio);
 
         // initialize volbird library
-        int initSuccessful = vol2birdSetUp(volume) == 0;
+        int initSuccessful = vol2birdSetUp(volume, cfg, &alldata) == 0;
         
         if (initSuccessful == FALSE) {
             return -1;
         }
 
         // call vol2bird's main routine
-        vol2birdCalcProfiles();
+        vol2birdCalcProfiles(&alldata);
         
         
         // ------------------------------------------------------------------- //
@@ -74,15 +75,14 @@ int main(int argc, char** argv) {
             
             for (iProfileType = 1; iProfileType <= 3;iProfileType++) {
 
-                int nRowsProfile = vol2birdGetNRowsProfile();
-                int nColsProfile = vol2birdGetNColsProfile();
+                int nRowsProfile = vol2birdGetNRowsProfile(&alldata);
+                int nColsProfile = vol2birdGetNColsProfile(&alldata);
 
                 fprintf(stderr, "\n--------------------------\n\n");
                 
                 float *profileCopy;
-                profileCopy = (float*) malloc(sizeof(float) * nRowsProfile * nColsProfile);
 
-                profileCopy = vol2birdGetProfile(iProfileType);
+                profileCopy = vol2birdGetProfile(iProfileType, &alldata);
                 
                 int iRowProfile;
                 int iColProfile;
@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
 
 
         // tear down vol2bird, give memory back
-        vol2birdTearDown();
+        vol2birdTearDown(cfg, &alldata);
 
         // output some performance data
         //clock_gettime(CLOCK_REALTIME, &ts);

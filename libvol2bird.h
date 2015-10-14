@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-
+#include <confuse.h>
 
 // ****************************************************************************
 // Definition of standard parameters.
@@ -85,23 +85,158 @@ typedef struct cellprop CELLPROP;
 typedef struct scanmeta SCANMETA;
 
 // *****************************************************************************
+// Structures for internal use
+// *****************************************************************************
+
+struct vol2birdOptions
+{
+	int nLayers;			/* the number of layers in an altitude profile */
+	float layerThickness;		/* the width/thickness of a layer [m] */
+	float rangeMin;			/* the minimum range [m] used for constructing the bird density profile */
+	float rangeMax;			/* the maximum range [m] used for constructing the bird density profile */
+	float azimMin;			/* the minimum azimuth [degrees] used for constructing the bird density profile */
+	float azimMax;			/* the maximum azimuth [degrees] used for constructing the bird density profile */
+	float radarWavelength;		/* the default wavelength [cm] of the radar if it is not included in the metadata */
+	int useStaticClutterData;	/* whether a static clutter map is used */
+	int printOptions;		/* print options to stderr */
+	int printDbz;			/* print dbz to stderr */
+	int printVrad;			/* print vrad to stderr */
+	int printCell;			/* print cell to stderr */
+	int printCellProp;		/* print cell properties to stderr */
+	int printTex;			/* print texture to stderr */
+	int printClut;			/* print clutter to stderr */
+	int printProfileVar;		/* print profile data to stderr */
+	int printPointsArray;		/* whether or not to print the 'points' array */
+	int fitVrad;			/* Whether or not to fit a model to the observed vrad */
+	int exportBirdProfileAsJSONVar; /* */
+};
+typedef struct vol2birdOptions vol2birdOptions_t;
+
+
+
+struct vol2birdConstants
+{
+	int nGatesCellMin;
+	float cellClutterFractionMax;
+	float cellDbzMin;
+	float chisqMin;
+	float clutterValueMin;
+	float dbzMax;
+	float dbzThresMin;
+	float fringeDist;
+	int nBinsGap;
+	int nPointsIncludedMin;
+	int nNeighborsMin;
+	int nObsGapMin;
+	int nAzimNeighborhood;
+	int nRangNeighborhood;
+	int nCountMin; 
+	float refracIndex;
+	float birdRadarCrossSection;
+	float cellStdDevMax;
+	float stdDevMinBird;
+	float absVDifMax;
+	float vradMin;
+};
+typedef struct vol2birdConstants vol2birdConstants_t;
+
+
+
+struct vol2birdPoints
+{
+	int nColsPoints;
+	int nRowsPoints;
+	int azimAngleCol;
+	int elevAngleCol;
+	int dbzValueCol;
+	int vradValueCol;
+	int cellValueCol;
+	int gateCodeCol;
+	float* points;		// Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
+	int* indexFrom;		// Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
+	int* indexTo;		// Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
+	int* nPointsWritten;	// Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
+};
+typedef struct vol2birdPoints vol2birdPoints_t;
+
+
+
+struct vol2birdFlags
+{
+	int flagPositionStaticClutter;
+	int flagPositionDynamicClutter;
+	int flagPositionDynamicClutterFringe;
+	int flagPositionVradMissing;
+	int flagPositionDbzTooHighForBirds;
+	int flagPositionVradTooLow;
+	int flagPositionVDifMax;
+	int flagPositionAzimTooLow;
+	int flagPositionAzimTooHigh;
+};
+typedef struct vol2birdFlags vol2birdFlags_t;
+
+
+
+struct vol2birdProfiles
+{
+	int nProfileTypes;
+	int nRowsProfile;
+	int nColsProfile; 
+	float* profile;		// Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
+	float* profile1;
+	float* profile2;
+	float* profile3;
+	int iProfileTypeLast;
+};
+typedef struct vol2birdProfiles vol2birdProfiles_t;
+
+
+
+struct vol2birdMisc
+{
+	float rCellMax;
+	int nDims;
+	int nParsFitted;
+	float dbzFactor;
+	int initializationSuccessful;
+	int* scatterersAreNotBirds;	// Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
+};
+typedef struct vol2birdMisc vol2birdMisc_t;
+
+
+struct vol2bird
+{
+	vol2birdOptions_t options;
+	vol2birdConstants_t constants;
+	vol2birdPoints_t points;
+	vol2birdFlags_t flags;
+	vol2birdProfiles_t profiles;
+	vol2birdMisc_t misc;
+};
+typedef struct vol2bird vol2bird_t;
+
+
+
+
+
+// *****************************************************************************
 // Public function prototypes
 // *****************************************************************************
 
-void vol2birdCalcProfiles();
+void vol2birdCalcProfiles(vol2bird_t* alldata);
 
-float* vol2birdGetProfile(int iProfileType);
+float* vol2birdGetProfile(int iProfileType, vol2bird_t *alldata);
 
-int vol2birdGetNColsProfile(void);
+int vol2birdGetNColsProfile(vol2bird_t *alldata);
     
-int vol2birdGetNRowsProfile(void);
+int vol2birdGetNRowsProfile(vol2bird_t *alldata);
 
-void vol2birdPrintIndexArrays(void);
+void vol2birdPrintIndexArrays(vol2bird_t* alldata);
 
-void vol2birdPrintOptions(void);
+void vol2birdPrintOptions(vol2bird_t* alldata);
 
-void vol2birdPrintPointsArray(void);
+void vol2birdPrintPointsArray(vol2bird_t* alldata);
 
-int vol2birdSetUp(PolarVolume_t* volume);
+int vol2birdSetUp(PolarVolume_t* volume, cfg_t* cfg, vol2bird_t* alldata);
 
-void vol2birdTearDown();
+void vol2birdTearDown(cfg_t* cfg, vol2bird_t* alldata);
