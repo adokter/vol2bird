@@ -70,7 +70,7 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
 
 static int hasAzimuthGap(const float *points_local, const int nPoints, vol2bird_t* alldata);
 
-static int includeGate(const int iProfileType, const unsigned int gateCode, vol2bird_t* alldata);
+static int includeGate(const int iProfileType, const int iQuantityType, const unsigned int gateCode, vol2bird_t* alldata);
 
 static int mapDataFromRave(PolarScan_t* scan, SCANMETA *meta, 
                            unsigned char *values, char *paramStr);
@@ -86,8 +86,6 @@ static void printImageUChar(const SCANMETA* meta, const unsigned char* imageUCha
 static int printMeta(const SCANMETA* meta, const char* varName);
 
 static void printProfile(vol2bird_t* alldata);
-
-//static void sortCells(CELLPROP *cellProp, const int nCells);
 
 static int removeDroppedCells(CELLPROP *cellProp, const int nCells);
 
@@ -957,22 +955,22 @@ static void constructPointsArray(PolarVolume_t* volume, vol2bird_t* alldata) {
             // pre-allocate the dbz variables
             unsigned char* dbzImage = malloc(sizeof(unsigned char) * nGlobal);
             SCANMETA dbzMeta;
-            constructorUChar(&dbzMeta, &dbzImage[0], scan, nGlobal, 0);
+            constructorUChar(&dbzMeta, &dbzImage[0], scan, nGlobal, NAN);
             
             // pre-allocate the vrad variables
             unsigned char* vradImage = malloc(sizeof(unsigned char) * nGlobal);
             SCANMETA vradMeta;
-            constructorUChar(&vradMeta, &vradImage[0], scan, nGlobal, 0);
+            constructorUChar(&vradMeta, &vradImage[0], scan, nGlobal, NAN);
             
             // pre-allocate the tex variables
             unsigned char* texImage = malloc(sizeof(unsigned char) * nGlobal);
             SCANMETA texMeta;
-            constructorUChar(&texMeta, &texImage[0], scan, nGlobal, 0);
+            constructorUChar(&texMeta, &texImage[0], scan, nGlobal, NAN);
             
             // pre-allocate the clutter variables
             unsigned char* clutterImage = malloc(sizeof(unsigned char) * nGlobal);
             SCANMETA clutterMeta;
-            constructorUChar(&clutterMeta, &clutterImage[0], scan, nGlobal, 0);
+            constructorUChar(&clutterMeta, &clutterImage[0], scan, nGlobal, NAN);
             
             // pre-allocate the cell variables
             int* cellImage = malloc(sizeof(int) * nGlobal);
@@ -2005,7 +2003,7 @@ static int hasAzimuthGap(const float* points_local, const int nPoints, vol2bird_
 
 
 
-static int includeGate(const int iProfileType, const unsigned int gateCode, vol2bird_t* alldata) {
+static int includeGate(const int iProfileType, const int iQuantityType, const unsigned int gateCode, vol2bird_t* alldata) {
     
     int doInclude = TRUE;
     
@@ -2039,10 +2037,8 @@ static int includeGate(const int iProfileType, const unsigned int gateCode, vol2
                 doInclude = FALSE;
                 break;
             case 2 : 
-                doInclude = TRUE;
                 break;
             case 3 : 
-                doInclude = TRUE;
                 break;
             default :
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
@@ -2062,21 +2058,21 @@ static int includeGate(const int iProfileType, const unsigned int gateCode, vol2
                 doInclude = FALSE;
                 break;
             case 3 : 
-                doInclude = TRUE;
                 break;
             default :
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
         }
     }
     
-    if (gateCode & 1<<(alldata->flags.flagPositionVradMissing)) {
+    if (iQuantityType & (gateCode & 1<<(alldata->flags.flagPositionVradMissing))) {
         
         // i.e. flag 3 in gateCode is true
         // this gate has reflectivity data but no corresponding radial velocity data
+        // and iQuantityType != 0, i.e. we are not dealing with reflectivity quantities
         
         switch (iProfileType) {
             case 1 : 
-                doInclude = FALSE;
+		doInclude = FALSE;
                 break;
             case 2 : 
                 doInclude = FALSE;
@@ -2101,10 +2097,8 @@ static int includeGate(const int iProfileType, const unsigned int gateCode, vol2
                 doInclude = FALSE;
                 break;
             case 2 : 
-                doInclude = TRUE;
                 break;
             case 3 : 
-                doInclude = TRUE;
                 break;
             default :
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
@@ -2114,7 +2108,7 @@ static int includeGate(const int iProfileType, const unsigned int gateCode, vol2
     if (gateCode & 1<<(alldata->flags.flagPositionVradTooLow)) {
         
         // i.e. flag 5 in gateCode is true
-        // this gate's radial velocity is too low to be due to actual scatterers; likely just noise
+        // this gate's radial velocity is very low, and therefore excluded as potential clutter.
         
         switch (iProfileType) {
             case 1 : 
@@ -2131,8 +2125,9 @@ static int includeGate(const int iProfileType, const unsigned int gateCode, vol2
         }
     }
     
-    if (gateCode & 1<<(alldata->flags.flagPositionVDifMax)) {
+    if (iQuantityType & (gateCode & 1<<(alldata->flags.flagPositionVDifMax))) {
 
+        // i.e. iQuantityType !=0, we are dealing with a selection for svdfit.
         // i.e. flag 6 in gateCode is true
         // after the first svdfit, this gate's fitted vRad was more than 
         // VDIFMAX away from the observed vRad for that gate. It is therefore
@@ -2143,12 +2138,10 @@ static int includeGate(const int iProfileType, const unsigned int gateCode, vol2
                 doInclude = FALSE;
                 break;
             case 2 : 
-                // FIXME not sure if this should be FALSE for iProfileType==2
-                doInclude = TRUE;
+                doInclude = FALSE;
                 break;
             case 3 : 
-                // FIXME not sure if this should be FALSE for iProfileType==3
-                doInclude = TRUE;
+                doInclude = FALSE;
                 break;
             default :
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
@@ -2157,8 +2150,10 @@ static int includeGate(const int iProfileType, const unsigned int gateCode, vol2
 
 
 
-    if (gateCode & 1<<(alldata->flags.flagPositionAzimTooLow)) {
+    if (!iQuantityType & (gateCode & 1<<(alldata->flags.flagPositionAzimTooLow))) {
 
+        // i.e. iQuantityType == 0, we are NOT dealing with a selection for svdfit, but with a selection of reflectivities.
+	// Azimuth selection does not apply to svdfit, because svdfit requires data at all azimuths
         // i.e. flag 7 in gateCode is true
         // the user can specify to exclude gates based on their azimuth;
         // this clause is for gates that have too low azimuth
@@ -2179,8 +2174,10 @@ static int includeGate(const int iProfileType, const unsigned int gateCode, vol2
     }
 
 
-    if (gateCode & 1<<(alldata->flags.flagPositionAzimTooHigh)) {
+    if (!iQuantityType & (gateCode & 1<<(alldata->flags.flagPositionAzimTooHigh))) {
 
+        // i.e. iQuantityType == 0, we are NOT dealing with a selection for svdfit, but with a selection of reflectivities.
+	// Azimuth selection does not apply to svdfit, because svdfit requires data at all azimuths
         // i.e. flag 8 in gateCode is true
         // the user can specify to exclude gates based on their azimuth;
         // this clause is for gates that have too high azimuth
@@ -2278,7 +2275,6 @@ static int mapDataFromRave(PolarScan_t* scan, SCANMETA* meta, unsigned char* val
         meta->valueOffset = (float) PolarScanParam_getOffset(param);
         meta->valueScale = (float) PolarScanParam_getGain(param);
         meta->missing = (unsigned char) PolarScanParam_getNodata(param);
-
         double value;
         double* valuePtr = &value;
         unsigned char valueUChar;
@@ -2296,7 +2292,14 @@ static int mapDataFromRave(PolarScan_t* scan, SCANMETA* meta, unsigned char* val
                     fprintf(stderr,"Out of range value read at iRang = %d, iAzim = %d\n",iRang,iAzim);
                     return -1;
                 }
-                values[iGlobal] = valueUChar;
+		//the below conditions sets RaveValueType_UNDEFINED, RaveValueType_UNDETECT, RaveValueType_NODATA all to nodata value
+		//thereby the difference between these three types is lost
+		if(t != RaveValueType_DATA ){
+                    values[iGlobal] = meta->missing;
+		}
+		else{
+                    values[iGlobal] = valueUChar;
+		}
                 iGlobal++;
             }
         }
@@ -2846,7 +2849,9 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 
                 int iPointLayer;
                 int iPointIncluded;
+                int iPointIncludedZ;
                 int nPointsIncluded;
+                int nPointsIncludedZ;
 
                 float parameterVector[] = {NAN,NAN,NAN};
                 float avar[] = {NAN,NAN,NAN};
@@ -2895,42 +2900,31 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = NAN;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = NAN;
 
-                iPointIncluded = 0;
-                
+		//Calculate the average reflectivity Z of the layer
+                iPointIncludedZ = 0;
                 for (iPointLayer = iPointFrom; iPointLayer < iPointFrom + nPointsLayer; iPointLayer++) {
                     
                     unsigned int gateCode = (unsigned int) alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.gateCodeCol];
 
-                    if (includeGate(iProfileType,gateCode, alldata) == TRUE) {
+                    if (includeGate(iProfileType,0,gateCode, alldata) == TRUE) {
 
-                        // copy azimuth angle from the 'points' array
-                        pointsSelection[iPointIncluded * alldata->misc.nDims + 0] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.azimAngleCol];
-                        // copy elevation angle from the 'points' array
-                        pointsSelection[iPointIncluded * alldata->misc.nDims + 1] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.elevAngleCol];
                         // get the dbz value at this [azimuth, elevation] 
                         dbzValue = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.dbzValueCol];
                         // convert from dB scale to linear scale 
                         undbzValue = (float) exp(0.1*log(10)*dbzValue);
                         // sum the undbz in this layer
                         undbzSum += undbzValue;
-                        // copy the observed vrad value at this [azimuth, elevation] 
-                        yObs[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.vradValueCol];
-                        // pre-allocate the fitted vrad value at this [azimuth,elevation]
-                        yFitted[iPointIncluded] = 0.0f;
-                        // keep a record of which index was just included
-                        includedIndex[iPointIncluded] = iPointLayer;
-                        
                         // raise the counter
-                        iPointIncluded += 1;
+                        iPointIncludedZ += 1;
                         
                     }
                 } // endfor (iPointLayer = 0; iPointLayer < nPointsLayer; iPointLayer++) {
-                nPointsIncluded = iPointIncluded;
-                
-                
-                if (nPointsIncluded > alldata->constants.nPointsIncludedMin) {   
+                nPointsIncludedZ = iPointIncludedZ;
+ 
+		// calculate bird densities from undbzSum
+                if (nPointsIncludedZ > alldata->constants.nPointsIncludedMin) {   
                     // when there are enough valid points, convert undbzAvg back to dB-scale
-                    undbzAvg = (float) (undbzSum/nPointsIncluded);
+                    undbzAvg = (float) (undbzSum/nPointsIncludedZ);
                     dbzAvg = (10*log(undbzAvg))/log(10);
                 }
                 else {
@@ -2951,6 +2945,35 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 else {
                     birdDensity = NAN;
                 }
+                
+		//Prepare the arguments of svdfit
+                iPointIncluded = 0;
+                for (iPointLayer = iPointFrom; iPointLayer < iPointFrom + nPointsLayer; iPointLayer++) {
+                    
+                    unsigned int gateCode = (unsigned int) alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.gateCodeCol];
+
+                    if (includeGate(iProfileType,1,gateCode, alldata) == TRUE) {
+
+                        // copy azimuth angle from the 'points' array
+                        pointsSelection[iPointIncluded * alldata->misc.nDims + 0] = alldata->points.points[iPointLayer * alldata->points.nColsPoints
+										  + alldata->points.azimAngleCol];
+                        // copy elevation angle from the 'points' array
+                        pointsSelection[iPointIncluded * alldata->misc.nDims + 1] = alldata->points.points[iPointLayer * alldata->points.nColsPoints
+										  + alldata->points.elevAngleCol];
+                        // copy the observed vrad value at this [azimuth, elevation] 
+                        yObs[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.vradValueCol];
+                        // pre-allocate the fitted vrad value at this [azimuth,elevation]
+                        yFitted[iPointIncluded] = 0.0f;
+                        // keep a record of which index was just included
+                        includedIndex[iPointIncluded] = iPointLayer;
+
+                        // raise the counter
+                        iPointIncluded += 1;
+                        
+                    }
+                } // endfor (iPointLayer = 0; iPointLayer < nPointsLayer; iPointLayer++) {
+                nPointsIncluded = iPointIncluded;
+
 
                 // check if there are directions that have almost no observations
                 // (as this makes the svdfit result really uncertain)  
@@ -3010,18 +3033,20 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
                 
+ 
                 free((void*) yObs);
                 free((void*) yFitted);
                 free((void*) pointsSelection);
         
             } // endfor (iPass = 0; iPass < nPasses; iPass++)
             
-            
             // You need some of the results of iProfileType == 3 in order 
             // to calculate iProfileType == 1
             if (iProfileType == 3) {
                 if (chi < alldata->constants.stdDevMinBird) {
                     alldata->misc.scatterersAreNotBirds[iLayer] = TRUE;
+                    // set the bird density to zero:
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = 0.0;
                 }
                 else {
                     alldata->misc.scatterersAreNotBirds[iLayer] = FALSE;
