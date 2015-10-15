@@ -46,12 +46,14 @@ static int constructorInt(SCANMETA* meta, int* image, PolarScan_t* scan, const i
 
 static int constructorUChar(SCANMETA* meta, unsigned char* image, PolarScan_t* scan, const int nGlobal, const unsigned char initValue);
 
-static void constructPointsArray(PolarVolume_t* volume, vol2bird_t* alldata);
+static void constructPointsArray(PolarVolume_t* volume, int *useScan, vol2bird_t* alldata);
 
 static int detNumberOfGates(const int iLayer, const float rangeScale, const float elevAngle,
                             const int nRang, const int nAzim, const float radarHeight, vol2bird_t* alldata);
 
-static int detSvdfitArraySize(PolarVolume_t* volume, vol2bird_t* alldata);
+static int detSvdfitArraySize(PolarVolume_t* volume, int *useScan, vol2bird_t* alldata);
+
+static int *determineScanUse(PolarVolume_t* volume, vol2bird_t* alldata);
 
 static void exportBirdProfileAsJSON(vol2bird_t* alldata);
 
@@ -930,8 +932,7 @@ static int constructorUChar(SCANMETA* meta, unsigned char* image, PolarScan_t* s
 }
 
 
-
-static void constructPointsArray(PolarVolume_t* volume, vol2bird_t* alldata) {
+static void constructPointsArray(PolarVolume_t* volume, int* useScan, vol2bird_t* alldata) {
     
         // iterate over the scans in 'volume'
         int iScan;
@@ -942,168 +943,168 @@ static void constructPointsArray(PolarVolume_t* volume, vol2bird_t* alldata) {
 
 
         for (iScan = 0; iScan < nScans; iScan++) {
+            if (useScan[iScan] == 1)
+            {
             
-            // initialize the scan object
-            PolarScan_t* scan = NULL;
-        
-            // extract the scan object from the volume object
-            scan = PolarVolume_getScan(volume, iScan);
+                // initialize the scan object
+                PolarScan_t* scan = NULL;
             
-            // determine the number of array elements in the polar scan
-            int nGlobal = (int) PolarScan_getNbins(scan) * PolarScan_getNrays(scan);
-            
-            // pre-allocate the dbz variables
-            unsigned char* dbzImage = malloc(sizeof(unsigned char) * nGlobal);
-            SCANMETA dbzMeta;
-            constructorUChar(&dbzMeta, &dbzImage[0], scan, nGlobal, NAN);
-            
-            // pre-allocate the vrad variables
-            unsigned char* vradImage = malloc(sizeof(unsigned char) * nGlobal);
-            SCANMETA vradMeta;
-            constructorUChar(&vradMeta, &vradImage[0], scan, nGlobal, NAN);
-            
-            // pre-allocate the tex variables
-            unsigned char* texImage = malloc(sizeof(unsigned char) * nGlobal);
-            SCANMETA texMeta;
-            constructorUChar(&texMeta, &texImage[0], scan, nGlobal, NAN);
-            
-            // pre-allocate the clutter variables
-            unsigned char* clutterImage = malloc(sizeof(unsigned char) * nGlobal);
-            SCANMETA clutterMeta;
-            constructorUChar(&clutterMeta, &clutterImage[0], scan, nGlobal, NAN);
-            
-            // pre-allocate the cell variables
-            int* cellImage = malloc(sizeof(int) * nGlobal);
-            SCANMETA cellMeta;
-            constructorInt(&cellMeta, &cellImage[0], scan, nGlobal, -1);
-
-            // populate the dbzMeta and dbzImage variables with data from 
-            // the Rave scan object:
-            int rcDbz = mapDataFromRave(scan, &dbzMeta, &dbzImage[0],"DBZH");
-            if (rcDbz != 0) {
-                fprintf(stderr, "Something went wrong while mapping DBZH data from RAVE to LIBVOL2BIRD.\n");
-            }
-
-            // populate the vradMeta and vradImage variables with data from  
-            // the Rave scan object:
-            int rcVrad = mapDataFromRave(scan, &vradMeta, &vradImage[0],"VRAD");
-            if (rcVrad != 0) {
-                fprintf(stderr, "Something went wrong while mapping VRAD data from RAVE to LIBVOL2BIRD.\n");
-            }
-
-
-            // ------------------------------------------------------------- //
-            //                      calculate vrad texture                   //
-            // ------------------------------------------------------------- //
-
-            calcTexture(&texImage[0], &vradImage[0], &dbzImage[0], 
-                        &texMeta, &vradMeta, &dbzMeta, alldata);
-
-
-            // ------------------------------------------------------------- //
-            //        find (weather) cells in the reflectivity image         //
-            // ------------------------------------------------------------- //
-            
-            int nCells = findWeatherCells(&dbzImage[0], &cellImage[0], 
-                                   &dbzMeta, alldata);
-            
-            if (alldata->options.printCellProp == TRUE) {
-                fprintf(stderr,"(%d/%d): found %d cells.\n",iScan, nScans, nCells);
-            }
-            
-            // ------------------------------------------------------------- //
-            //                      analyze cells                            //
-            // ------------------------------------------------------------- //
-
-            int nCellsValid = analyzeCells(&dbzImage[0], &vradImage[0], &texImage[0], 
-                &clutterImage[0], &cellImage[0], &dbzMeta, &vradMeta, &texMeta, 
-                &clutterMeta, nCells, alldata);
-
-            // ------------------------------------------------------------- //
-            //                     calculate fringe                          //
-            // ------------------------------------------------------------- //
-
-            fringeCells(&cellImage[0], cellMeta.nRang, cellMeta.nAzim, 
-                cellMeta.azimScale, cellMeta.rangeScale, alldata);
+                // extract the scan object from the volume object
+                scan = PolarVolume_getScan(volume, iScan);
                 
-
-            // ------------------------------------------------------------- //
-            //            print selected outputs to stderr                   //
-            // ------------------------------------------------------------- //
-
-            if (alldata->options.printDbz == TRUE) {
-                fprintf(stderr,"product = dbz\n");
-                printMeta(&dbzMeta,"dbzMeta");
-                printImageUChar(&dbzMeta,&dbzImage[0]);
-            }
-            if (alldata->options.printVrad == TRUE) {
-                fprintf(stderr,"product = vrad\n");
-                printMeta(&vradMeta,"vradMeta");
-                printImageUChar(&vradMeta,&vradImage[0]);
-            }
-            if (alldata->options.printTex == TRUE) {
-                fprintf(stderr,"product = tex\n");
-                printMeta(&texMeta,"texMeta");
-                printImageUChar(&texMeta,&texImage[0]);
-            }
-            if (alldata->options.printCell == TRUE) {
-                fprintf(stderr,"product = cell\n");
-                printMeta(&cellMeta,"cellMeta");
-                printImageInt(&cellMeta,&cellImage[0]);
-            }
-            if (alldata->options.printClut == TRUE) { 
-                fprintf(stderr,"product = clut\n");
-                printMeta(&clutterMeta,"clutterMeta");
-                printImageUChar(&clutterMeta,&clutterImage[0]);
-            }
-                        
-            // ------------------------------------------------------------- //
-            //    fill in the appropriate elements in the points array       //
-            // ------------------------------------------------------------- //
-
-            int iLayer;
-            
-            for (iLayer = 0; iLayer < alldata->options.nLayers; iLayer++) {
+                // determine the number of array elements in the polar scan
+                int nGlobal = (int) PolarScan_getNbins(scan) * PolarScan_getNrays(scan);
                 
-                float altitudeMin = iLayer * alldata->options.layerThickness;
-                float altitudeMax = (iLayer + 1) * alldata->options.layerThickness;
-                int iRowPoints = alldata->points.indexFrom[iLayer] + alldata->points.nPointsWritten[iLayer];
-
-                int n = getListOfSelectedGates(&vradMeta, &vradImage[0],
-                    &dbzMeta, &dbzImage[0], 
-                    &cellImage[0], 
-                    altitudeMin, altitudeMax, 
-                    &(alldata->points.points[0]), iRowPoints, alldata);
-                    
-                alldata->points.nPointsWritten[iLayer] += n;
-
-                if (alldata->points.indexFrom[iLayer] + alldata->points.nPointsWritten[iLayer] > alldata->points.indexTo[iLayer]) {
-                    fprintf(stderr, "Problem occurred: writing over existing data\n");
-                    return;
+                // pre-allocate the dbz variables
+                unsigned char* dbzImage = malloc(sizeof(unsigned char) * nGlobal);
+                SCANMETA dbzMeta;
+                constructorUChar(&dbzMeta, &dbzImage[0], scan, nGlobal, NAN);
+                
+                // pre-allocate the vrad variables
+                unsigned char* vradImage = malloc(sizeof(unsigned char) * nGlobal);
+                SCANMETA vradMeta;
+                constructorUChar(&vradMeta, &vradImage[0], scan, nGlobal, NAN);
+                
+                // pre-allocate the tex variables
+                unsigned char* texImage = malloc(sizeof(unsigned char) * nGlobal);
+                SCANMETA texMeta;
+                constructorUChar(&texMeta, &texImage[0], scan, nGlobal, NAN);
+                
+                // pre-allocate the clutter variables
+                unsigned char* clutterImage = malloc(sizeof(unsigned char) * nGlobal);
+                SCANMETA clutterMeta;
+                constructorUChar(&clutterMeta, &clutterImage[0], scan, nGlobal, NAN);
+                
+                // pre-allocate the cell variables
+                int* cellImage = malloc(sizeof(int) * nGlobal);
+                SCANMETA cellMeta;
+                constructorInt(&cellMeta, &cellImage[0], scan, nGlobal, -1);
+    
+                // populate the dbzMeta and dbzImage variables with data from 
+                // the Rave scan object:
+                int rcDbz = mapDataFromRave(scan, &dbzMeta, &dbzImage[0],"DBZH");
+                if (rcDbz != 0) {
+                    fprintf(stderr, "Something went wrong while mapping DBZH data from RAVE to LIBVOL2BIRD.\n");
                 }
-
-
-            } // endfor (iLayer = 0; iLayer < nLayers; iLayer++)
-
-            // ------------------------------------------------------------- //
-            //                         clean up                              //
-            // ------------------------------------------------------------- //
-
-
-            // free previously malloc'ed arrays
-            free((void*) dbzImage);
-            free((void*) vradImage);
-            free((void*) texImage);
-            free((void*) cellImage);
-            free((void*) clutterImage);
-            
-            RAVE_OBJECT_RELEASE(scan);
-            
+    
+                // populate the vradMeta and vradImage variables with data from  
+                // the Rave scan object:
+                int rcVrad = mapDataFromRave(scan, &vradMeta, &vradImage[0],"VRAD");
+                if (rcVrad != 0) {
+                    fprintf(stderr, "Something went wrong while mapping VRAD data from RAVE to LIBVOL2BIRD.\n");
+                }
+    
+    
+                // ------------------------------------------------------------- //
+                //                      calculate vrad texture                   //
+                // ------------------------------------------------------------- //
+    
+                calcTexture(&texImage[0], &vradImage[0], &dbzImage[0], 
+                            &texMeta, &vradMeta, &dbzMeta, alldata);
+    
+    
+                // ------------------------------------------------------------- //
+                //        find (weather) cells in the reflectivity image         //
+                // ------------------------------------------------------------- //
+                
+                int nCells = findWeatherCells(&dbzImage[0], &cellImage[0], 
+                                       &dbzMeta, alldata);
+                
+                if (alldata->options.printCellProp == TRUE) {
+                    fprintf(stderr,"(%d/%d): found %d cells.\n",iScan, nScans, nCells);
+                }
+                
+                // ------------------------------------------------------------- //
+                //                      analyze cells                            //
+                // ------------------------------------------------------------- //
+    
+                int nCellsValid = analyzeCells(&dbzImage[0], &vradImage[0], &texImage[0], 
+                    &clutterImage[0], &cellImage[0], &dbzMeta, &vradMeta, &texMeta, 
+                    &clutterMeta, nCells, alldata);
+    
+                // ------------------------------------------------------------- //
+                //                     calculate fringe                          //
+                // ------------------------------------------------------------- //
+    
+                fringeCells(&cellImage[0], cellMeta.nRang, cellMeta.nAzim, 
+                    cellMeta.azimScale, cellMeta.rangeScale, alldata);
+                    
+    
+                // ------------------------------------------------------------- //
+                //            print selected outputs to stderr                   //
+                // ------------------------------------------------------------- //
+    
+                if (alldata->options.printDbz == TRUE) {
+                    fprintf(stderr,"product = dbz\n");
+                    printMeta(&dbzMeta,"dbzMeta");
+                    printImageUChar(&dbzMeta,&dbzImage[0]);
+                }
+                if (alldata->options.printVrad == TRUE) {
+                    fprintf(stderr,"product = vrad\n");
+                    printMeta(&vradMeta,"vradMeta");
+                    printImageUChar(&vradMeta,&vradImage[0]);
+                }
+                if (alldata->options.printTex == TRUE) {
+                    fprintf(stderr,"product = tex\n");
+                    printMeta(&texMeta,"texMeta");
+                    printImageUChar(&texMeta,&texImage[0]);
+                }
+                if (alldata->options.printCell == TRUE) {
+                    fprintf(stderr,"product = cell\n");
+                    printMeta(&cellMeta,"cellMeta");
+                    printImageInt(&cellMeta,&cellImage[0]);
+                }
+                if (alldata->options.printClut == TRUE) { 
+                    fprintf(stderr,"product = clut\n");
+                    printMeta(&clutterMeta,"clutterMeta");
+                    printImageUChar(&clutterMeta,&clutterImage[0]);
+                }
+                            
+                // ------------------------------------------------------------- //
+                //    fill in the appropriate elements in the points array       //
+                // ------------------------------------------------------------- //
+    
+                int iLayer;
+                
+                for (iLayer = 0; iLayer < alldata->options.nLayers; iLayer++) {
+                    
+                    float altitudeMin = iLayer * alldata->options.layerThickness;
+                    float altitudeMax = (iLayer + 1) * alldata->options.layerThickness;
+                    int iRowPoints = alldata->points.indexFrom[iLayer] + alldata->points.nPointsWritten[iLayer];
+    
+                    int n = getListOfSelectedGates(&vradMeta, &vradImage[0],
+                        &dbzMeta, &dbzImage[0], 
+                        &cellImage[0], 
+                        altitudeMin, altitudeMax, 
+                        &(alldata->points.points[0]), iRowPoints, alldata);
+                        
+                    alldata->points.nPointsWritten[iLayer] += n;
+    
+                    if (alldata->points.indexFrom[iLayer] + alldata->points.nPointsWritten[iLayer] > alldata->points.indexTo[iLayer]) {
+                        fprintf(stderr, "Problem occurred: writing over existing data\n");
+                        return;
+                    }
+    
+    
+                } // endfor (iLayer = 0; iLayer < nLayers; iLayer++)
+    
+                // ------------------------------------------------------------- //
+                //                         clean up                              //
+                // ------------------------------------------------------------- //
+    
+    
+                // free previously malloc'ed arrays
+                free((void*) dbzImage);
+                free((void*) vradImage);
+                free((void*) texImage);
+                free((void*) cellImage);
+                free((void*) clutterImage);
+                
+                RAVE_OBJECT_RELEASE(scan);
+                
+            }
         } // endfor (iScan = 0; iScan < nScans; iScan++)
-
 }
-
-
 
 
 
@@ -1154,7 +1155,7 @@ static int detNumberOfGates(const int iLayer,
 
 
 
-static int detSvdfitArraySize(PolarVolume_t* volume, vol2bird_t* alldata) {
+static int detSvdfitArraySize(PolarVolume_t* volume, int* useScan, vol2bird_t* alldata) {
     
     int iScan;
     int nScans = PolarVolume_getNumberOfScans(volume);
@@ -1171,22 +1172,25 @@ static int detSvdfitArraySize(PolarVolume_t* volume, vol2bird_t* alldata) {
     }
 
     for (iScan = 0; iScan < nScans; iScan++) {
-        for (iLayer = 0; iLayer < alldata->options.nLayers; iLayer++) {
-
-            PolarScan_t* scan = PolarVolume_getScan(volume, iScan);
-            
-            int nRang = (int) PolarScan_getNbins(scan);
-            int nAzim = (int) PolarScan_getNrays(scan);
-            float elevAngle = (float) (360 * PolarScan_getElangle(scan) / 2 / PI );
-            float rangeScale = (float) PolarScan_getRscale(scan);
-            float radarHeight = (float) PolarScan_getHeight(scan);
-
-            nGates[iLayer] += detNumberOfGates(iLayer, 
-                rangeScale, elevAngle, nRang, 
-                nAzim, radarHeight, alldata);
+        if (useScan[iScan] == 1)
+        {
+            for (iLayer = 0; iLayer < alldata->options.nLayers; iLayer++) {
+    
+                PolarScan_t* scan = PolarVolume_getScan(volume, iScan);
                 
-            RAVE_OBJECT_RELEASE(scan);
+                int nRang = (int) PolarScan_getNbins(scan);
+                int nAzim = (int) PolarScan_getNrays(scan);
+                float elevAngle = (float) (360 * PolarScan_getElangle(scan) / 2 / PI );
+                float rangeScale = (float) PolarScan_getRscale(scan);
+                float radarHeight = (float) PolarScan_getHeight(scan);
 
+                nGates[iLayer] += detNumberOfGates(iLayer, 
+                    rangeScale, elevAngle, nRang, 
+                    nAzim, radarHeight, alldata);
+                    
+                RAVE_OBJECT_RELEASE(scan);
+
+            }
         }
     }
 
@@ -1218,6 +1222,69 @@ static int detSvdfitArraySize(PolarVolume_t* volume, vol2bird_t* alldata) {
     return nRowsPoints_local;
     
 }  // detSvdfitArraySize()
+
+
+
+
+// Determine whether to use scan
+static int *determineScanUse(PolarVolume_t* volume, vol2bird_t* alldata)
+{
+	RaveAttribute_t *attr;
+	PolarScan_t *scan;
+	PolarScanParam_t *param;
+	int result, nScans, iScan;
+	int *useScan;
+	double nyquist;
+	char attrName[1024];
+	
+	// Read number of scans
+	nScans = PolarVolume_getNumberOfScans(volume);
+	
+	// Allocate memory for useScan variable
+	useScan = (int *) malloc(nScans * sizeof(int));
+	
+	for (iScan = 0; iScan < nScans; iScan++)
+	{
+		// Initialize useScan and result
+		useScan[iScan] = 0;
+		result = 0;
+		
+		scan = PolarVolume_getScan(volume, iScan);
+		if (scan != (PolarScan_t *) NULL) useScan[iScan] = PolarScan_hasParameter(scan, "VRAD");
+		
+		if (useScan[iScan] == 1)
+		{
+			// Read Nyquist interval from top-level how group
+			attr = PolarVolume_getAttribute(volume, "/how/NI");
+			if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getDouble(attr, &nyquist);
+			
+			// Read Nyquist interval from dataset how group
+			if ((attr == (RaveAttribute_t *) NULL) || (result == 0))
+			{
+				sprintf(attrName, "/dataset%d/how/NI", iScan + 1);
+				attr = PolarVolume_getAttribute(volume, attrName);
+				if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getDouble(attr, &nyquist);
+			}
+			
+			// Derive Nyquist interval from the offset attribute of the dataset
+			if ((attr == (RaveAttribute_t *) NULL) || (result == 0))
+			{
+				param = PolarScan_getParameter(scan, "VRAD");
+				nyquist = fabs(PolarScanParam_getOffset(param));
+			}
+			
+			// Set useScan to 0 if no Nyquist interval is available or if it is too low
+			if (nyquist < alldata->options.minNyquist) useScan[iScan] = 0;
+		}
+		
+		// Release the scan from memory
+		RAVE_OBJECT_RELEASE(scan);
+	}
+	
+	// Return the array useScan
+	return useScan;
+}
+
 
 
 static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
@@ -2230,6 +2297,7 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_BOOL("FIT_VRAD",TRUE,CFGF_NONE),
         CFG_BOOL("PRINT_PROFILE",TRUE,CFGF_NONE),
         CFG_BOOL("PRINT_POINTS_ARRAY",FALSE,CFGF_NONE),
+        CFG_FLOAT("MIN_NYQUIST_VELOCITY",20.0f,CFGF_NONE),
         CFG_BOOL("EXPORT_BIRD_PROFILE_AS_JSON",FALSE,CFGF_NONE),
         CFG_END()
     };
@@ -3286,6 +3354,10 @@ void printProfile(vol2bird_t* alldata) {
 
 
 
+
+
+
+
 int vol2birdSetUp(PolarVolume_t* volume, cfg_t* cfg, vol2bird_t* alldata) {
 
     alldata->misc.initializationSuccessful = FALSE;
@@ -3318,7 +3390,7 @@ int vol2birdSetUp(PolarVolume_t* volume, cfg_t* cfg, vol2bird_t* alldata) {
     alldata->options.printPointsArray = cfg_getbool(cfg,"PRINT_POINTS_ARRAY");
     alldata->options.fitVrad = cfg_getbool(cfg,"FIT_VRAD");
     alldata->options.exportBirdProfileAsJSONVar = cfg_getbool(cfg,"EXPORT_BIRD_PROFILE_AS_JSON"); 
-    
+    alldata->options.minNyquist = cfg_getfloat(cfg,"MIN_NYQUIST_VELOCITY");
 
     // ------------------------------------------------------------- //
     //              vol2bird options from constants.h                //
@@ -3366,6 +3438,9 @@ int vol2birdSetUp(PolarVolume_t* volume, cfg_t* cfg, vol2bird_t* alldata) {
     //          where each altitude layer's data starts and ends     //
     // ------------------------------------------------------------- //
     
+    int *useScan;
+    useScan = determineScanUse(volume, alldata);
+
     int iLayer;
     
     // pre-allocate the list with start-from indexes for each 
@@ -3423,7 +3498,7 @@ int vol2birdSetUp(PolarVolume_t* volume, cfg_t* cfg, vol2bird_t* alldata) {
     // ------------------------------------------------------------- //
 
     alldata->points.nColsPoints = 6;
-    alldata->points.nRowsPoints = detSvdfitArraySize(volume, alldata);
+    alldata->points.nRowsPoints = detSvdfitArraySize(volume, useScan, alldata);
 
     alldata->points.azimAngleCol = 0;
     alldata->points.elevAngleCol = 1;
@@ -3462,7 +3537,7 @@ int vol2birdSetUp(PolarVolume_t* volume, cfg_t* cfg, vol2bird_t* alldata) {
     alldata->flags.flagPositionAzimTooHigh = 8;
 
     // construct the 'points' array
-    constructPointsArray(volume, alldata);
+    constructPointsArray(volume, useScan, alldata);
 
     // classify the gates based on the data in 'points'
     classifyGatesSimple(alldata);
@@ -3528,6 +3603,7 @@ int vol2birdSetUp(PolarVolume_t* volume, cfg_t* cfg, vol2bird_t* alldata) {
 
     }
     
+    free(useScan);
 
     return 0;
 
