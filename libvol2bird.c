@@ -3119,20 +3119,35 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 
                 }; // endif (fitVrad == TRUE)
 		if (hasGap){
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = iLayer * alldata->options.layerThickness;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  1] = (iLayer + 1) * alldata->options.layerThickness;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = parameterVector[0];
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  3] = parameterVector[1];
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  4] = parameterVector[2];
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  5] = hSpeed;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  6] = hDir;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  7] = chi;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  8] = (float) hasGap;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  9] = dbzAvg;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = (float) nPointsIncluded;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
-                }
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = iLayer * alldata->options.layerThickness;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  1] = (iLayer + 1) * alldata->options.layerThickness;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = NAN;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  3] = NAN;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  4] = NAN;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  5] = NAN;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  6] = NAN;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  7] = NAN;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  8] = (float) hasGap;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  9] = dbzAvg;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = (float) nPointsIncluded;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = NAN;
+		}
+		else{
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = iLayer * alldata->options.layerThickness;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  1] = (iLayer + 1) * alldata->options.layerThickness;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = parameterVector[0];
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  3] = parameterVector[1];
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  4] = parameterVector[2];
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  5] = hSpeed;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  6] = hDir;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  7] = chi;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  8] = (float) hasGap;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  9] = dbzAvg;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = (float) nPointsIncluded;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
+		}
  
                 free((void*) yObs);
                 free((void*) yFitted);
