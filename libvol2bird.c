@@ -841,7 +841,7 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
             gateCode |= 1<<(alldata->flags.flagPositionDbzTooHighForBirds);
         }
 
-        if (vradValue < alldata->constants.vradMin) {
+        if (fabs(vradValue) < alldata->constants.vradMin) {
             // this gate's radial velocity is too low; Excluded because possibly clutter
             gateCode |= 1<<(alldata->flags.flagPositionVradTooLow);
         }
@@ -2898,6 +2898,10 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
     // calculate the profiles in reverse order, because you need the result 
     // of iProfileType == 3 in order to check whether chi < stdDevMinBird  
     // when calculating iProfileType == 1
+
+
+//vol2birdPrintPointsArray(alldata);
+
     for (iProfileType = alldata->profiles.nProfileTypes; iProfileType > 0; iProfileType--) {
 
         // ------------------------------------------------------------- //
@@ -3036,6 +3040,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     birdDensity = NAN;
                 }
                 
+//fprintf(stdout,"#iPass=%i \n",iPass);
+//fprintf(stdout,"#azim\telev\tvrad\n");
 		//Prepare the arguments of svdfit
                 iPointIncluded = 0;
                 for (iPointLayer = iPointFrom; iPointLayer < iPointFrom + nPointsLayer; iPointLayer++) {
@@ -3045,18 +3051,16 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     if (includeGate(iProfileType,1,gateCode, alldata) == TRUE) {
 
                         // copy azimuth angle from the 'points' array
-                        pointsSelection[iPointIncluded * alldata->misc.nDims + 0] = alldata->points.points[iPointLayer * alldata->points.nColsPoints
-										  + alldata->points.azimAngleCol];
+                        pointsSelection[iPointIncluded * alldata->misc.nDims + 0] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.azimAngleCol];
                         // copy elevation angle from the 'points' array
-                        pointsSelection[iPointIncluded * alldata->misc.nDims + 1] = alldata->points.points[iPointLayer * alldata->points.nColsPoints
-										  + alldata->points.elevAngleCol];
+                        pointsSelection[iPointIncluded * alldata->misc.nDims + 1] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.elevAngleCol];
                         // copy the observed vrad value at this [azimuth, elevation] 
                         yObs[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.vradValueCol];
                         // pre-allocate the fitted vrad value at this [azimuth,elevation]
                         yFitted[iPointIncluded] = 0.0f;
                         // keep a record of which index was just included
                         includedIndex[iPointIncluded] = iPointLayer;
-
+//fprintf(stdout,"%f\t%f\t%f\n", pointsSelection[iPointIncluded * alldata->misc.nDims + 0], pointsSelection[iPointIncluded * alldata->misc.nDims + 1], yObs[iPointIncluded]);
                         // raise the counter
                         iPointIncluded += 1;
 
@@ -3064,7 +3068,6 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     }
                 } // endfor (iPointLayer = 0; iPointLayer < nPointsLayer; iPointLayer++) {
                 nPointsIncluded = iPointIncluded;
-
 
                 // check if there are directions that have almost no observations
                 // (as this makes the svdfit result really uncertain)  

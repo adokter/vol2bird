@@ -109,6 +109,7 @@ struct vol2birdOptions
 	int printPointsArray;		/* whether or not to print the 'points' array */
 	int fitVrad;			/* Whether or not to fit a model to the observed vrad */
 	int exportBirdProfileAsJSONVar; /* */
+	float minNyquist;		/* Minimum Nyquist velocity [m/s] to include a scan; to excluded velocity scans too heavily folded */
 };
 typedef struct vol2birdOptions vol2birdOptions_t;
 

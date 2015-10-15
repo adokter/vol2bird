@@ -7,9 +7,9 @@
 #define DBZMIN                    -100.0
 #define FRINGEDIST                5000.0
 #define NBINSGAP                  8
+#define NOBSGAPMIN                5
 #define NDBZMIN                   25
 #define NEIGHBORS                 5
-#define NOBSGAPMIN                5
 #define NTEXBINAZIM               3
 #define NTEXBINRANG               3
 #define NTEXMIN                   4
