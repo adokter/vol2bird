@@ -484,9 +484,10 @@ static int analyzeCells(const unsigned char *dbzImage, const unsigned char *vrad
             vradValue = vradMeta->valueScale * (float) vradImage[iGlobal] + vradMeta->valueOffset;
             clutterValue = clutterMeta->valueScale * (float) clutterImage[iGlobal] + clutterMeta->valueOffset;
             texValue = texMeta->valueScale * (float) texImage[iGlobal] + texMeta->valueOffset;
-
+	    
             iCell = cellImage[iGlobal];
 
+	    // Note: this also throws out all nodata/nodetect values for dbzValue
             if (iCell<0) {
                 continue;
             }
@@ -500,7 +501,7 @@ static int analyzeCells(const unsigned char *dbzImage, const unsigned char *vrad
             cellProp[iCell].drop = FALSE;
 
             // low radial velocities are treated as clutter, not included in calculation cell properties
-            if (vradValue < alldata->constants.vradMin){
+            if (vradValue < alldata->constants.vradMin & vradImage[iGlobal] != vradMeta->missing){
 
                 cellProp[iCell].nGatesClutter += 1;
 
@@ -518,8 +519,6 @@ static int analyzeCells(const unsigned char *dbzImage, const unsigned char *vrad
                     continue;
                 }
             }
-
-
 
             if (isnan(cellProp[iCell].dbzMax) || dbzValue > cellProp[iCell].dbzMax) {
 
@@ -831,8 +830,8 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
             gateCode |= 1<<(alldata->flags.flagPositionDynamicClutterFringe);
         }
 
-        if (isnan(vradValue) == TRUE) {
-            // this gate has reflectivity data but no corresponding radial velocity data
+        if ((isnan(vradValue) == TRUE) || (isnan(dbzValue) == TRUE)) {
+            // this gate has no valid radial velocity data
             gateCode |= 1<<(alldata->flags.flagPositionVradMissing);
         }
 
@@ -843,7 +842,7 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
         }
 
         if (vradValue < alldata->constants.vradMin) {
-            // this gate's radial velocity is too low to be due to actual scatterers; likely just noise
+            // this gate's radial velocity is too low; Excluded because possibly clutter
             gateCode |= 1<<(alldata->flags.flagPositionVradTooLow);
         }
 
@@ -1569,7 +1568,7 @@ static int findWeatherCells(const unsigned char *dbzImage, int *cellImage,
         cellImage[iGlobal] = cellImageInitialValue;
     }
 
-    // If threshold value is equal to missing value, return.
+    // If threshold value is equal to missing value, return. FIXME: makes non-general assumption on dbzMissing
     if (dbzThres == dbzMissing) {
         return -1;
     }
@@ -2001,13 +2000,14 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
 
 	    // in the points array, store missing reflectivity values as the lowest possible reflectivity
 	    // this is to treat nodetects as absence of scatterers
-	    if (dbzValue == dbzMissingValue){
-		dbzValue = dbzValueOffset; // FIXME: it may be possible that the offset is not the lowest possible value
+	    if (dbzImage[iGlobal] == dbzMissingValue){
+		//dbzValue = dbzValueOffset; // FIXME: it may be possible that the offset is not the lowest possible value
+		dbzValue = NAN; // FIXME: it may be possible that the offset is not the lowest possible value
 	    }
 
 	    // in the points array, store missing vrad values as NAN
 	    // this is necessary because different scans may have different missing values
-	    if (vradValue == vradMissingValue){
+	    if (vradImage[iGlobal] == vradMissingValue){
 		vradValue = NAN;
 	    }
 
@@ -2149,7 +2149,7 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
         }
     }
     
-    if (iQuantityType & (gateCode & 1<<(alldata->flags.flagPositionVradMissing))) {
+    if (iQuantityType && (gateCode & 1<<(alldata->flags.flagPositionVradMissing))) {
         
         // i.e. flag 3 in gateCode is true
         // this gate has reflectivity data but no corresponding radial velocity data
@@ -2210,7 +2210,7 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
         }
     }
     
-    if (iQuantityType & (gateCode & 1<<(alldata->flags.flagPositionVDifMax))) {
+    if (iQuantityType && (gateCode & 1<<(alldata->flags.flagPositionVDifMax))) {
 
         // i.e. iQuantityType !=0, we are dealing with a selection for svdfit.
         // i.e. flag 6 in gateCode is true
@@ -2235,7 +2235,7 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
 
 
 
-    if (!iQuantityType & (gateCode & 1<<(alldata->flags.flagPositionAzimTooLow))) {
+    if (!iQuantityType && (gateCode & 1<<(alldata->flags.flagPositionAzimTooLow))) {
 
         // i.e. iQuantityType == 0, we are NOT dealing with a selection for svdfit, but with a selection of reflectivities.
 	// Azimuth selection does not apply to svdfit, because svdfit requires data at all azimuths
@@ -2259,7 +2259,7 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
     }
 
 
-    if (!iQuantityType & (gateCode & 1<<(alldata->flags.flagPositionAzimTooHigh))) {
+    if (!iQuantityType && (gateCode & 1<<(alldata->flags.flagPositionAzimTooHigh))) {
 
         // i.e. iQuantityType == 0, we are NOT dealing with a selection for svdfit, but with a selection of reflectivities.
 	// Azimuth selection does not apply to svdfit, because svdfit requires data at all azimuths
@@ -2381,12 +2381,7 @@ static int mapDataFromRave(PolarScan_t* scan, SCANMETA* meta, unsigned char* val
 		//the below conditions sets RaveValueType_UNDEFINED, RaveValueType_UNDETECT, RaveValueType_NODATA all to nodata value
 		//thereby the difference between these three types is lost
 		if(t != RaveValueType_DATA ){
-//		    if(strcmp(paramStr,"VRAD")==0){
-                        valueUChar = meta->missing;
-//		    }	
-//		    if(strcmp(paramStr,"DBZH")==0){
-//			valueUChar = 0;
-//		    }	
+                    valueUChar = meta->missing;
 		}
                 values[iGlobal] = valueUChar;
 
@@ -3001,7 +2996,12 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         // get the dbz value at this [azimuth, elevation] 
                         dbzValue = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.dbzValueCol];
                         // convert from dB scale to linear scale 
-                        undbzValue = (float) exp(0.1*log(10)*dbzValue);
+                        if (isnan(dbzValue)==TRUE){
+			   undbzValue = 0;
+			}
+			else {
+			   undbzValue = (float) exp(0.1*log(10)*dbzValue);
+			}
                         // sum the undbz in this layer
                         undbzSum += undbzValue;
                         // raise the counter
@@ -3059,6 +3059,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 
                         // raise the counter
                         iPointIncluded += 1;
+
                         
                     }
                 } // endfor (iPointLayer = 0; iPointLayer < nPointsLayer; iPointLayer++) {
@@ -3091,6 +3092,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         else {
                             
                             chi = sqrt(chisq);
+                            //hSpeed = sqrt(pow(parameterVector[0],2) + pow(parameterVector[1],2));
                             hSpeed = sqrt(pow(parameterVector[0],2) + pow(parameterVector[1],2));
                             hDir = (atan2(parameterVector[0],parameterVector[1])*RAD2DEG);
                             
