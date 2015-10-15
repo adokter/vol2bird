@@ -831,9 +831,8 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
             gateCode |= 1<<(alldata->flags.flagPositionDynamicClutterFringe);
         }
 
-        if (FALSE) {
+        if (isnan(vradValue) == TRUE) {
             // this gate has reflectivity data but no corresponding radial velocity data
-            // TODO no condition for this yet
             gateCode |= 1<<(alldata->flags.flagPositionVradMissing);
         }
 
@@ -1250,7 +1249,9 @@ static int *determineScanUse(PolarVolume_t* volume, vol2bird_t* alldata)
 		result = 0;
 		
 		scan = PolarVolume_getScan(volume, iScan);
-		if (scan != (PolarScan_t *) NULL) useScan[iScan] = PolarScan_hasParameter(scan, "VRAD");
+		if (scan != (PolarScan_t *) NULL){
+			useScan[iScan] = PolarScan_hasParameter(scan, "VRAD");
+		}
 		
 		if (useScan[iScan] == 1)
 		{
@@ -1948,6 +1949,9 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
     float vradValue;
     float dbzValue;
     
+    unsigned char dbzMissingValue;
+    unsigned char vradMissingValue;
+
     nPointsWritten_local = 0;
 
     nRang = vradMeta->nRang;
@@ -1962,6 +1966,8 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
     dbzValueOffset = dbzMeta->valueOffset;
     dbzValueScale = dbzMeta->valueScale;
 
+    dbzMissingValue = dbzMeta->missing;
+    vradMissingValue = vradMeta->missing;
 
     for (iRang = 0; iRang < nRang; iRang++) {
 
@@ -1992,6 +1998,18 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
             gateAzim = ((float) iAzim + 0.5f) * azimuthScale;
             vradValue = vradValueScale * (float) vradImage[iGlobal] + vradValueOffset;
             dbzValue = dbzValueScale * (float) dbzImage[iGlobal] + dbzValueOffset;
+
+	    // in the points array, store missing reflectivity values as the lowest possible reflectivity
+	    // this is to treat nodetects as absence of scatterers
+	    if (dbzValue == dbzMissingValue){
+		dbzValue = dbzValueOffset; // FIXME: it may be possible that the offset is not the lowest possible value
+	    }
+
+	    // in the points array, store missing vrad values as NAN
+	    // this is necessary because different scans may have different missing values
+	    if (vradValue == vradMissingValue){
+		vradValue = NAN;
+	    }
 
             // store the location as an azimuth angle, elevation angle combination
             points_local[iRowPoints * nColsPoints_local + 0] = gateAzim;
@@ -2363,11 +2381,15 @@ static int mapDataFromRave(PolarScan_t* scan, SCANMETA* meta, unsigned char* val
 		//the below conditions sets RaveValueType_UNDEFINED, RaveValueType_UNDETECT, RaveValueType_NODATA all to nodata value
 		//thereby the difference between these three types is lost
 		if(t != RaveValueType_DATA ){
-                    values[iGlobal] = meta->missing;
+//		    if(strcmp(paramStr,"VRAD")==0){
+                        valueUChar = meta->missing;
+//		    }	
+//		    if(strcmp(paramStr,"DBZH")==0){
+//			valueUChar = 0;
+//		    }	
 		}
-		else{
-                    values[iGlobal] = valueUChar;
-		}
+                values[iGlobal] = valueUChar;
+
                 iGlobal++;
             }
         }
