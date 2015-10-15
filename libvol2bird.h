@@ -204,6 +204,13 @@ struct vol2birdMisc
 };
 typedef struct vol2birdMisc vol2birdMisc_t;
 
+struct vol2birdScanUse
+{
+	int useScan;
+	char dbzName[10];
+	char vradName[10];
+};
+typedef struct vol2birdScanUse vol2birdScanUse_t;
 
 struct vol2bird
 {

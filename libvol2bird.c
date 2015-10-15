@@ -46,14 +46,14 @@ static int constructorInt(SCANMETA* meta, int* image, PolarScan_t* scan, const i
 
 static int constructorUChar(SCANMETA* meta, unsigned char* image, PolarScan_t* scan, const int nGlobal, const unsigned char initValue);
 
-static void constructPointsArray(PolarVolume_t* volume, int *useScan, vol2bird_t* alldata);
+static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t *scanUse, vol2bird_t* alldata);
 
 static int detNumberOfGates(const int iLayer, const float rangeScale, const float elevAngle,
                             const int nRang, const int nAzim, const float radarHeight, vol2bird_t* alldata);
 
-static int detSvdfitArraySize(PolarVolume_t* volume, int *useScan, vol2bird_t* alldata);
+static int detSvdfitArraySize(PolarVolume_t* volume, vol2birdScanUse_t *scanUse, vol2bird_t* alldata);
 
-static int *determineScanUse(PolarVolume_t* volume, vol2bird_t* alldata);
+static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* alldata);
 
 static void exportBirdProfileAsJSON(vol2bird_t* alldata);
 
@@ -930,7 +930,7 @@ static int constructorUChar(SCANMETA* meta, unsigned char* image, PolarScan_t* s
 }
 
 
-static void constructPointsArray(PolarVolume_t* volume, int* useScan, vol2bird_t* alldata) {
+static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanUse, vol2bird_t* alldata) {
     
         // iterate over the scans in 'volume'
         int iScan;
@@ -941,7 +941,7 @@ static void constructPointsArray(PolarVolume_t* volume, int* useScan, vol2bird_t
 
 
         for (iScan = 0; iScan < nScans; iScan++) {
-            if (useScan[iScan] == 1)
+            if (scanUse[iScan].useScan == 1)
             {
             
                 // initialize the scan object
@@ -980,14 +980,14 @@ static void constructPointsArray(PolarVolume_t* volume, int* useScan, vol2bird_t
     
                 // populate the dbzMeta and dbzImage variables with data from 
                 // the Rave scan object:
-                int rcDbz = mapDataFromRave(scan, &dbzMeta, &dbzImage[0],"DBZH");
+                int rcDbz = mapDataFromRave(scan, &dbzMeta, &dbzImage[0],scanUse[iScan].dbzName);
                 if (rcDbz != 0) {
                     fprintf(stderr, "Something went wrong while mapping DBZH data from RAVE to LIBVOL2BIRD.\n");
                 }
     
                 // populate the vradMeta and vradImage variables with data from  
                 // the Rave scan object:
-                int rcVrad = mapDataFromRave(scan, &vradMeta, &vradImage[0],"VRAD");
+                int rcVrad = mapDataFromRave(scan, &vradMeta, &vradImage[0],scanUse[iScan].vradName);
                 if (rcVrad != 0) {
                     fprintf(stderr, "Something went wrong while mapping VRAD data from RAVE to LIBVOL2BIRD.\n");
                 }
@@ -1153,7 +1153,7 @@ static int detNumberOfGates(const int iLayer,
 
 
 
-static int detSvdfitArraySize(PolarVolume_t* volume, int* useScan, vol2bird_t* alldata) {
+static int detSvdfitArraySize(PolarVolume_t* volume, vol2birdScanUse_t* scanUse, vol2bird_t* alldata) {
     
     int iScan;
     int nScans = PolarVolume_getNumberOfScans(volume);
@@ -1170,7 +1170,7 @@ static int detSvdfitArraySize(PolarVolume_t* volume, int* useScan, vol2bird_t* a
     }
 
     for (iScan = 0; iScan < nScans; iScan++) {
-        if (useScan[iScan] == 1)
+        if (scanUse[iScan].useScan == 1)
         {
             for (iLayer = 0; iLayer < alldata->options.nLayers; iLayer++) {
     
@@ -1225,13 +1225,13 @@ static int detSvdfitArraySize(PolarVolume_t* volume, int* useScan, vol2bird_t* a
 
 
 // Determine whether to use scan
-static int *determineScanUse(PolarVolume_t* volume, vol2bird_t* alldata)
+static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* alldata)
 {
 	RaveAttribute_t *attr;
 	PolarScan_t *scan;
 	PolarScanParam_t *param;
 	int result, nScans, iScan;
-	int *useScan;
+	vol2birdScanUse_t *scanUse;
 	double nyquist;
 	char attrName[1024];
 	
@@ -1239,25 +1239,50 @@ static int *determineScanUse(PolarVolume_t* volume, vol2bird_t* alldata)
 	nScans = PolarVolume_getNumberOfScans(volume);
 	
 	// Allocate memory for useScan variable
-	useScan = (int *) malloc(nScans * sizeof(int));
+	scanUse = (vol2birdScanUse_t *) malloc(nScans * sizeof(vol2birdScanUse_t));
 	
 	for (iScan = 0; iScan < nScans; iScan++)
 	{
 		// Initialize useScan and result
-		useScan[iScan] = 0;
+		scanUse[iScan].useScan = FALSE;
 		result = 0;
 		
 		scan = PolarVolume_getScan(volume, iScan);
 		// useScan is set to zero if the quantity is not found in the scan
 		if (scan != (PolarScan_t *) NULL){
-			useScan[iScan] = PolarScan_hasParameter(scan, "VRAD");
+		    if (PolarScan_hasParameter(scan, "VRAD")){
+			sprintf(scanUse[iScan].vradName,"VRAD");	
+			scanUse[iScan].useScan = TRUE;
+		    }
+		    else{
+			if (PolarScan_hasParameter(scan, "VRADH")){
+			    sprintf(scanUse[iScan].vradName,"VRADH");	
+			    scanUse[iScan].useScan = TRUE;
+		        }
+			else{
+			    if (PolarScan_hasParameter(scan, "VRADV")){
+			        sprintf(scanUse[iScan].vradName,"VRADV");	
+			        scanUse[iScan].useScan = TRUE;
+		            }
+			}
+		    }
 		}
 		
-		if (useScan[iScan] == 1){
-			useScan[iScan] = PolarScan_hasParameter(scan, "DBZH");
+		if (scanUse[iScan].useScan){
+		    if(PolarScan_hasParameter(scan, "DBZH")){
+			sprintf(scanUse[iScan].dbzName,"DBZH");	
+		    }
+		    else{
+			if (PolarScan_hasParameter(scan, "DBZV")){
+			    sprintf(scanUse[iScan].dbzName,"DBZV");	
+		        }
+			else{	
+			    scanUse[iScan].useScan = FALSE;
+			}
+		    }
 		}
 
-		if (useScan[iScan] == 1)
+		if (scanUse[iScan].useScan)
 		{
 			// Read Nyquist interval from top-level how group
 			attr = PolarVolume_getAttribute(volume, "/how/NI");
@@ -1274,20 +1299,20 @@ static int *determineScanUse(PolarVolume_t* volume, vol2bird_t* alldata)
 			// Derive Nyquist interval from the offset attribute of the dataset
 			if ((attr == (RaveAttribute_t *) NULL) || (result == 0))
 			{
-				param = PolarScan_getParameter(scan, "VRAD");
+				param = PolarScan_getParameter(scan, scanUse[iScan].vradName);
 				nyquist = fabs(PolarScanParam_getOffset(param));
 			}
 			
 			// Set useScan to 0 if no Nyquist interval is available or if it is too low
-			if (nyquist < alldata->options.minNyquist) useScan[iScan] = 0;
+			if (nyquist < alldata->options.minNyquist) scanUse[iScan].useScan = 0;
 		}
 		
 		// Release the scan from memory
 		RAVE_OBJECT_RELEASE(scan);
 	}
 	
-	// Return the array useScan
-	return useScan;
+	// Return the array scanUse
+	return scanUse;
 }
 
 
@@ -3485,8 +3510,8 @@ int vol2birdSetUp(PolarVolume_t* volume, cfg_t* cfg, vol2bird_t* alldata) {
     //          where each altitude layer's data starts and ends     //
     // ------------------------------------------------------------- //
     
-    int *useScan;
-    useScan = determineScanUse(volume, alldata);
+    vol2birdScanUse_t* scanUse;
+    scanUse = determineScanUse(volume, alldata);
 
     int iLayer;
     
@@ -3545,7 +3570,7 @@ int vol2birdSetUp(PolarVolume_t* volume, cfg_t* cfg, vol2bird_t* alldata) {
     // ------------------------------------------------------------- //
 
     alldata->points.nColsPoints = 6;
-    alldata->points.nRowsPoints = detSvdfitArraySize(volume, useScan, alldata);
+    alldata->points.nRowsPoints = detSvdfitArraySize(volume, scanUse, alldata);
 
     alldata->points.azimAngleCol = 0;
     alldata->points.elevAngleCol = 1;
@@ -3584,7 +3609,7 @@ int vol2birdSetUp(PolarVolume_t* volume, cfg_t* cfg, vol2bird_t* alldata) {
     alldata->flags.flagPositionAzimTooHigh = 8;
 
     // construct the 'points' array
-    constructPointsArray(volume, useScan, alldata);
+    constructPointsArray(volume, scanUse, alldata);
 
     // classify the gates based on the data in 'points'
     classifyGatesSimple(alldata);
@@ -3650,7 +3675,7 @@ int vol2birdSetUp(PolarVolume_t* volume, cfg_t* cfg, vol2bird_t* alldata) {
 
     }
     
-    free(useScan);
+    free(scanUse);
 
     return 0;
 
