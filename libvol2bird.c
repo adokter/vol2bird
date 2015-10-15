@@ -1248,10 +1248,15 @@ static int *determineScanUse(PolarVolume_t* volume, vol2bird_t* alldata)
 		result = 0;
 		
 		scan = PolarVolume_getScan(volume, iScan);
+		// useScan is set to zero if the quantity is not found in the scan
 		if (scan != (PolarScan_t *) NULL){
 			useScan[iScan] = PolarScan_hasParameter(scan, "VRAD");
 		}
 		
+		if (useScan[iScan] == 1){
+			useScan[iScan] = PolarScan_hasParameter(scan, "DBZH");
+		}
+
 		if (useScan[iScan] == 1)
 		{
 			// Read Nyquist interval from top-level how group
@@ -3113,7 +3118,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                                                   &(alldata->points.points[0]), alldata);
 
                 }; // endif (fitVrad == TRUE)
-
+		if (hasGap){
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = iLayer * alldata->options.layerThickness;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  1] = (iLayer + 1) * alldata->options.layerThickness;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = parameterVector[0];
@@ -3127,7 +3132,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = (float) nPointsIncluded;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
-                
+                }
  
                 free((void*) yObs);
                 free((void*) yFitted);
