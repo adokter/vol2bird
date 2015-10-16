@@ -1,4 +1,4 @@
-# BALTRAD bird algorithm
+## Vol2Bird algorithm
 
 This repository contains code to generate vertical profiles of birds (VPBs), following the methods described in:
 
