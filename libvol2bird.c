@@ -2031,8 +2031,7 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
 	    // in the points array, store missing reflectivity values as the lowest possible reflectivity
 	    // this is to treat nodetects as absence of scatterers
 	    if (dbzImage[iGlobal] == dbzMissingValue){
-		//dbzValue = dbzValueOffset; // FIXME: it may be possible that the offset is not the lowest possible value
-		dbzValue = NAN; // FIXME: it may be possible that the offset is not the lowest possible value
+		dbzValue = NAN;
 	    }
 
 	    // in the points array, store missing vrad values as NAN
@@ -2741,9 +2740,10 @@ static int removeDroppedCells(CELLPROP *cellProp, const int nCells) {
     }
     #endif 
     
+    free(cellPropCopy);
        
     return nCopied;
-    
+   
 }
 
 
@@ -3177,6 +3177,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 free((void*) yObs);
                 free((void*) yFitted);
                 free((void*) pointsSelection);
+                free((void*) includedIndex);
         
             } // endfor (iPass = 0; iPass < nPasses; iPass++)
             
@@ -3430,11 +3431,11 @@ void printProfile(vol2bird_t* alldata) {
 
 
 
-int vol2birdSetUp(PolarVolume_t* volume, cfg_t* cfg, vol2bird_t* alldata) {
+int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata) {
 
     alldata->misc.initializationSuccessful = FALSE;
     
-    if (readUserConfigOptions(&cfg) != 0) {
+    if (readUserConfigOptions(cfg) != 0) {
         fprintf(stderr, "An error occurred while reading the user configuration file 'options.conf'.\n");
         return -1; 
     }
@@ -3443,26 +3444,26 @@ int vol2birdSetUp(PolarVolume_t* volume, cfg_t* cfg, vol2bird_t* alldata) {
     //              vol2bird options from options.conf               //
     // ------------------------------------------------------------- //
 
-    alldata->options.azimMax = cfg_getfloat(cfg, "AZIMMAX");
-    alldata->options.azimMin = cfg_getfloat(cfg, "AZIMMIN");
-    alldata->options.layerThickness = cfg_getfloat(cfg, "HLAYER");
-    alldata->options.nLayers = cfg_getint(cfg, "NLAYER");
-    alldata->options.rangeMax = cfg_getfloat(cfg, "RANGEMAX");
-    alldata->options.rangeMin = cfg_getfloat(cfg, "RANGEMIN");
-    alldata->options.radarWavelength = cfg_getfloat(cfg, "RADAR_WAVELENGTH_CM");
-    alldata->options.useStaticClutterData = cfg_getbool(cfg,"USE_STATIC_CLUTTER_DATA");
-    alldata->options.printDbz = cfg_getbool(cfg,"PRINT_DBZ");
-    alldata->options.printVrad = cfg_getbool(cfg,"PRINT_VRAD");
-    alldata->options.printTex = cfg_getbool(cfg,"PRINT_TEXTURE");
-    alldata->options.printCell = cfg_getbool(cfg,"PRINT_CELL");
-    alldata->options.printCellProp = cfg_getbool(cfg,"PRINT_CELL_PROP");
-    alldata->options.printClut = cfg_getbool(cfg,"PRINT_CLUT");
-    alldata->options.printOptions = cfg_getbool(cfg,"PRINT_OPTIONS");
-    alldata->options.printProfileVar = cfg_getbool(cfg,"PRINT_PROFILE");
-    alldata->options.printPointsArray = cfg_getbool(cfg,"PRINT_POINTS_ARRAY");
-    alldata->options.fitVrad = cfg_getbool(cfg,"FIT_VRAD");
-    alldata->options.exportBirdProfileAsJSONVar = cfg_getbool(cfg,"EXPORT_BIRD_PROFILE_AS_JSON"); 
-    alldata->options.minNyquist = cfg_getfloat(cfg,"MIN_NYQUIST_VELOCITY");
+    alldata->options.azimMax = cfg_getfloat(*cfg, "AZIMMAX");
+    alldata->options.azimMin = cfg_getfloat(*cfg, "AZIMMIN");
+    alldata->options.layerThickness = cfg_getfloat(*cfg, "HLAYER");
+    alldata->options.nLayers = cfg_getint(*cfg, "NLAYER");
+    alldata->options.rangeMax = cfg_getfloat(*cfg, "RANGEMAX");
+    alldata->options.rangeMin = cfg_getfloat(*cfg, "RANGEMIN");
+    alldata->options.radarWavelength = cfg_getfloat(*cfg, "RADAR_WAVELENGTH_CM");
+    alldata->options.useStaticClutterData = cfg_getbool(*cfg,"USE_STATIC_CLUTTER_DATA");
+    alldata->options.printDbz = cfg_getbool(*cfg,"PRINT_DBZ");
+    alldata->options.printVrad = cfg_getbool(*cfg,"PRINT_VRAD");
+    alldata->options.printTex = cfg_getbool(*cfg,"PRINT_TEXTURE");
+    alldata->options.printCell = cfg_getbool(*cfg,"PRINT_CELL");
+    alldata->options.printCellProp = cfg_getbool(*cfg,"PRINT_CELL_PROP");
+    alldata->options.printClut = cfg_getbool(*cfg,"PRINT_CLUT");
+    alldata->options.printOptions = cfg_getbool(*cfg,"PRINT_OPTIONS");
+    alldata->options.printProfileVar = cfg_getbool(*cfg,"PRINT_PROFILE");
+    alldata->options.printPointsArray = cfg_getbool(*cfg,"PRINT_POINTS_ARRAY");
+    alldata->options.fitVrad = cfg_getbool(*cfg,"FIT_VRAD");
+    alldata->options.exportBirdProfileAsJSONVar = cfg_getbool(*cfg,"EXPORT_BIRD_PROFILE_AS_JSON"); 
+    alldata->options.minNyquist = cfg_getfloat(*cfg,"MIN_NYQUIST_VELOCITY");
 
     // ------------------------------------------------------------- //
     //              vol2bird options from constants.h                //

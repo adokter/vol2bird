@@ -245,6 +245,6 @@ void vol2birdPrintOptions(vol2bird_t* alldata);
 
 void vol2birdPrintPointsArray(vol2bird_t* alldata);
 
-int vol2birdSetUp(PolarVolume_t* volume, cfg_t* cfg, vol2bird_t* alldata);
+int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata);
 
 void vol2birdTearDown(cfg_t* cfg, vol2bird_t* alldata);
