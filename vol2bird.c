@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
         volume = (PolarVolume_t*) RaveIO_getObject(raveio);
 
         // initialize volbird library
-        int initSuccessful = vol2birdSetUp(volume, cfg, &alldata) == 0;
+        int initSuccessful = vol2birdSetUp(volume, &cfg, &alldata) == 0;
         
         if (initSuccessful == FALSE) {
             return -1;
