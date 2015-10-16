@@ -2,10 +2,10 @@
 
 This repository contains code to generate vertical profiles of birds (VPBs), following the methods described in:
 
-Bird migration flight altitudes studied by a network of operational weather radars
+*Bird migration flight altitudes studied by a network of operational weather radars*
 Dokter A.M., Liechti F., Stark H., Delobbe L., Tabary P., Holleman I.
-J. R. Soc. Interface, 8, 30–43, 2011
-DOI: 10.1098/rsif.2010.0116
+J. R. Soc. Interface, **8**, 30–43, 2011.
+DOI: [10.1098/rsif.2010.0116](https://doi.org/10.1098/rsif.2010.0116)
 
 
 Licensed under the Apache License, Version 2.0 (the "License");
