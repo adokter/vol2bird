@@ -1,5 +1,12 @@
 /*
- * Copyright 2013 Netherlands eScience Center
+ * Copyright 2015 
+ *
+ * This program calculates Vertical Profiles of Birds (VPBs) as described in
+ *
+ * Bird migration flight altitudes studied by a network of operational weather radars
+ * Dokter A.M., Liechti F., Stark H., Delobbe L., Tabary P., Holleman I.
+ * J. R. Soc. Interface, 8, 30–43, 2011
+ * DOI: 10.1098/rsif.2010.0116
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +20,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 
 // ****************************************************************************
 // Definition of general macros:
