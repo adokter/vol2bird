@@ -1,5 +1,5 @@
 ## vol2bird algorithm
-Copyright 2015 Adriaan Dokter & Netherlands eScience Centre
+Copyright 2015 Adriaan Dokter (University of Amsterdam) & Netherlands eScience Centre
 
 If you want to collaborate and use this software, please contact me at a.m.dokter@uva.nl
 
