@@ -1,4 +1,7 @@
 ## Vol2Bird algorithm
+Copyright 2015 Adriaan Dokter & Netherlands eScience Centre
+
+If you want to use this software, please contact me at a.m.dokter@uva.nl
 
 This repository contains code to generate vertical profiles of birds (VPBs), following the methods described in:
 
@@ -6,20 +9,6 @@ This repository contains code to generate vertical profiles of birds (VPBs), fol
 Dokter A.M., Liechti F., Stark H., Delobbe L., Tabary P., Holleman I.
 J. R. Soc. Interface, **8**, 30–43, 2011.
 DOI: [10.1098/rsif.2010.0116](https://doi.org/10.1098/rsif.2010.0116)
-
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
 
 1. `testbaltrad.c` is the program's main
 2. `libvol2bird` is the library containing the routines for calculating VPBs
