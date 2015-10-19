@@ -10,7 +10,7 @@ Dokter A.M., Liechti F., Stark H., Delobbe L., Tabary P., Holleman I.
 J. R. Soc. Interface, **8**, 30–43, 2011.
 DOI: [10.1098/rsif.2010.0116](https://doi.org/10.1098/rsif.2010.0116)
 
-1. `testbaltrad.c` is the program's main
+1. `vol2bird.c` is the program's main
 2. `libvol2bird` is the library containing the routines for calculating VPBs
 3. `libsvdfit` is a library used by libvol2bird to perform singular value decomposition, for fitting a VVP radial velocity model
 4. `options.conf` for specifying configurable options
