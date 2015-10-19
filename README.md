@@ -1,7 +1,7 @@
 ## vol2bird algorithm
 Copyright 2015 Adriaan Dokter & Netherlands eScience Centre
 
-If you want to use this software, please contact me at a.m.dokter@uva.nl
+If you want to collaborate and use this software, please contact me at a.m.dokter@uva.nl
 
 This repository contains code to generate vertical profiles of birds (VPBs), following the methods described in:
 
