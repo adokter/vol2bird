@@ -1,103 +1,67 @@
+###########################################################################
+# Copyright (C) 2011 Swedish Meteorological and Hydrological Institute, SMHI,
 #
-# Copyright 2013 Netherlands eScience Center
+# This file is part of beamb.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# beamb is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 # 
- 
- 
-# directory where the baltrad software was installed
-BALTRAD_PREFIX          = /opt/baltrad
+# beamb is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public License
+# along with beamb.  If not, see <http://www.gnu.org/licenses/>.
+# ------------------------------------------------------------------------
+# 
+# Main build file
+# @file
+# @author Anders Henja (Swedish Meteorological and Hydrological Institute, SMHI)
+# @date 2011-11-10
+###########################################################################
 
-CC      = gcc
-#CFLAGS  = -fPIC -x c -DFPRINTFON
-CFLAGS  = -fPIC -x c
-LDFLAGS = -shared -Wl,--no-undefined
+.PHONY:all
+all: build
 
+def.mk:
+	+[ -f $@ ] || $(error You need to run ./configure)
 
-# directories containing include files
-INCLUDE_RAVE_DIR        = $(BALTRAD_PREFIX)/rave/include
-INCLUDE_THIRD_PARTY_DIR = $(BALTRAD_PREFIX)/third_party/include
-INCLUDE_CONFUSE         = /usr/include
+.PHONY:build 
+build: def.mk
+	$(MAKE) -C lib
+	$(MAKE) -C pyvol2bird
 
-# note: you have to add these LIB_*_DIRs to the LD_LIBRARY_PATH before 
-# you can run the binary
+.PHONY:install
+install: def.mk
+	$(MAKE) -C lib install
+	$(MAKE) -C pyvol2bird install
+	@echo "################################################################"
+	@echo "To run the binaries you will need to setup your library path to"
+	@echo "LD_LIBRARY_PATH="`cat def.mk | grep LD_PRINTOUT | sed -e"s/LD_PRINTOUT=//"`
+	@echo "################################################################"
 
-LIB_RAVE_DIR            = $(BALTRAD_PREFIX)/rave/lib
-LIB_HLHDF_DIR           = $(BALTRAD_PREFIX)/hlhdf/lib
-LIB_PROJ_EXPAT_DIR      = $(BALTRAD_PREFIX)/third_party/lib
-LIB_BBUFR_DIR           = $(BALTRAD_PREFIX)/bbufr/lib
-LIB_CONFUSE             = /usr/lib/x86_64-linux-gnu
+.PHONY:doc
+doc:
+	$(MAKE) -C doxygen doc
 
-# define where the vol2bird stuff is
-SRC_VOL2BIRD_DIR        = $(HOME)/github/enram/ncradar/lib/vol2bird
+.PHONY:test
+test: def.mk
+	@chmod +x ./tools/test_vol2bird.sh
+	@./tools/test_vol2bird.sh
 
+.PHONY:clean
+clean:
+	$(MAKE) -C lib clean
+	$(MAKE) -C pyvol2bird clean
+	@\rm -f *~
 
-
-
-all : libvol2bird
-	#
-	#
-	#
-	#
-	#
-	# ------------------------------------
-	#       making vol2bird        
-	# ------------------------------------
-	#
-	$(CC) $(CFLAGS) vol2bird.c \
-	-I$(INCLUDE_RAVE_DIR) \
-	-I$(INCLUDE_THIRD_PARTY_DIR) \
-	-I$(SRC_VOL2BIRD_DIR) \
-	-L$(LIB_RAVE_DIR) \
-	-L$(LIB_HLHDF_DIR) \
-	-L$(LIB_PROJ_EXPAT_DIR) \
-	-L$(LIB_BBUFR_DIR) \
-	-L$(PWD) \
-	-lravetoolbox -lhdf5 -lhlhdf -lproj -lexpat -lOperaBufr -lm -lvol2bird -o vol2bird
 	
-	#
-	# (You may still have to change your LD_LIBRARY_PATH)
-	#
 
-
-libvol2bird :
-	# ------------------------------------
-	#        making libvol2bird.so        
-	# ------------------------------------
-	$(CC) $(CFLAGS) \
-	-I$(INCLUDE_RAVE_DIR) \
-	-I$(INCLUDE_THIRD_PARTY_DIR) \
-	-I$(INCLUDE_CONFUSE) \
-	-I$(SRC_VOL2BIRD_DIR) \
-	-L$(LIB_RAVE_DIR) \
-	-L$(LIB_PROJ_EXPAT_DIR) \
-	-L$(LIB_CONFUSE) \
-	$(SRC_VOL2BIRD_DIR)/libvol2bird.c \
-	$(SRC_VOL2BIRD_DIR)/libsvdfit.c \
-	-Wall -o libvol2bird.so -lravetoolbox -lconfuse -lm $(LDFLAGS)
-
-
-clean : 
-	# ------------------------------------
-	#  cleaning up old library and binary
-	# ------------------------------------
-	if [ -f "./libvol2bird.so" ]; then \
-		rm libvol2bird.so; \
-	fi
-	if [ -f "./vol2bird" ]; then \
-		rm vol2bird; \
-	fi
-
-
-
-
+.PHONY:distclean
+distclean:
+	$(MAKE) -C lib distclean
+	$(MAKE) -C pyvol2bird distclean
+	@\rm -f *~ config.log config.status def.mk

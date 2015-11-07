@@ -1,20 +1,18 @@
-//
-// Copyright 2013 Netherlands eScience Center
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
+/*
+ * Copyright 2015 Adriaan Dokter & Netherlands eScience Centre
+ * If you want to use this software, please contact me at a.m.dokter@uva.nl
+ *
+ * This program calculates Vertical Profiles of Birds (VPBs) as described in
+ *
+ * Bird migration flight altitudes studied by a network of operational weather radars
+ * Dokter A.M., Liechti F., Stark H., Delobbe L., Tabary P., Holleman I.
+ * J. R. Soc. Interface, 8, 30–43, 2011
+ * DOI: 10.1098/rsif.2010.0116
+ *
+ */
 
 #include <confuse.h>
+#include <polarvolume.h>
 
 // ****************************************************************************
 // Definition of standard parameters.
@@ -109,6 +107,7 @@ struct vol2birdOptions
 	int printPointsArray;		/* whether or not to print the 'points' array */
 	int fitVrad;			/* Whether or not to fit a model to the observed vrad */
 	int exportBirdProfileAsJSONVar; /* */
+	float minNyquist;		/* Minimum Nyquist velocity [m/s] to include a scan; to excluded velocity scans too heavily folded */
 };
 typedef struct vol2birdOptions vol2birdOptions_t;
 
@@ -203,6 +202,13 @@ struct vol2birdMisc
 };
 typedef struct vol2birdMisc vol2birdMisc_t;
 
+struct vol2birdScanUse
+{
+	int useScan;
+	char dbzName[10];
+	char vradName[10];
+};
+typedef struct vol2birdScanUse vol2birdScanUse_t;
 
 struct vol2bird
 {
@@ -212,6 +218,7 @@ struct vol2bird
 	vol2birdFlags_t flags;
 	vol2birdProfiles_t profiles;
 	vol2birdMisc_t misc;
+	cfg_t* cfg;
 };
 typedef struct vol2bird vol2bird_t;
 
@@ -237,6 +244,6 @@ void vol2birdPrintOptions(vol2bird_t* alldata);
 
 void vol2birdPrintPointsArray(vol2bird_t* alldata);
 
-int vol2birdSetUp(PolarVolume_t* volume, cfg_t* cfg, vol2bird_t* alldata);
+int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata);
 
-void vol2birdTearDown(cfg_t* cfg, vol2bird_t* alldata);
+void vol2birdTearDown(vol2bird_t* alldata);

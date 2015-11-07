@@ -1,5 +1,12 @@
 /*
- * Copyright 2013 Netherlands eScience Center
+ * Copyright 2015 
+ *
+ * This program calculates Vertical Profiles of Birds (VPBs) as described in
+ *
+ * Bird migration flight altitudes studied by a network of operational weather radars
+ * Dokter A.M., Liechti F., Stark H., Delobbe L., Tabary P., Holleman I.
+ * J. R. Soc. Interface, 8, 30–43, 2011
+ * DOI: 10.1098/rsif.2010.0116
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +22,6 @@
  */
 
 
-
 #include <stdio.h>
 #include <time.h>
 #include "rave_io.h"
@@ -24,7 +30,7 @@
 
 
 int main(int argc, char** argv) {
-    cfg_t* cfg;
+//    cfg_t* cfg;
     vol2bird_t alldata;
 
     // check to see if we have the right number of input arguments
@@ -55,7 +61,8 @@ int main(int argc, char** argv) {
         volume = (PolarVolume_t*) RaveIO_getObject(raveio);
 
         // initialize volbird library
-        int initSuccessful = vol2birdSetUp(volume, cfg, &alldata) == 0;
+        int initSuccessful = vol2birdSetUp(volume, &alldata) == 0;
+//        int initSuccessful = vol2birdSetUp(volume, &cfg, &alldata) == 0;
         
         if (initSuccessful == FALSE) {
             return -1;
@@ -110,7 +117,8 @@ int main(int argc, char** argv) {
 
 
         // tear down vol2bird, give memory back
-        vol2birdTearDown(cfg, &alldata);
+//        vol2birdTearDown(cfg, &alldata);
+        vol2birdTearDown(&alldata);
 
         // output some performance data
         //clock_gettime(CLOCK_REALTIME, &ts);

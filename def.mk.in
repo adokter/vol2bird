@@ -1,0 +1,44 @@
+include @RAVE_ROOT_DIR@/mkf/def.mk
+
+RAVE_ROOT_DIR=      @RAVE_ROOT_DIR@
+
+# Install prefix
+prefix=             @prefix@
+
+# Most configuration variables are inherited from
+# raves and hlhdfs configuration files so you can
+# basically uncomment any of the ones below if you want.
+
+CC=                 @RAVECC@
+CCOPTS=             @RAVECCOPTS@
+LDFLAGS=            @RAVELDFLAGS@
+
+# (from hlhdf)
+LDSHARED=           @HLHDFLDSHARED@
+
+SHARED_FLAG=        @RAVECCSHARED@
+
+RAVE_INCLUDE_FLAG=  @RAVE_INCLUDE_FLAG@
+RAVE_LIB_FLAG=      @RAVE_LIB_FLAG@
+
+PYTHON_INCLUDE_FLAG=@PYTHON_INCLUDE_FLAG@
+NUMPY_INCLUDE_FLAG= @NUMPY_INCLUDE_FLAG@
+
+PROJ_INCLUDE_FLAG=  @PROJ_INCLUDE_FLAG@
+PROJ_LIBRARY_FLAG=  @PROJ_LIBRARY_FLAG@
+
+EXPAT_INCLUDE_FLAG= @EXPAT_INCLUDE_FLAG@
+EXPAT_LIBRARY_FLAG= @EXPAT_LIBRARY_FLAG@
+EXPAT_SUPPRESSED=   @EXPAT_SUPPRESSED@
+
+HLHDF_LIBRARY_FLAG= @HLHDF_LIBRARY_FLAG@
+HLHDF_INCLUDE_FLAG= @HLHDF_INCLUDE_FLAG@
+
+# confuse
+
+CONFUSE_LIBRARY_FLAG=@CONFUSE_LIBRARY_FLAG@
+CONFUSE_INCLUDE_FLAG=@CONFUSE_INCLUDE_FLAG@
+
+# Special flag to be used for printouts of the necessary LD_LIBRARY_PATH
+#
+LD_PRINTOUT=        @LD_PRINTOUT@
