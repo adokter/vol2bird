@@ -110,6 +110,8 @@ struct vol2birdOptions
 	int fitVrad;			/* Whether or not to fit a model to the observed vrad */
 	int exportBirdProfileAsJSONVar; /* */
 	float minNyquist;		/* Minimum Nyquist velocity [m/s] to include a scan; to excluded velocity scans too heavily folded */
+	float birdRadarCrossSection;    /* Bird radar cross section [cm^2] */
+	float stdDevMinBird;            /* Minimum VVP radial velocity standard deviation for layer containing birds*/
 };
 typedef struct vol2birdOptions vol2birdOptions_t;
 
@@ -133,9 +135,7 @@ struct vol2birdConstants
 	int nRangNeighborhood;
 	int nCountMin; 
 	float refracIndex;
-	float birdRadarCrossSection;
 	float cellStdDevMax;
-	float stdDevMinBird;
 	float absVDifMax;
 	float vradMin;
 };

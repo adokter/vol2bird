@@ -2365,6 +2365,8 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_BOOL("PRINT_PROFILE",TRUE,CFGF_NONE),
         CFG_BOOL("PRINT_POINTS_ARRAY",FALSE,CFGF_NONE),
         CFG_FLOAT("MIN_NYQUIST_VELOCITY",20.0f,CFGF_NONE),
+        CFG_FLOAT("STDEV_BIRD",2.0f,CFGF_NONE),
+        CFG_FLOAT("SIGMA_BIRD",11.0f,CFGF_NONE),
         CFG_BOOL("EXPORT_BIRD_PROFILE_AS_JSON",FALSE,CFGF_NONE),
         CFG_END()
     };
@@ -3085,7 +3087,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     // calculate bird density in number of birds/km^3 by
                     // dividing the reflectivity by the (assumed) cross section
                     // of one bird
-                    birdDensity = reflectivity / alldata->constants.birdRadarCrossSection;
+                    birdDensity = reflectivity / alldata->options.birdRadarCrossSection;
                 }
                 else {
                     birdDensity = NAN;
@@ -3204,7 +3206,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
             // You need some of the results of iProfileType == 3 in order 
             // to calculate iProfileType == 1
             if (iProfileType == 3) {
-                if (chi < alldata->constants.stdDevMinBird) {
+                if (chi < alldata->options.stdDevMinBird) {
                     alldata->misc.scatterersAreNotBirds[iLayer] = TRUE;
                 }
                 else {
@@ -3343,7 +3345,7 @@ void vol2birdPrintOptions(vol2bird_t* alldata) {
     fprintf(stderr,"%-25s = %f\n","absVDifMax",alldata->constants.absVDifMax);
     fprintf(stderr,"%-25s = %f\n","azimMax",alldata->options.azimMax);
     fprintf(stderr,"%-25s = %f\n","azimMin",alldata->options.azimMin);
-    fprintf(stderr,"%-25s = %f\n","birdRadarCrossSection",alldata->constants.birdRadarCrossSection);
+    fprintf(stderr,"%-25s = %f\n","birdRadarCrossSection",alldata->options.birdRadarCrossSection);
     fprintf(stderr,"%-25s = %f\n","cellClutterFractionMax",alldata->constants.cellClutterFractionMax);
     fprintf(stderr,"%-25s = %f\n","cellDbzMin",alldata->constants.cellDbzMin);
     fprintf(stderr,"%-25s = %f\n","cellStdDevMax",alldata->constants.cellStdDevMax);
@@ -3367,7 +3369,7 @@ void vol2birdPrintOptions(vol2bird_t* alldata) {
     fprintf(stderr,"%-25s = %f\n","rangeMin",alldata->options.rangeMin);
     fprintf(stderr,"%-25s = %f\n","rCellMax",alldata->misc.rCellMax);
     fprintf(stderr,"%-25s = %f\n","refracIndex",alldata->constants.refracIndex);
-    fprintf(stderr,"%-25s = %f\n","stdDevMinBird",alldata->constants.stdDevMinBird);
+    fprintf(stderr,"%-25s = %f\n","stdDevMinBird",alldata->options.stdDevMinBird);
     fprintf(stderr,"%-25s = %c\n","useStaticClutterData",alldata->options.useStaticClutterData == TRUE ? 'T' : 'F');
     fprintf(stderr,"%-25s = %f\n","vradMin",alldata->constants.vradMin);
     
@@ -3426,14 +3428,14 @@ void printProfile(vol2bird_t* alldata) {
 
     fprintf(stderr,"altmin-altmax: [u         ,v         ,w         ]; "
                    "hSpeed  , hDir    , chi     , hasGap  , dbzAvg  ,"
-                   " nPoints, eta         , rhobird \n");
+                   " nPoints, eta         , rhobird nPointsZ \n");
 
     int iLayer;
     
     for (iLayer = alldata->options.nLayers - 1; iLayer >= 0; iLayer--) {
         
         fprintf(stderr,"%6.0f-%-6.0f: [%10.2f,%10.2f,%10.2f]; %8.2f, "
-        "%8.1f, %8.1f, %8c, %8.2f, %7.0f, %12.2f, %8.2f\n",
+        "%8.1f, %8.1f, %8c, %8.2f, %7.0f, %12.2f, %8.2f %5.f\n",
         alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  0],
         alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  1],
         alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  2],
@@ -3446,7 +3448,8 @@ void printProfile(vol2bird_t* alldata) {
         alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  9],
         alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile + 10],
         alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile + 11],
-        alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile + 12]);
+        alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile + 12],
+        alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile + 13]);
     }
 
     
@@ -3492,6 +3495,8 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.fitVrad = cfg_getbool(*cfg,"FIT_VRAD");
     alldata->options.exportBirdProfileAsJSONVar = cfg_getbool(*cfg,"EXPORT_BIRD_PROFILE_AS_JSON"); 
     alldata->options.minNyquist = cfg_getfloat(*cfg,"MIN_NYQUIST_VELOCITY");
+    alldata->options.birdRadarCrossSection = cfg_getfloat(*cfg,"SIGMA_BIRD");
+    alldata->options.stdDevMinBird = cfg_getfloat(*cfg,"STDEV_BIRD");
 
     // ------------------------------------------------------------- //
     //              vol2bird options from constants.h                //
@@ -3513,9 +3518,9 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->constants.nRangNeighborhood = NTEXBINRANG;
     alldata->constants.nCountMin = NTEXMIN; 
     alldata->constants.refracIndex = REFRACTIVE_INDEX_OF_WATER;
-    alldata->constants.birdRadarCrossSection = SIGMABIRD;
+//    alldata->constants.birdRadarCrossSection = SIGMABIRD;
     alldata->constants.cellStdDevMax = STDEVCELL;
-    alldata->constants.stdDevMinBird = STDEVBIRD;
+//    alldata->constants.stdDevMinBird = STDEVBIRD;
     alldata->constants.absVDifMax = VDIFMAX;
     alldata->constants.vradMin = VRADMIN;
 
