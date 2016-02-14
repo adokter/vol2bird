@@ -3740,6 +3740,7 @@ void vol2birdTearDown(vol2bird_t* alldata) {
     
     // reset this variable to its initial value
     alldata->misc.initializationSuccessful = FALSE;
+    alldata->misc.loadConfigSuccessful = FALSE;
 
 } // vol2birdTearDown
 
