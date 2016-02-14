@@ -1495,7 +1495,18 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
                 fprintf(f,"    \"%s\":%.2f\n",varName,val);
             }
         }
-        
+
+        {
+            char varName[] = "nPointsZ";
+            float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  13];
+            if (isnan(val) == TRUE) {
+                fprintf(f,"    \"%s\":null,\n",varName);
+            }
+            else {
+                fprintf(f,"    \"%s\":%d,\n",varName,(int) val);
+            }
+        }
+
         fprintf(f,"   }");
         if (iLayer < alldata->options.nLayers - 1) {
             fprintf(f,",");
@@ -3027,6 +3038,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = NAN;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = NAN;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = NAN;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = NAN;
 
 		//Calculate the average reflectivity Z of the layer
                 iPointIncludedZ = 0;
@@ -3163,6 +3175,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = (float) nPointsIncluded;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = (float) nPointsIncludedZ;
 		}
 		else{
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = iLayer * alldata->options.layerThickness;
@@ -3178,6 +3191,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = (float) nPointsIncluded;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = (float) nPointsIncludedZ;
 		}
  
                 free((void*) yObs);
@@ -3648,7 +3662,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
 
     alldata->profiles.nProfileTypes = 3;
     alldata->profiles.nRowsProfile = alldata->options.nLayers;
-    alldata->profiles.nColsProfile = 13; 
+    alldata->profiles.nColsProfile = 14; 
     
     // pre-allocate the array holding any profiled data (note it has 
     // 'nColsProfile' pseudocolumns):

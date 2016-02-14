@@ -10,10 +10,10 @@ Dokter A.M., Liechti F., Stark H., Delobbe L., Tabary P., Holleman I.
 J. R. Soc. Interface, **8**, 30–43, 2011.
 DOI: [10.1098/rsif.2010.0116](https://doi.org/10.1098/rsif.2010.0116)
 
-`lib` contains the main library 
-`pyvol2bird` is a python wrapper for the library
+* `lib` contains the main library 
+* `pyvol2bird` is a python wrapper for the library
 
 for compiling the code run `./configure --with-confuse=DIR`,
-with DIR the directory of your libconfuse installation
+with `DIR` the directory of your libconfuse installation
 
 for running the code on a baltrad node add the paths listed in `ldlib.txt` to `LD_LIBRARY_PATH`

@@ -48,12 +48,13 @@ int main(int argc, char** argv) {
         fprintf(stderr,"   Direc   - direction [degrees, clockwise from north]\n");
         fprintf(stderr,"   Stdev   - VVP radial velocity standard deviation direction [m/s]\n");
         fprintf(stderr,"   Gap     - Angular data gap detected [T/F]\n");
-        fprintf(stderr,"   dBZBird - Bird reflectivity factor [dBZ]\n");
-        fprintf(stderr,"   nPnts   - number of points VVP analysis\n");
+        fprintf(stderr,"   dBZ     - Bird reflectivity factor [dBZ]\n");
         fprintf(stderr,"   eta     - Bird reflectivity [cm^2/km^3]\n");
-        fprintf(stderr,"   rhoBird - Bird density [birds/km^3]\n");
+        fprintf(stderr,"   DensBird- Bird density [birds/km^3]\n");
         fprintf(stderr,"   dBZAll  - Total reflectivity factor (bio+meteo scattering) [dBZ]\n");
-        fprintf(stderr,"   nPntsAll- number of points VVP analysis\n");
+        fprintf(stderr,"   nPts    - number of points VVP bird velocity analysis\n");
+        fprintf(stderr,"   nPtsZ   - number of points bird density estimate \n");
+        fprintf(stderr,"   nPtsAll - number of points VVP velocity Stdev analysis\n");
         return -1;
     }
     // check to see if we have the right number of input arguments
@@ -120,7 +121,7 @@ int main(int argc, char** argv) {
                 fprintf(stderr, "# vol2bird vertical profile\n");
                 fprintf(stderr, "# source: %s\n",source);
                 fprintf(stderr, "# ODIM HDF5 input: %s\n",filename);
-                printf("# Date   Time Heig    U      V       W   Speed Direc StdDev Gap dBZBird nPts eta BirdDens dBZAll nPtsAll\n");
+                printf("# Date   Time Heig    U      V       W   Speed Direc StdDev Gap dBZ     eta DensBird dBZAll   n   ndBZ  nAll nAlldBZ\n");
                
                 float *profileBio;
                 float *profileAll;
@@ -134,15 +135,16 @@ int main(int argc, char** argv) {
                 for (iRowProfile = 0; iRowProfile < nRowsProfile; iRowProfile++) {
                     iCopied=iRowProfile*nColsProfile;
                     printf("%8s %.4s ",date,time);
-                    printf("%4.f %6.2f %6.2f %7.2f %5.2f %5.1f %6.2f %1c %6.2f %5.f %6.1f %6.2f %6.2f %5.f\n",
+                    printf("%4.f %6.2f %6.2f %7.2f %5.2f %5.1f %6.2f %1c %6.2f %6.1f %6.2f %6.2f %5.f %5.f %5.f %5.f\n",
                     (profileBio[0+iCopied]+profileBio[1+iCopied])/2,
                     profileBio[2+iCopied],profileBio[3+iCopied],
                     profileBio[4+iCopied],profileBio[5+iCopied],
                     profileBio[6+iCopied],profileAll[7+iCopied],
                     profileBio[8+iCopied] == TRUE ? 'T' : 'F',
-                    profileBio[9+iCopied],profileBio[10+iCopied],
-                    profileBio[11+iCopied],profileBio[12+iCopied],
-                    profileAll[9+iCopied],profileAll[10+iCopied]);
+                    profileBio[9+iCopied],profileBio[11+iCopied],
+                    profileBio[12+iCopied],profileAll[9+iCopied],
+                    profileBio[10+iCopied],profileBio[13+iCopied],
+                    profileAll[10+iCopied],profileAll[13+iCopied]);
                 }
                 
                 profileAll = NULL;
