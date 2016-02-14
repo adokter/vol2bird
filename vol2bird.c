@@ -30,9 +30,32 @@
 
 
 int main(int argc, char** argv) {
-    cfg_t* cfg;
+//    cfg_t* cfg;
     vol2bird_t alldata;
 
+    // print default message when no input arguments
+    if (argc == 1) {
+        fprintf(stderr,"usage: %s <ODIM hdf5 volume> \n",argv[0]);
+        fprintf(stderr,"   Version 0.2.0 (14-Feb-2016)\n");
+        fprintf(stderr,"   expects OPERA ODIM hdf5 input format, see http://www.eumetnet.eu/opera-software\n\n");
+        fprintf(stderr,"   Output fields to stdout:\n");
+        fprintf(stderr,"   Date    - date in UTC\n");
+        fprintf(stderr,"   Time    - time in UTC\n");
+        fprintf(stderr,"   U       - speed component west to east [m/s]\n");
+        fprintf(stderr,"   V       - speed component north to south [m/s]\n");
+        fprintf(stderr,"   W       - vertical speed (unreliable!) [m/s]\n");
+        fprintf(stderr,"   Speed   - horizontal speed [m/s]\n");
+        fprintf(stderr,"   Direc   - direction [degrees, clockwise from north]\n");
+        fprintf(stderr,"   Stdev   - VVP radial velocity standard deviation direction [m/s]\n");
+        fprintf(stderr,"   Gap     - Angular data gap detected [T/F]\n");
+        fprintf(stderr,"   dBZBird - Bird reflectivity factor [dBZ]\n");
+        fprintf(stderr,"   nPnts   - number of points VVP analysis\n");
+        fprintf(stderr,"   eta     - Bird reflectivity [cm^2/km^3]\n");
+        fprintf(stderr,"   rhoBird - Bird density [birds/km^3]\n");
+        fprintf(stderr,"   dBZAll  - Total reflectivity factor (bio+meteo scattering) [dBZ]\n");
+        fprintf(stderr,"   nPntsAll- number of points VVP analysis\n");
+        return -1;
+    }
     // check to see if we have the right number of input arguments
     if (argc != 2) {
         fprintf(stderr, "Only one argument is allowed\n");
@@ -52,7 +75,7 @@ int main(int argc, char** argv) {
     if (RaveIO_getObjectType(raveio) == Rave_ObjectType_PVOL) {
 
         // initialize array used for performance analysis
-        struct timespec ts = { 0 };
+        //struct timespec ts = { 0 };
 
         // the if statement above tests whether we are dealing with a 
         // PVOL object, so we can safely cast the generic object to
@@ -60,8 +83,15 @@ int main(int argc, char** argv) {
         PolarVolume_t* volume = NULL;
         volume = (PolarVolume_t*) RaveIO_getObject(raveio);
 
+        int configSuccessful = vol2birdLoadConfig(&alldata) == 0;
+
+        if (configSuccessful == FALSE) {
+            return -1;
+        }
+
         // initialize volbird library
-        int initSuccessful = vol2birdSetUp(volume, &cfg, &alldata) == 0;
+        int initSuccessful = vol2birdSetUp(volume, &alldata) == 0;
+//        int initSuccessful = vol2birdSetUp(volume, &cfg, &alldata) == 0;
         
         if (initSuccessful == FALSE) {
             return -1;
@@ -74,38 +104,53 @@ int main(int argc, char** argv) {
         // ------------------------------------------------------------------- //
         //  example of how the getters can be used to get at the profile data  //
         // ------------------------------------------------------------------- //
-        
-        {  // getter example scope begin
+        const char* date;
+        const char* time;
+        const char* source;
 
-            int iProfileType;
-            
-            for (iProfileType = 1; iProfileType <= 3;iProfileType++) {
+        date = PolarVolume_getDate(volume);
+        time = PolarVolume_getTime(volume);
+        source = PolarVolume_getSource(volume);
+
+        {  // getter example scope begin
 
                 int nRowsProfile = vol2birdGetNRowsProfile(&alldata);
                 int nColsProfile = vol2birdGetNColsProfile(&alldata);
 
-                fprintf(stderr, "\n--------------------------\n\n");
-                
-                float *profileCopy;
+                fprintf(stderr, "# vol2bird vertical profile\n");
+                fprintf(stderr, "# source: %s\n",source);
+                fprintf(stderr, "# ODIM HDF5 input: %s\n",filename);
+                printf("# Date   Time Heig    U      V       W   Speed Direc StdDev Gap dBZBird nPts eta BirdDens dBZAll nPtsAll\n");
+               
+                float *profileBio;
+                float *profileAll;
 
-                profileCopy = vol2birdGetProfile(iProfileType, &alldata);
+                profileBio = vol2birdGetProfile(1, &alldata);
+                profileAll = vol2birdGetProfile(3, &alldata);
                 
                 int iRowProfile;
-                int iColProfile;
                 int iCopied = 0;
                 
                 for (iRowProfile = 0; iRowProfile < nRowsProfile; iRowProfile++) {
-                    for (iColProfile = 0; iColProfile < nColsProfile; iColProfile++) {
-                        fprintf(stderr," %10.2f",profileCopy[iCopied]);
-                        iCopied += 1;
-                    }
-                    fprintf(stderr,"\n");
+                    iCopied=iRowProfile*nColsProfile;
+                    printf("%8s %.4s ",date,time);
+                    printf("%4.f %6.2f %6.2f %7.2f %5.2f %5.1f %6.2f %1c %6.2f %5.f %6.1f %6.2f %6.2f %5.f\n",
+                    (profileBio[0+iCopied]+profileBio[1+iCopied])/2,
+                    profileBio[2+iCopied],profileBio[3+iCopied],
+                    profileBio[4+iCopied],profileBio[5+iCopied],
+                    profileBio[6+iCopied],profileAll[7+iCopied],
+                    profileBio[8+iCopied] == TRUE ? 'T' : 'F',
+                    profileBio[9+iCopied],profileBio[10+iCopied],
+                    profileBio[11+iCopied],profileBio[12+iCopied],
+                    profileAll[9+iCopied],profileAll[10+iCopied]);
                 }
                 
-                profileCopy = NULL;
-                free((void*) profileCopy);
+                profileAll = NULL;
+                profileBio = NULL;
+                free((void*) profileAll);
+                free((void*) profileBio);
 
-            }
+            //}
         } // getter example scope end
 
 
@@ -116,7 +161,8 @@ int main(int argc, char** argv) {
 
 
         // tear down vol2bird, give memory back
-        vol2birdTearDown(cfg, &alldata);
+//        vol2birdTearDown(cfg, &alldata);
+        vol2birdTearDown(&alldata);
 
         // output some performance data
         //clock_gettime(CLOCK_REALTIME, &ts);

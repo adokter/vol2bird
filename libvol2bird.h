@@ -12,6 +12,7 @@
  */
 
 #include <confuse.h>
+#include <polarvolume.h>
 
 // ****************************************************************************
 // Definition of standard parameters.
@@ -93,6 +94,8 @@ struct vol2birdOptions
 	float rangeMax;			/* the maximum range [m] used for constructing the bird density profile */
 	float azimMin;			/* the minimum azimuth [degrees] used for constructing the bird density profile */
 	float azimMax;			/* the maximum azimuth [degrees] used for constructing the bird density profile */
+	float elevMin;			/* the minimum scan elevation [degrees] used for constructing the bird density profile */
+	float elevMax;			/* the maximum scan elevation [degrees] used for constructing the bird density profile */
 	float radarWavelength;		/* the default wavelength [cm] of the radar if it is not included in the metadata */
 	int useStaticClutterData;	/* whether a static clutter map is used */
 	int printOptions;		/* print options to stderr */
@@ -197,6 +200,7 @@ struct vol2birdMisc
 	int nParsFitted;
 	float dbzFactor;
 	int initializationSuccessful;
+	int loadConfigSuccessful;
 	int* scatterersAreNotBirds;	// Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
 };
 typedef struct vol2birdMisc vol2birdMisc_t;
@@ -217,6 +221,7 @@ struct vol2bird
 	vol2birdFlags_t flags;
 	vol2birdProfiles_t profiles;
 	vol2birdMisc_t misc;
+	cfg_t* cfg;
 };
 typedef struct vol2bird vol2bird_t;
 
@@ -242,6 +247,8 @@ void vol2birdPrintOptions(vol2bird_t* alldata);
 
 void vol2birdPrintPointsArray(vol2bird_t* alldata);
 
-int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata);
+int vol2birdLoadConfig(vol2bird_t* alldata);
 
-void vol2birdTearDown(cfg_t* cfg, vol2bird_t* alldata);
+int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata);
+
+void vol2birdTearDown(vol2bird_t* alldata);

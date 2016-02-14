@@ -1281,6 +1281,16 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 
 		if (scanUse[iScan].useScan)
 		{
+                        // drop scans with elevations outside the range set by user
+                        if (360*PolarScan_getElangle(scan) / 2 / PI < alldata->options.elevMin
+                         || 360*PolarScan_getElangle(scan) / 2 / PI > alldata->options.elevMax)
+                        {
+                                scanUse[iScan].useScan = FALSE;
+                        }
+                }
+
+		if (scanUse[iScan].useScan)
+		{
 			// Read Nyquist interval from top-level how group
 			attr = PolarVolume_getAttribute(volume, "/how/NI");
 			if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getDouble(attr, &nyquist);
@@ -2328,6 +2338,8 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_FLOAT("RANGEMAX",25000.0f, CFGF_NONE),
         CFG_FLOAT("AZIMMIN",0.0f, CFGF_NONE),
         CFG_FLOAT("AZIMMAX",360.0f, CFGF_NONE),
+        CFG_FLOAT("ELEVMIN",0.0f, CFGF_NONE),
+        CFG_FLOAT("ELEVMAX",360.0f, CFGF_NONE),
         CFG_FLOAT("RADAR_WAVELENGTH_CM",5.3f, CFGF_NONE),
         CFG_BOOL("USE_STATIC_CLUTTER_DATA",FALSE,CFGF_NONE),
         CFG_BOOL("VERBOSE_OUTPUT_REQUIRED",FALSE,CFGF_NONE),
@@ -2955,9 +2967,11 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
         
         for (iLayer = 0; iLayer < alldata->options.nLayers; iLayer++) {
 
-            // this variable is needed just outside of the iPass loop below 
+            // these variables are needed just outside of the iPass loop below 
             float chi = NAN;
-        
+            int hasGap = TRUE;
+            float birdDensity = NAN;
+ 
             for (iPass = 0; iPass < nPasses; iPass++) {
 
                 const int iPointFrom = alldata->points.indexFrom[iLayer];
@@ -2982,9 +2996,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 double undbzSum = 0.0;
                 float undbzAvg = NAN;
                 float dbzAvg = NAN;
-                float birdDensity = NAN;
                 float reflectivity = NAN;
-                int hasGap = TRUE;
                 float chisq = NAN;
                 float hSpeed = NAN;
                 float hDir = NAN;
@@ -3067,8 +3079,6 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     birdDensity = NAN;
                 }
                 
-//fprintf(stdout,"#iPass=%i \n",iPass);
-//fprintf(stdout,"#azim\telev\tvrad\n");
 		//Prepare the arguments of svdfit
                 iPointIncluded = 0;
                 for (iPointLayer = iPointFrom; iPointLayer < iPointFrom + nPointsLayer; iPointLayer++) {
@@ -3087,7 +3097,6 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         yFitted[iPointIncluded] = 0.0f;
                         // keep a record of which index was just included
                         includedIndex[iPointIncluded] = iPointLayer;
-//fprintf(stdout,"%f\t%f\t%f\n", pointsSelection[iPointIncluded * alldata->misc.nDims + 0], pointsSelection[iPointIncluded * alldata->misc.nDims + 1], yObs[iPointIncluded]);
                         // raise the counter
                         iPointIncluded += 1;
 
@@ -3153,7 +3162,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  9] = dbzAvg;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = (float) nPointsIncluded;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = NAN;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
 		}
 		else{
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = iLayer * alldata->options.layerThickness;
@@ -3183,14 +3192,22 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
             if (iProfileType == 3) {
                 if (chi < alldata->constants.stdDevMinBird) {
                     alldata->misc.scatterersAreNotBirds[iLayer] = TRUE;
-                    // set the bird density to zero:
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = 0.0;
                 }
                 else {
                     alldata->misc.scatterersAreNotBirds[iLayer] = FALSE;
                 }
             }
-            
+            if (iProfileType == 1) {
+                // set the bird density to zero if radial velocity stdev below threshold:
+                if (alldata->misc.scatterersAreNotBirds[iLayer] == TRUE){
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = 0.0;
+                }
+                // set bird density values to zero if hasGap:
+                if (hasGap && birdDensity>0){
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = 0.0;
+                }
+            }
+
         } // endfor (iLayer = 0; iLayer < nLayers; iLayer++)
 
         if (alldata->options.printProfileVar == TRUE) {
@@ -3424,19 +3441,17 @@ void printProfile(vol2bird_t* alldata) {
 
 
 
+int vol2birdLoadConfig(vol2bird_t* alldata) {
 
+    alldata->misc.loadConfigSuccessful = FALSE;
 
-
-
-int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata) {
-
-    alldata->misc.initializationSuccessful = FALSE;
-    
-    if (readUserConfigOptions(cfg) != 0) {
+    if (readUserConfigOptions(&(alldata->cfg)) != 0) {
         fprintf(stderr, "An error occurred while reading the user configuration file 'options.conf'.\n");
         return -1; 
     }
    
+    cfg_t** cfg = &(alldata->cfg);
+
     // ------------------------------------------------------------- //
     //              vol2bird options from options.conf               //
     // ------------------------------------------------------------- //
@@ -3447,6 +3462,8 @@ int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata) {
     alldata->options.nLayers = cfg_getint(*cfg, "NLAYER");
     alldata->options.rangeMax = cfg_getfloat(*cfg, "RANGEMAX");
     alldata->options.rangeMin = cfg_getfloat(*cfg, "RANGEMIN");
+    alldata->options.elevMax = cfg_getfloat(*cfg, "ELEVMAX");
+    alldata->options.elevMin = cfg_getfloat(*cfg, "ELEVMIN");
     alldata->options.radarWavelength = cfg_getfloat(*cfg, "RADAR_WAVELENGTH_CM");
     alldata->options.useStaticClutterData = cfg_getbool(*cfg,"USE_STATIC_CLUTTER_DATA");
     alldata->options.printDbz = cfg_getbool(*cfg,"PRINT_DBZ");
@@ -3488,9 +3505,6 @@ int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata) {
     alldata->constants.absVDifMax = VDIFMAX;
     alldata->constants.vradMin = VRADMIN;
 
-
-
-
     // ------------------------------------------------------------- //
     //                       some other variables                    //
     // ------------------------------------------------------------- //
@@ -3500,9 +3514,24 @@ int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata) {
     alldata->misc.nParsFitted = 3;
     alldata->misc.dbzFactor = (pow(alldata->constants.refracIndex,2) * 1000 * pow(PI,5))/pow(alldata->options.radarWavelength,4);
 
+    alldata->misc.loadConfigSuccessful = TRUE;
+
+    return 0;
+
+}
 
 
+//int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata) {
+int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
+    
+    alldata->misc.initializationSuccessful = FALSE;
+    
 
+    if (alldata->misc.loadConfigSuccessful == FALSE){
+        fprintf(stderr,"Vol2bird configuration not loaded. Run vol2birdLoadConfig prior to vol2birdSetup\n");
+        return -1;
+    }
+ 
     // ------------------------------------------------------------- //
     //             lists of indices into the 'points' array:         //
     //          where each altitude layer's data starts and ends     //
@@ -3682,7 +3711,7 @@ int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata) {
 
 
 
-void vol2birdTearDown(cfg_t* cfg, vol2bird_t* alldata) {
+void vol2birdTearDown(vol2bird_t* alldata) {
     
     // ---------------------------------------------------------- //
     // free the memory that was previously allocated for vol2bird //
@@ -3707,10 +3736,11 @@ void vol2birdTearDown(cfg_t* cfg, vol2bird_t* alldata) {
     
     
     // free the memory that holds the user configurable options
-    cfg_free(cfg);
+    cfg_free(alldata->cfg);
     
     // reset this variable to its initial value
     alldata->misc.initializationSuccessful = FALSE;
+    alldata->misc.loadConfigSuccessful = FALSE;
 
 } // vol2birdTearDown
 
