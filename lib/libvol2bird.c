@@ -1263,8 +1263,11 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 		            }
 			}
 		    }
+		    if (scanUse[iScan].useScan == FALSE){
+                        fprintf(stderr,"radial velocity missing, dropping scan %i ...\n",iScan);
+                    }
 		}
-		
+
 		if (scanUse[iScan].useScan){
 		    if(PolarScan_hasParameter(scan, "DBZH")){
 			sprintf(scanUse[iScan].dbzName,"DBZH");	
@@ -1277,6 +1280,9 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 			    scanUse[iScan].useScan = FALSE;
 			}
 		    }
+		   if (scanUse[iScan].useScan == FALSE){
+                       fprintf(stderr,"radial velocity missing, dropping scan %i ...\n",iScan);
+                   }
 		}
 
 		if (scanUse[iScan].useScan)
@@ -1286,6 +1292,7 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
                          || 360*PolarScan_getElangle(scan) / 2 / PI > alldata->options.elevMax)
                         {
                                 scanUse[iScan].useScan = FALSE;
+                                fprintf(stderr,"Scan outside valid elevation range, dropping scan %i ...\n",iScan);
                         }
                 }
 
@@ -1311,7 +1318,10 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 			}
 			
 			// Set useScan to 0 if no Nyquist interval is available or if it is too low
-			if (nyquist < alldata->options.minNyquist) scanUse[iScan].useScan = 0;
+			if (nyquist < alldata->options.minNyquist){
+                                scanUse[iScan].useScan = 0;
+                                fprintf(stderr,"Radial velocity Nyquist interval too low, dropping scan %i ...\n",iScan);
+                        }
 		}
 		
 		// Release the scan from memory
