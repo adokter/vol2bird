@@ -22,7 +22,7 @@ LDFLAGS = -shared -Wall
 
 # define where the vol2bird stuff is
 #SRC_VOL2BIRD_DIR         = /projects/baltrad/vol2bird/lib
-SRC_VOL2BIRD_DIR         = /Users/adriaan/git/vol2bird/python/vol2bird/lib
+SRC_VOL2BIRD_DIR         = /Users/adriaan/git/vol2bird/lib
 
 all : libvol2bird
 	#

@@ -2955,9 +2955,11 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
         
         for (iLayer = 0; iLayer < alldata->options.nLayers; iLayer++) {
 
-            // this variable is needed just outside of the iPass loop below 
+            // these variables are needed just outside of the iPass loop below 
             float chi = NAN;
-        
+            int hasGap = TRUE;
+            float birdDensity = NAN;
+ 
             for (iPass = 0; iPass < nPasses; iPass++) {
 
                 const int iPointFrom = alldata->points.indexFrom[iLayer];
@@ -2982,9 +2984,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 double undbzSum = 0.0;
                 float undbzAvg = NAN;
                 float dbzAvg = NAN;
-                float birdDensity = NAN;
                 float reflectivity = NAN;
-                int hasGap = TRUE;
                 float chisq = NAN;
                 float hSpeed = NAN;
                 float hDir = NAN;
@@ -3067,8 +3067,6 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     birdDensity = NAN;
                 }
                 
-//fprintf(stdout,"#iPass=%i \n",iPass);
-//fprintf(stdout,"#azim\telev\tvrad\n");
 		//Prepare the arguments of svdfit
                 iPointIncluded = 0;
                 for (iPointLayer = iPointFrom; iPointLayer < iPointFrom + nPointsLayer; iPointLayer++) {
@@ -3087,7 +3085,6 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         yFitted[iPointIncluded] = 0.0f;
                         // keep a record of which index was just included
                         includedIndex[iPointIncluded] = iPointLayer;
-//fprintf(stdout,"%f\t%f\t%f\n", pointsSelection[iPointIncluded * alldata->misc.nDims + 0], pointsSelection[iPointIncluded * alldata->misc.nDims + 1], yObs[iPointIncluded]);
                         // raise the counter
                         iPointIncluded += 1;
 
@@ -3153,7 +3150,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  9] = dbzAvg;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = (float) nPointsIncluded;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = NAN;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
 		}
 		else{
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = iLayer * alldata->options.layerThickness;
@@ -3183,14 +3180,22 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
             if (iProfileType == 3) {
                 if (chi < alldata->constants.stdDevMinBird) {
                     alldata->misc.scatterersAreNotBirds[iLayer] = TRUE;
-                    // set the bird density to zero:
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = 0.0;
                 }
                 else {
                     alldata->misc.scatterersAreNotBirds[iLayer] = FALSE;
                 }
             }
-            
+            if (iProfileType == 1) {
+                // set the bird density to zero if radial velocity stdev below threshold:
+                if (alldata->misc.scatterersAreNotBirds[iLayer] == TRUE){
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = 0.0;
+                }
+                // set bird density values to zero if hasGap:
+                if (hasGap && birdDensity>0){
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = 0.0;
+                }
+            }
+
         } // endfor (iLayer = 0; iLayer < nLayers; iLayer++)
 
         if (alldata->options.printProfileVar == TRUE) {
