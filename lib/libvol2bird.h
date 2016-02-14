@@ -94,6 +94,8 @@ struct vol2birdOptions
 	float rangeMax;			/* the maximum range [m] used for constructing the bird density profile */
 	float azimMin;			/* the minimum azimuth [degrees] used for constructing the bird density profile */
 	float azimMax;			/* the maximum azimuth [degrees] used for constructing the bird density profile */
+	float elevMin;			/* the minimum scan elevation [degrees] used for constructing the bird density profile */
+	float elevMax;			/* the maximum scan elevation [degrees] used for constructing the bird density profile */
 	float radarWavelength;		/* the default wavelength [cm] of the radar if it is not included in the metadata */
 	int useStaticClutterData;	/* whether a static clutter map is used */
 	int printOptions;		/* print options to stderr */

@@ -1281,6 +1281,16 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 
 		if (scanUse[iScan].useScan)
 		{
+                        // drop scans with elevations outside the range set by user
+                        if (360*PolarScan_getElangle(scan) / 2 / PI < alldata->options.elevMin
+                         || 360*PolarScan_getElangle(scan) / 2 / PI > alldata->options.elevMax)
+                        {
+                                scanUse[iScan].useScan = FALSE;
+                        }
+                }
+
+		if (scanUse[iScan].useScan)
+		{
 			// Read Nyquist interval from top-level how group
 			attr = PolarVolume_getAttribute(volume, "/how/NI");
 			if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getDouble(attr, &nyquist);
@@ -2328,6 +2338,8 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_FLOAT("RANGEMAX",25000.0f, CFGF_NONE),
         CFG_FLOAT("AZIMMIN",0.0f, CFGF_NONE),
         CFG_FLOAT("AZIMMAX",360.0f, CFGF_NONE),
+        CFG_FLOAT("ELEVMIN",0.0f, CFGF_NONE),
+        CFG_FLOAT("ELEVMAX",360.0f, CFGF_NONE),
         CFG_FLOAT("RADAR_WAVELENGTH_CM",5.3f, CFGF_NONE),
         CFG_BOOL("USE_STATIC_CLUTTER_DATA",FALSE,CFGF_NONE),
         CFG_BOOL("VERBOSE_OUTPUT_REQUIRED",FALSE,CFGF_NONE),
@@ -3450,6 +3462,8 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.nLayers = cfg_getint(*cfg, "NLAYER");
     alldata->options.rangeMax = cfg_getfloat(*cfg, "RANGEMAX");
     alldata->options.rangeMin = cfg_getfloat(*cfg, "RANGEMIN");
+    alldata->options.elevMax = cfg_getfloat(*cfg, "ELEVMAX");
+    alldata->options.elevMin = cfg_getfloat(*cfg, "ELEVMIN");
     alldata->options.radarWavelength = cfg_getfloat(*cfg, "RADAR_WAVELENGTH_CM");
     alldata->options.useStaticClutterData = cfg_getbool(*cfg,"USE_STATIC_CLUTTER_DATA");
     alldata->options.printDbz = cfg_getbool(*cfg,"PRINT_DBZ");
