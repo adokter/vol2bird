@@ -10,12 +10,10 @@ Dokter A.M., Liechti F., Stark H., Delobbe L., Tabary P., Holleman I.
 J. R. Soc. Interface, **8**, 30–43, 2011.
 DOI: [10.1098/rsif.2010.0116](https://doi.org/10.1098/rsif.2010.0116)
 
-1. `vol2bird.c` is the program's main
-2. `libvol2bird` is the library containing the routines for calculating VPBs
-3. `libsvdfit` is a library used by libvol2bird to perform singular value decomposition, for fitting a VVP radial velocity model
-4. `options.conf` for specifying configurable options
-5. `constants.h` contains fixed constants
+`lib` contains the main library 
+`pyvol2bird` is a python wrapper for the library
 
-for compiling the code use the `Makefile`.
+for compiling the code run `./configure --with-confuse=DIR`,
+with DIR the directory of your libconfuse installation
 
 for running the code on a baltrad node add the paths listed in `ldlib.txt` to `LD_LIBRARY_PATH`
