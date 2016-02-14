@@ -198,6 +198,7 @@ struct vol2birdMisc
 	int nParsFitted;
 	float dbzFactor;
 	int initializationSuccessful;
+	int loadConfigSuccessful;
 	int* scatterersAreNotBirds;	// Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
 };
 typedef struct vol2birdMisc vol2birdMisc_t;
@@ -243,6 +244,8 @@ void vol2birdPrintIndexArrays(vol2bird_t* alldata);
 void vol2birdPrintOptions(vol2bird_t* alldata);
 
 void vol2birdPrintPointsArray(vol2bird_t* alldata);
+
+int vol2birdLoadConfig(vol2bird_t* alldata);
 
 int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata);
 

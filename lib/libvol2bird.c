@@ -3429,15 +3429,10 @@ void printProfile(vol2bird_t* alldata) {
 
 
 
+int vol2birdLoadConfig(vol2bird_t* alldata) {
 
+    alldata->misc.loadConfigSuccessful = FALSE;
 
-
-
-//int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata) {
-int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
-    
-    alldata->misc.initializationSuccessful = FALSE;
-    
     if (readUserConfigOptions(&(alldata->cfg)) != 0) {
         fprintf(stderr, "An error occurred while reading the user configuration file 'options.conf'.\n");
         return -1; 
@@ -3496,9 +3491,6 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->constants.absVDifMax = VDIFMAX;
     alldata->constants.vradMin = VRADMIN;
 
-
-
-
     // ------------------------------------------------------------- //
     //                       some other variables                    //
     // ------------------------------------------------------------- //
@@ -3508,9 +3500,24 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->misc.nParsFitted = 3;
     alldata->misc.dbzFactor = (pow(alldata->constants.refracIndex,2) * 1000 * pow(PI,5))/pow(alldata->options.radarWavelength,4);
 
+    alldata->misc.loadConfigSuccessful = TRUE;
+
+    return 0;
+
+}
 
 
+//int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata) {
+int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
+    
+    alldata->misc.initializationSuccessful = FALSE;
+    
 
+    if (alldata->misc.loadConfigSuccessful == FALSE){
+        fprintf(stderr,"Vol2bird configuration not loaded. Run vol2birdLoadConfig prior to vol2birdSetup\n");
+        return -1;
+    }
+ 
     // ------------------------------------------------------------- //
     //             lists of indices into the 'points' array:         //
     //          where each altitude layer's data starts and ends     //

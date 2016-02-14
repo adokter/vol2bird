@@ -83,6 +83,12 @@ int main(int argc, char** argv) {
         PolarVolume_t* volume = NULL;
         volume = (PolarVolume_t*) RaveIO_getObject(raveio);
 
+        int configSuccessful = vol2birdLoadConfig(&alldata) == 0;
+
+        if (configSuccessful == FALSE) {
+            return -1;
+        }
+
         // initialize volbird library
         int initSuccessful = vol2birdSetUp(volume, &alldata) == 0;
 //        int initSuccessful = vol2birdSetUp(volume, &cfg, &alldata) == 0;
@@ -108,10 +114,6 @@ int main(int argc, char** argv) {
 
         {  // getter example scope begin
 
-            //int iProfileType;
-            
-            //for (iProfileType = 1; iProfileType <= 3;iProfileType++) {
-
                 int nRowsProfile = vol2birdGetNRowsProfile(&alldata);
                 int nColsProfile = vol2birdGetNColsProfile(&alldata);
 
@@ -127,7 +129,6 @@ int main(int argc, char** argv) {
                 profileAll = vol2birdGetProfile(3, &alldata);
                 
                 int iRowProfile;
-//                int iColProfile;
                 int iCopied = 0;
                 
                 for (iRowProfile = 0; iRowProfile < nRowsProfile; iRowProfile++) {
@@ -142,12 +143,6 @@ int main(int argc, char** argv) {
                     profileBio[9+iCopied],profileBio[10+iCopied],
                     profileBio[11+iCopied],profileBio[12+iCopied],
                     profileAll[9+iCopied],profileAll[10+iCopied]);
-
-//                    for (iColProfile = 0; iColProfile < nColsProfile; iColProfile++) {
-//                        fprintf(stderr," %10.2f",profileBio[iCopied]);
-//                        iCopied += 1;
-//                    }
-//                    fprintf(stderr,"\n");
                 }
                 
                 profileAll = NULL;
