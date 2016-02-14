@@ -30,8 +30,8 @@ Kernel configured for up to 4 processors.
 Processor type: i486 (Intel 80486)
 Processors active: 0 1 2 3
 Primary memory available: 8.00 gigabytes
-Default processor set: 268 tasks, 1104 threads, 4 processors
-Load average: 1.13, Mach factor: 2.86
+Default processor set: 274 tasks, 1227 threads, 4 processors
+Load average: 2.02, Mach factor: 1.97
 /bin/machine           = unknown
 /usr/bin/oslevel       = unknown
 /bin/universe          = unknown
@@ -61,14 +61,14 @@ configure:2112: found /usr/bin/gcc
 configure:2123: result: gcc
 configure:2352: checking for C compiler version
 configure:2361: gcc --version >&5
-Apple LLVM version 7.0.0 (clang-700.0.72)
+Apple LLVM version 7.0.2 (clang-700.1.81)
 Target: x86_64-apple-darwin14.5.0
 Thread model: posix
 Configured with: --prefix=/Applications/Xcode.app/Contents/Developer/usr --with-gxx-include-dir=/usr/include/c++/4.2.1
 configure:2372: $? = 0
 configure:2361: gcc -v >&5
 Configured with: --prefix=/Applications/Xcode.app/Contents/Developer/usr --with-gxx-include-dir=/usr/include/c++/4.2.1
-Apple LLVM version 7.0.0 (clang-700.0.72)
+Apple LLVM version 7.0.2 (clang-700.1.81)
 Target: x86_64-apple-darwin14.5.0
 Thread model: posix
 configure:2372: $? = 0
