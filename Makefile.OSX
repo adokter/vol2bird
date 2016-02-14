@@ -43,7 +43,7 @@ LIB_PROJ_DIR		= /opt/local/lib/proj47/lib
 LIB_HDF5_DIR		= /opt/local/lib/
 
 # define where the vol2bird stuff is
-SRC_VOL2BIRD_DIR        = $(HOME)/git/baltrad
+SRC_VOL2BIRD_DIR        = $(HOME)/git/vol2bird
 
 
 
