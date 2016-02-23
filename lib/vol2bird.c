@@ -72,7 +72,12 @@ int main(int argc, char** argv) {
     
     // read the input file and assign it to a generic rave object
     RaveIO_t* raveio = RaveIO_open(filename);
-    
+
+    if (raveio == (RaveIO_t*) NULL){
+        fprintf(stderr, "critical error, cannot open file %s\n", filename);
+        return -1;
+    }
+
     if (RaveIO_getObjectType(raveio) == Rave_ObjectType_PVOL) {
 
         // initialize array used for performance analysis
