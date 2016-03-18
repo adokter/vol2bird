@@ -13,6 +13,7 @@
 
 
 #include <stdio.h>
+#include <string.h>
 #include <confuse.h>
 #include <stdlib.h>
 #include <math.h>
@@ -640,7 +641,7 @@ static int analyzeCells(const unsigned char *dbzImage, const unsigned char *vrad
 
 
 
-static float calcDist(const int iRang1, const int iAzim1, const int iRang2, const 
+static float calcDist(const int iRang1, const int iAzim1, const int iRang2, 
     const int iAzim2, const float rangScale, const float azimScaleDeg) {
 
     // -------------------------------------------------------- //
@@ -1269,19 +1270,25 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 		}
 
 		if (scanUse[iScan].useScan){
-		    if(PolarScan_hasParameter(scan, "DBZH")){
-			sprintf(scanUse[iScan].dbzName,"DBZH");	
+		    if(PolarScan_hasParameter(scan,alldata->options.dBZType)){
+			strcpy(scanUse[iScan].dbzName,alldata->options.dBZType);	
 		    }
 		    else{
-			if (PolarScan_hasParameter(scan, "DBZV")){
-			    sprintf(scanUse[iScan].dbzName,"DBZV");	
+                        fprintf(stderr,"requested reflectivity factor '%s' missing, searching for alternatives ...\n",alldata->options.dBZType);
+		        if(PolarScan_hasParameter(scan, "DBZH")){
+			    sprintf(scanUse[iScan].dbzName,"DBZH");	
 		        }
-			else{	
-			    scanUse[iScan].useScan = FALSE;
-			}
-		    }
+		        else{
+			    if (PolarScan_hasParameter(scan, "DBZV")){
+			        sprintf(scanUse[iScan].dbzName,"DBZV");	
+		            }
+			    else{	
+			        scanUse[iScan].useScan = FALSE;
+		 	    }
+		        }
+                   }
 		   if (scanUse[iScan].useScan == FALSE){
-                       fprintf(stderr,"radial velocity missing, dropping scan %i ...\n",iScan);
+                       fprintf(stderr,"reflectivity factor missing, dropping scan %i ...\n",iScan);
                    }
 		}
 
@@ -2226,6 +2233,27 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
         }
     }
+
+    if (!iQuantityType && (gateCode & 1<<(alldata->flags.flagPositionVradMissing)) && alldata->options.requireVrad) {
+        
+        // i.e. flag 3 in gateCode is true
+        // this gate has reflectivity data but no corresponding radial velocity data
+        // and iQuantityType == 0, i.e. we are dealing with reflectivity quantities
+        
+        switch (iProfileType) {
+            case 1 : 
+		doInclude = FALSE;
+                break;
+            case 2 : 
+                doInclude = FALSE;
+                break;
+            case 3 : 
+                doInclude = FALSE;
+                break;
+            default :
+                fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
+        }
+    }
     
     if (gateCode & 1<<(alldata->flags.flagPositionDbzTooHighForBirds)) {
         
@@ -2364,19 +2392,21 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_FLOAT("RADAR_WAVELENGTH_CM",5.3f, CFGF_NONE),
         CFG_BOOL("USE_STATIC_CLUTTER_DATA",FALSE,CFGF_NONE),
         CFG_BOOL("VERBOSE_OUTPUT_REQUIRED",FALSE,CFGF_NONE),
-        CFG_BOOL("PRINT_DBZ",TRUE,CFGF_NONE),
-        CFG_BOOL("PRINT_VRAD",TRUE,CFGF_NONE),
-        CFG_BOOL("PRINT_CELL",TRUE,CFGF_NONE),
-        CFG_BOOL("PRINT_CELL_PROP",TRUE,CFGF_NONE),
-        CFG_BOOL("PRINT_TEXTURE",TRUE,CFGF_NONE),
-        CFG_BOOL("PRINT_CLUT",TRUE,CFGF_NONE),
+        CFG_BOOL("PRINT_DBZ",FALSE,CFGF_NONE),
+        CFG_BOOL("PRINT_VRAD",FALSE,CFGF_NONE),
+        CFG_BOOL("PRINT_CELL",FALSE,CFGF_NONE),
+        CFG_BOOL("PRINT_CELL_PROP",FALSE,CFGF_NONE),
+        CFG_BOOL("PRINT_TEXTURE",FALSE,CFGF_NONE),
+        CFG_BOOL("PRINT_CLUT",FALSE,CFGF_NONE),
         CFG_BOOL("PRINT_OPTIONS",TRUE,CFGF_NONE),
         CFG_BOOL("FIT_VRAD",TRUE,CFGF_NONE),
-        CFG_BOOL("PRINT_PROFILE",TRUE,CFGF_NONE),
+        CFG_BOOL("PRINT_PROFILE",FALSE,CFGF_NONE),
         CFG_BOOL("PRINT_POINTS_ARRAY",FALSE,CFGF_NONE),
         CFG_FLOAT("MIN_NYQUIST_VELOCITY",20.0f,CFGF_NONE),
         CFG_FLOAT("STDEV_BIRD",2.0f,CFGF_NONE),
         CFG_FLOAT("SIGMA_BIRD",11.0f,CFGF_NONE),
+	CFG_STR("DBZTYPE","DBZH",CFGF_NONE ),
+        CFG_BOOL("REQUIRE_VRAD",FALSE,CFGF_NONE),
         CFG_BOOL("EXPORT_BIRD_PROFILE_AS_JSON",FALSE,CFGF_NONE),
         CFG_END()
     };
@@ -3507,6 +3537,8 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.minNyquist = cfg_getfloat(*cfg,"MIN_NYQUIST_VELOCITY");
     alldata->options.birdRadarCrossSection = cfg_getfloat(*cfg,"SIGMA_BIRD");
     alldata->options.stdDevMinBird = cfg_getfloat(*cfg,"STDEV_BIRD");
+    strcpy(alldata->options.dBZType,cfg_getstr(*cfg,"DBZTYPE"));
+    alldata->options.requireVrad = cfg_getbool(*cfg,"REQUIRE_VRAD");
 
     // ------------------------------------------------------------- //
     //              vol2bird options from constants.h                //

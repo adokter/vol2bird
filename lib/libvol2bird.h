@@ -112,6 +112,8 @@ struct vol2birdOptions
 	float minNyquist;		/* Minimum Nyquist velocity [m/s] to include a scan; to excluded velocity scans too heavily folded */
 	float birdRadarCrossSection;    /* Bird radar cross section [cm^2] */
 	float stdDevMinBird;            /* Minimum VVP radial velocity standard deviation for layer containing birds*/
+	char dBZType[10];               /* Preferred dBZ quantity to use */
+	int requireVrad;                /* require range gates to have a valid radial velocity measurement */
 };
 typedef struct vol2birdOptions vol2birdOptions_t;
 
