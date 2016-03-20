@@ -818,12 +818,12 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
             gateCode |= 1<<(alldata->flags.flagPositionStaticClutter);
         }
 
-        if (cellValue == 1) {
+        if (cellValue > 1) {
             // this gate is part of the cluttermap (without fringe)
             gateCode |= 1<<(alldata->flags.flagPositionDynamicClutter);
         }
 
-        if (cellValue == 2) {
+        if (cellValue == 1) {
             // this gate is part of the fringe of the cluttermap
             gateCode |= 1<<(alldata->flags.flagPositionDynamicClutterFringe);
         }
@@ -1644,7 +1644,9 @@ static int findWeatherCells(const unsigned char *dbzImage, int *cellImage,
     // Processing' by Gonzales and Woods published by Addison-Wesley.          //
     // ----------------------------------------------------------------------- //
 
-    iCellIdentifier = 0;
+    // The first cell will have iCellIdentifier = 2, because we reserve 1 for fringe
+    // to be added by function fringeCells
+    iCellIdentifier = 2;
 
     for (iAzim = 0; iAzim < nAzim; iAzim++) {
         for (iRang = 0; iRang < nRang; iRang++) {

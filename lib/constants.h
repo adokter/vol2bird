@@ -4,7 +4,7 @@
 #define DBZCELL                   15.0
 #define DBZCLUTTER                -10.0
 #define DBZMAX                    20.0
-#define DBZMIN                    -100.0
+#define DBZMIN                    0.0
 #define FRINGEDIST                5000.0
 #define NBINSGAP                  8
 #define NOBSGAPMIN                5
