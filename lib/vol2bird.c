@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
     // print default message when no input arguments
     if (argc == 1) {
         fprintf(stderr,"usage: %s <ODIM hdf5 volume> \n",argv[0]);
-        fprintf(stderr,"   Version 0.2.0 (14-Feb-2016)\n");
+        fprintf(stderr,"   Version 0.2.1 (20-Mar-2016)\n");
         fprintf(stderr,"   expects OPERA ODIM hdf5 input format, see http://www.eumetnet.eu/opera-software\n\n");
         fprintf(stderr,"   Output fields to stdout:\n");
         fprintf(stderr,"   Date    - date in UTC\n");
