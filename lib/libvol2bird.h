@@ -13,6 +13,7 @@
 
 #include <confuse.h>
 #include <polarvolume.h>
+#include <vertical_profile.h>
 
 // ****************************************************************************
 // Definition of standard parameters.
@@ -254,3 +255,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata);
 int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata);
 
 void vol2birdTearDown(vol2bird_t* alldata);
+
+int mapDataToRave(VerticalProfile_t* vp, PolarVolume_t* volume, vol2bird_t* alldata);
+
+int saveToODIM(VerticalProfile_t* volume, const char* filename);

@@ -97,7 +97,6 @@ int main(int argc, char** argv) {
 
         // initialize volbird library
         int initSuccessful = vol2birdSetUp(volume, &alldata) == 0;
-//        int initSuccessful = vol2birdSetUp(volume, &cfg, &alldata) == 0;
         
         if (initSuccessful == FALSE) {
             return -1;
@@ -166,9 +165,26 @@ int main(int argc, char** argv) {
         //                 end of the getter example section                   //
         // ------------------------------------------------------------------- //            
 
+        
+        const char* fileout = "/Users/adriaan/git/vol2bird/lib/profout.h5";
+
+        // initialize the profile object
+        VerticalProfile_t* vp = RAVE_OBJECT_NEW(&VerticalProfile_TYPE);
+            
+        //map vol2bird profile data to Rave profile object
+        mapDataToRave(vp, volume, &alldata);
+
+        //save rave profile to ODIM hdf5 file
+        int result;
+        result = saveToODIM(vp, fileout); 
+        if (result == FALSE){
+            fprintf(stderr, "critical error, cannot write file %s\n", fileout);
+            return -1;
+        }
+        
 
         // tear down vol2bird, give memory back
-//        vol2birdTearDown(cfg, &alldata);
+        RAVE_OBJECT_RELEASE(vp);
         vol2birdTearDown(&alldata);
 
         // output some performance data
@@ -177,7 +193,6 @@ int main(int argc, char** argv) {
         //fprintf(stderr, "Processing done in %.2f seconds\n",nSeconds);
 
     }
-
 
     RAVE_OBJECT_RELEASE(raveio);
     

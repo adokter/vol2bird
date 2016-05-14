@@ -19,6 +19,8 @@
 #include <math.h>
 #include <vertical_profile.h>
 
+#include "rave_io.h"
+#include "rave_debug.h"
 #include "polarvolume.h"
 #include "polarscan.h"
 #include "libvol2bird.h"
@@ -75,7 +77,9 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
 static int mapDataFromRave(PolarScan_t* scan, SCANMETA *meta, 
                            unsigned char *values, char *paramStr);
 
-static void mapDataToRave(vol2bird_t* alldata);
+static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* field, const char* quantity);
+
+static int mapVolumeToProfile(VerticalProfile_t* vp, PolarVolume_t* volume);
 
 static void printGateCode(char* flags, const unsigned int gateCode);
 
@@ -1014,7 +1018,7 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 //                      analyze cells                            //
                 // ------------------------------------------------------------- //
     
-                int nCellsValid = analyzeCells(&dbzImage[0], &vradImage[0], &texImage[0], 
+                analyzeCells(&dbzImage[0], &vradImage[0], &texImage[0], 
                     &clutterImage[0], &cellImage[0], &dbzMeta, &vradMeta, &texMeta, 
                     &clutterMeta, nCells, alldata);
     
@@ -2494,26 +2498,85 @@ static int mapDataFromRave(PolarScan_t* scan, SCANMETA* meta, unsigned char* val
 
 } // mapDataFromRave
 
-
-
-
-static void mapDataToRave(vol2bird_t* alldata) {
-    // FIXME This method is a stub, see issue #84
-     
-    // initialize the profile object
-    VerticalProfile_t* profileRave = NULL;
-
-    VerticalProfile_setLevels(profileRave,alldata->options.nLayers);
-    VerticalProfile_setInterval(profileRave,alldata->options.layerThickness);
-
-    RAVE_OBJECT_RELEASE(profileRave);
-
+// copies shared metadata from rave polar volume to rave vertical profile
+static int mapVolumeToProfile(VerticalProfile_t* vp, PolarVolume_t* volume){
+    //assert that the volume and vertical profile are defined
+    RAVE_ASSERT((vp != NULL), "vp == NULL");
+    RAVE_ASSERT((volume != NULL), "volume == NULL");
     
-    return;
+    //copy the metadata
+    VerticalProfile_setTime(vp,PolarVolume_getTime(volume));
+    VerticalProfile_setDate(vp,PolarVolume_getDate(volume));
+    VerticalProfile_setSource(vp,PolarVolume_getSource(volume));
+    VerticalProfile_setLongitude(vp,PolarVolume_getLongitude(volume));
+    VerticalProfile_setLatitude(vp,PolarVolume_getLatitude(volume));
+    VerticalProfile_setHeight(vp,PolarVolume_getHeight(volume));
+    
+    return 0;
+}
+
+int mapDataToRave(VerticalProfile_t* vp, PolarVolume_t* volume, vol2bird_t* alldata) {
+    int result = 0;
+    //assert that the vertical profile is defined
+    RAVE_ASSERT((vp != NULL), "vp == NULL");
+    
+    // copy shared metadata from volume to profile
+    mapVolumeToProfile(vp, volume);
+
+    // copy vol2bird profile data to RAVE profile
+    VerticalProfile_setLevels(vp,alldata->options.nLayers);
+    VerticalProfile_setInterval(vp,alldata->options.layerThickness);
+    VerticalProfile_setMinheight(vp, 0);
+    VerticalProfile_setMaxheight(vp, alldata->options.nLayers * alldata->options.layerThickness);
+/*
+    VerticalProfile_addAttribute (VerticalProfile_t *self, RaveAttribute_t *attribute)
+    VerticalProfile_setFF (VerticalProfile_t *self, RaveField_t *ff)
+    VerticalProfile_setW (VerticalProfile_t *self, RaveField_t *ff)
+    VerticalProfile_setDD (VerticalProfile_t *self, RaveField_t *ff)
+    VerticalProfile_setDBZ (VerticalProfile_t *self, RaveField_t *ff)
+    VerticalProfile_addField (VerticalProfile_t *self, RaveField_t *field)
+*/       
+    return result;
     
 }
 
+//static int mapToRaveField(RaveField_t* field, void* data){
+//    int RaveField_setData(RaveField_t* field, long xsize, long ysize, void* data, RaveDataType type)
+//}
 
+static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* field, const char* quantity)
+{
+    int result = 0;
+    RAVE_ASSERT((self != NULL), "self == NULL");
+    RaveAttribute_t* attr = RaveAttributeHelp_createString("what/quantity", quantity);
+    if (attr == NULL || !RaveField_addAttribute(field, attr)) {
+        RAVE_ERROR0("Failed to add what/quantity attribute to field");
+        goto done;
+    }
+    RAVE_OBJECT_RELEASE(attr);
+    result = VerticalProfile_addField(self, field);
+    done:
+        return result;
+}
+
+
+int saveToODIM(VerticalProfile_t* vp, const char* filename){
+    
+    //define new Rave IO instance
+    RaveIO_t* raveio = RAVE_OBJECT_NEW(&RaveIO_TYPE);
+    //VpOdimIO_t* raveio = RAVE_OBJECT_NEW(&VpOdimIO_TYPE);
+
+    //set the object to be saved
+    RaveIO_setObject(raveio, (RaveCoreObject*)vp);
+    
+    //save the object
+    int result;
+    result = RaveIO_save(raveio, filename);
+    
+    RAVE_OBJECT_RELEASE(raveio);
+
+    return result;    
+}
 
 
 static void printGateCode(char* flags, const unsigned int gateCode) {
