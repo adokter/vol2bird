@@ -167,24 +167,19 @@ int main(int argc, char** argv) {
 
         
         const char* fileout = "/Users/adriaan/git/vol2bird/lib/profout.h5";
-
-        // initialize the profile object
-        VerticalProfile_t* vp = RAVE_OBJECT_NEW(&VerticalProfile_TYPE);
             
         //map vol2bird profile data to Rave profile object
-        mapDataToRave(vp, volume, &alldata);
-
+        mapDataToRave(volume, &alldata);
+        
         //save rave profile to ODIM hdf5 file
         int result;
-        result = saveToODIM(vp, fileout); 
+        result = saveToODIM(alldata.vp, fileout); 
         if (result == FALSE){
             fprintf(stderr, "critical error, cannot write file %s\n", fileout);
             return -1;
         }
         
-
         // tear down vol2bird, give memory back
-        RAVE_OBJECT_RELEASE(vp);
         vol2birdTearDown(&alldata);
 
         // output some performance data

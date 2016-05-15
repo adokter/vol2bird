@@ -2411,7 +2411,7 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_FLOAT("MIN_NYQUIST_VELOCITY",20.0f,CFGF_NONE),
         CFG_FLOAT("STDEV_BIRD",2.0f,CFGF_NONE),
         CFG_FLOAT("SIGMA_BIRD",11.0f,CFGF_NONE),
-	CFG_STR("DBZTYPE","DBZH",CFGF_NONE ),
+        CFG_STR("DBZTYPE","DBZH",CFGF_NONE ),
         CFG_BOOL("REQUIRE_VRAD",FALSE,CFGF_NONE),
         CFG_BOOL("EXPORT_BIRD_PROFILE_AS_JSON",FALSE,CFGF_NONE),
         CFG_END()
@@ -2515,19 +2515,19 @@ static int mapVolumeToProfile(VerticalProfile_t* vp, PolarVolume_t* volume){
     return 0;
 }
 
-int mapDataToRave(VerticalProfile_t* vp, PolarVolume_t* volume, vol2bird_t* alldata) {
+int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     int result = 0;
     //assert that the vertical profile is defined
-    RAVE_ASSERT((vp != NULL), "vp == NULL");
+    RAVE_ASSERT((alldata->vp != NULL), "vp == NULL");
     
     // copy shared metadata from volume to profile
-    mapVolumeToProfile(vp, volume);
+    mapVolumeToProfile(alldata->vp, volume);
 
     // copy vol2bird profile data to RAVE profile
-    VerticalProfile_setLevels(vp,alldata->options.nLayers);
-    VerticalProfile_setInterval(vp,alldata->options.layerThickness);
-    VerticalProfile_setMinheight(vp, 0);
-    VerticalProfile_setMaxheight(vp, alldata->options.nLayers * alldata->options.layerThickness);
+    VerticalProfile_setLevels(alldata->vp,alldata->options.nLayers);
+    VerticalProfile_setInterval(alldata->vp,alldata->options.layerThickness);
+    VerticalProfile_setMinheight(alldata->vp, 0);
+    VerticalProfile_setMaxheight(alldata->vp, alldata->options.nLayers * alldata->options.layerThickness);
 /*
     VerticalProfile_addAttribute (VerticalProfile_t *self, RaveAttribute_t *attribute)
     VerticalProfile_setFF (VerticalProfile_t *self, RaveField_t *ff)
@@ -2540,20 +2540,29 @@ int mapDataToRave(VerticalProfile_t* vp, PolarVolume_t* volume, vol2bird_t* alld
     
 }
 
-//static int mapToRaveField(RaveField_t* field, void* data){
-//    int RaveField_setData(RaveField_t* field, long xsize, long ysize, void* data, RaveDataType type)
-//}
 
 static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* field, const char* quantity)
 {
     int result = 0;
     RAVE_ASSERT((self != NULL), "self == NULL");
     RaveAttribute_t* attr = RaveAttributeHelp_createString("what/quantity", quantity);
+    RaveAttribute_t* attr_gain = RaveAttributeHelp_createDouble("what/gain", 1.0);
+    RaveAttribute_t* attr_offset = RaveAttributeHelp_createDouble("what/offset", 0.0);
     if (attr == NULL || !RaveField_addAttribute(field, attr)) {
         RAVE_ERROR0("Failed to add what/quantity attribute to field");
         goto done;
     }
+    if (attr_gain == NULL || !RaveField_addAttribute(field, attr_gain)) {
+        RAVE_ERROR0("Failed to add what/gain attribute to field");
+        goto done;
+    }
+    if (attr_offset == NULL || !RaveField_addAttribute(field, attr_offset)) {
+        RAVE_ERROR0("Failed to add what/offset attribute to field");
+        goto done;
+    }
     RAVE_OBJECT_RELEASE(attr);
+    RAVE_OBJECT_RELEASE(attr_gain);
+    RAVE_OBJECT_RELEASE(attr_offset);
     result = VerticalProfile_addField(self, field);
     done:
         return result;
@@ -3268,7 +3277,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                                                   &(alldata->points.points[0]), alldata);
 
                 }; // endif (fitVrad == TRUE)
-		if (hasGap){
+                if (hasGap){
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = iLayer * alldata->options.layerThickness;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  1] = (iLayer + 1) * alldata->options.layerThickness;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = NAN;
@@ -3283,8 +3292,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = (float) nPointsIncludedZ;
-		}
-		else{
+                }
+                else{
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = iLayer * alldata->options.layerThickness;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  1] = (iLayer + 1) * alldata->options.layerThickness;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = parameterVector[0];
@@ -3299,7 +3308,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = (float) nPointsIncludedZ;
-		}
+                }
  
                 free((void*) yObs);
                 free((void*) yFitted);
@@ -3363,8 +3372,19 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 iCopied += 1;
             }
         }
-
+    
     } // endfor (iProfileType = nProfileTypes; iProfileType > 0; iProfileType--)
+
+    // map the profile data to rave fields
+    int iRowProfile;
+    int nColProfile = alldata->profiles.nColsProfile;
+    for (iRowProfile = 0; iRowProfile < alldata->profiles.nRowsProfile; iRowProfile++) {
+        RaveField_setValue(alldata->fields.height,   0, iRowProfile, alldata->profiles.profile1[0 +iRowProfile * nColProfile]);
+        RaveField_setValue(alldata->fields.dbz_bird, 0, iRowProfile, alldata->profiles.profile1[11+iRowProfile * nColProfile]);
+    }
+    
+    verticalProfile_AddCustomField(alldata->vp, alldata->fields.height,"HGHT");
+    verticalProfile_AddCustomField(alldata->vp, alldata->fields.dbz_bird,"dbz_bird");
 
 } // vol2birdCalcProfiles
 
@@ -3625,9 +3645,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->constants.nRangNeighborhood = NTEXBINRANG;
     alldata->constants.nCountMin = NTEXMIN; 
     alldata->constants.refracIndex = REFRACTIVE_INDEX_OF_WATER;
-//    alldata->constants.birdRadarCrossSection = SIGMABIRD;
     alldata->constants.cellStdDevMax = STDEVCELL;
-//    alldata->constants.stdDevMinBird = STDEVBIRD;
     alldata->constants.absVDifMax = VDIFMAX;
     alldata->constants.vradMin = VRADMIN;
 
@@ -3815,6 +3833,24 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
 
     alldata->profiles.iProfileTypeLast = -1;
 
+    // ------------------------------------------------------------- //
+    //              initialising rave profile fields                 //
+    // ------------------------------------------------------------- //
+
+    alldata->vp = RAVE_OBJECT_NEW(&VerticalProfile_TYPE);
+    
+    alldata->fields.height = RAVE_OBJECT_NEW(&RaveField_TYPE);
+    if (RaveField_createData(alldata->fields.height, 1, alldata->options.nLayers, RaveDataType_DOUBLE) == 0){
+        fprintf(stderr,"Error pre-allocating field 'HGHT'.\n"); 
+        return -1;
+    }
+
+    alldata->fields.dbz_bird = RAVE_OBJECT_NEW(&RaveField_TYPE);
+    if (RaveField_createData(alldata->fields.dbz_bird, 1, alldata->options.nLayers, RaveDataType_DOUBLE) == 0){
+        fprintf(stderr,"Error pre-allocating field 'dbz_bird'.\n"); 
+        return -1;
+    }
+    
     alldata->misc.initializationSuccessful = TRUE;
 
     if (alldata->options.printOptions == TRUE) {
@@ -3859,8 +3895,12 @@ void vol2birdTearDown(vol2bird_t* alldata) {
     free((void*) alldata->points.indexTo);
     free((void*) alldata->points.nPointsWritten);
     free((void*) alldata->misc.scatterersAreNotBirds);
-    
-    
+   
+    // free all rave fields
+    RAVE_OBJECT_RELEASE(alldata->vp);
+    RAVE_OBJECT_RELEASE(alldata->fields.height);
+    RAVE_OBJECT_RELEASE(alldata->fields.dbz_bird);
+ 
     // free the memory that holds the user configurable options
     cfg_free(alldata->cfg);
     
