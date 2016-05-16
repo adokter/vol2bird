@@ -165,8 +165,7 @@ int main(int argc, char** argv) {
         //                 end of the getter example section                   //
         // ------------------------------------------------------------------- //            
 
-        
-        const char* fileout = "/Users/adriaan/git/vol2bird/lib/profout.h5";
+        const char* fileout = "./profout.h5";
             
         //map vol2bird profile data to Rave profile object
         mapDataToRave(volume, &alldata);

@@ -17,5 +17,6 @@
 #define STDEVCELL                 5.0
 #define VDIFMAX                   10.0
 #define VRADMIN                   1.0
-
+#define NODETECT                  -9999
+#define NODATA                    NAN
 

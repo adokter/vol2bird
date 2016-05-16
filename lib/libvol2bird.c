@@ -79,6 +79,8 @@ static int mapDataFromRave(PolarScan_t* scan, SCANMETA *meta,
 
 static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* field, const char* quantity);
 
+static int profileArray2RaveField(vol2bird_t* alldata, int idx_profile, int idx_quantity, const char* quantity, RaveDataType raveType);
+
 static int mapVolumeToProfile(VerticalProfile_t* vp, PolarVolume_t* volume);
 
 static void printGateCode(char* flags, const unsigned int gateCode);
@@ -2528,18 +2530,74 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     VerticalProfile_setInterval(alldata->vp,alldata->options.layerThickness);
     VerticalProfile_setMinheight(alldata->vp, 0);
     VerticalProfile_setMaxheight(alldata->vp, alldata->options.nLayers * alldata->options.layerThickness);
-/*
-    VerticalProfile_addAttribute (VerticalProfile_t *self, RaveAttribute_t *attribute)
-    VerticalProfile_setFF (VerticalProfile_t *self, RaveField_t *ff)
-    VerticalProfile_setW (VerticalProfile_t *self, RaveField_t *ff)
-    VerticalProfile_setDD (VerticalProfile_t *self, RaveField_t *ff)
-    VerticalProfile_setDBZ (VerticalProfile_t *self, RaveField_t *ff)
-    VerticalProfile_addField (VerticalProfile_t *self, RaveField_t *field)
-*/       
+    
+    // map the profile data to rave fields
+    profileArray2RaveField(alldata, 1, 0, "HGHT", RaveDataType_DOUBLE);
+    profileArray2RaveField(alldata, 1, 1, "HGHT2", RaveDataType_DOUBLE);
+    profileArray2RaveField(alldata, 1, 2, "U", RaveDataType_DOUBLE);
+    profileArray2RaveField(alldata, 1, 3, "V", RaveDataType_DOUBLE);
+    profileArray2RaveField(alldata, 1, 4, "W", RaveDataType_DOUBLE);
+    profileArray2RaveField(alldata, 1, 5, "ff_bird", RaveDataType_DOUBLE);
+    profileArray2RaveField(alldata, 1, 6, "dd_bird", RaveDataType_DOUBLE);    
+    profileArray2RaveField(alldata, 3, 7, "ff_dev", RaveDataType_DOUBLE);    
+    profileArray2RaveField(alldata, 3, 9, "dbz_bird", RaveDataType_DOUBLE);    
+    profileArray2RaveField(alldata, 1, 11, "eta_bird", RaveDataType_DOUBLE);
+    profileArray2RaveField(alldata, 1, 12, "dens_bird", RaveDataType_DOUBLE);    
+    profileArray2RaveField(alldata, 3, 9, "dbz_all", RaveDataType_DOUBLE);    
+    profileArray2RaveField(alldata, 1, 10, "n", RaveDataType_LONG);    
+    profileArray2RaveField(alldata, 1, 13, "n_dBZ", RaveDataType_LONG);    
+    profileArray2RaveField(alldata, 1, 10, "n_All", RaveDataType_LONG);    
+    profileArray2RaveField(alldata, 1, 13, "n_All_dBZ", RaveDataType_LONG);    
+    
+    result=1;
+
     return result;
     
 }
 
+static int profileArray2RaveField(vol2bird_t* alldata, int idx_profile, int idx_quantity, const char* quantity, RaveDataType raveType){
+    int result = 0;
+    float* profile;
+    
+    RaveField_t* field = RAVE_OBJECT_NEW(&RaveField_TYPE);
+    if (RaveField_createData(field, 1, alldata->options.nLayers, raveType) == 0){
+        fprintf(stderr,"Error pre-allocating field '%s'.\n", quantity); 
+        return -1;
+    }
+    
+    switch (idx_profile) {
+        case 1 :
+            profile=alldata->profiles.profile1;
+            break; 
+        case 2 :
+            profile=alldata->profiles.profile2;
+            break; 
+        case 3 :
+            profile=alldata->profiles.profile3;
+            break;
+        default:
+            fprintf(stderr, "Something is wrong this should not happen.\n");
+            break;
+    }
+    
+    int iRowProfile;
+    int nColProfile = alldata->profiles.nColsProfile;
+    for (iRowProfile = 0; iRowProfile < alldata->profiles.nRowsProfile; iRowProfile++) {
+        RaveField_setValue(field, 0, iRowProfile, profile[idx_quantity +iRowProfile * nColProfile]);
+    }
+    
+    result = verticalProfile_AddCustomField(alldata->vp, field, quantity);
+    
+    RAVE_OBJECT_RELEASE(field);
+    
+    return result;
+}
+
+//  HIER FUNCTIE TOEVOEGEN DIE ProfileArray2RaveField
+//  1) make a rave field
+//  
+//  2) fill it with profile data
+//  3) add it to the rave vertical profile
 
 static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* field, const char* quantity)
 {
@@ -2548,6 +2606,9 @@ static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* 
     RaveAttribute_t* attr = RaveAttributeHelp_createString("what/quantity", quantity);
     RaveAttribute_t* attr_gain = RaveAttributeHelp_createDouble("what/gain", 1.0);
     RaveAttribute_t* attr_offset = RaveAttributeHelp_createDouble("what/offset", 0.0);
+    RaveAttribute_t* attr_nodata = RaveAttributeHelp_createDouble("what/nodata", NODATA);
+    RaveAttribute_t* attr_nodetect = RaveAttributeHelp_createDouble("what/nodetect", NODETECT);
+
     if (attr == NULL || !RaveField_addAttribute(field, attr)) {
         RAVE_ERROR0("Failed to add what/quantity attribute to field");
         goto done;
@@ -2560,11 +2621,22 @@ static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* 
         RAVE_ERROR0("Failed to add what/offset attribute to field");
         goto done;
     }
-    RAVE_OBJECT_RELEASE(attr);
-    RAVE_OBJECT_RELEASE(attr_gain);
-    RAVE_OBJECT_RELEASE(attr_offset);
+    if (attr_nodata == NULL || !RaveField_addAttribute(field, attr_nodata)) {
+        RAVE_ERROR0("Failed to add what/nodata attribute to field");
+        goto done;
+    }
+    if (attr_nodetect == NULL || !RaveField_addAttribute(field, attr_nodetect)) {
+        RAVE_ERROR0("Failed to add what/nodetect attribute to field");
+        goto done;
+    }
     result = VerticalProfile_addField(self, field);
+    
     done:
+        RAVE_OBJECT_RELEASE(attr);
+        RAVE_OBJECT_RELEASE(attr_gain);
+        RAVE_OBJECT_RELEASE(attr_offset);
+        RAVE_OBJECT_RELEASE(attr_nodata);
+        RAVE_OBJECT_RELEASE(attr_nodetect);
         return result;
 }
 
@@ -3143,18 +3215,18 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = iLayer * alldata->options.layerThickness;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  1] = (iLayer + 1) * alldata->options.layerThickness;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = NAN;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  3] = NAN;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  4] = NAN;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  5] = NAN;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  6] = NAN;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  7] = NAN;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  8] = NAN;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  9] = NAN;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = NAN;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = NAN;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = NAN;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = NAN;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = NODETECT;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  3] = NODETECT;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  4] = NODETECT;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  5] = NODETECT;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  6] = NODETECT;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  7] = NODETECT;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  8] = NODETECT;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  9] = NODETECT;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = NODETECT;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = NODETECT;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = NODETECT;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = NODETECT;
 
 		//Calculate the average reflectivity Z of the layer
                 iPointIncludedZ = 0;
@@ -3168,11 +3240,11 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         dbzValue = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.dbzValueCol];
                         // convert from dB scale to linear scale 
                         if (isnan(dbzValue)==TRUE){
-			   undbzValue = 0;
-			}
-			else {
-			   undbzValue = (float) exp(0.1*log(10)*dbzValue);
-			}
+                            undbzValue = 0;
+                        }
+                        else {
+                            undbzValue = (float) exp(0.1*log(10)*dbzValue);
+                        }
                         // sum the undbz in this layer
                         undbzSum += undbzValue;
                         // raise the counter
@@ -3189,8 +3261,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     dbzAvg = (10*log(undbzAvg))/log(10);
                 }
                 else {
-                    undbzAvg = NAN;
-                    dbzAvg = NAN;
+                    undbzAvg = NODATA;
+                    dbzAvg = NODATA;
                 }
 
                 // convert from Z (not dBZ) in units of mm^6/m^3 to 
@@ -3204,7 +3276,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     birdDensity = reflectivity / alldata->options.birdRadarCrossSection;
                 }
                 else {
-                    birdDensity = NAN;
+                    birdDensity = NODATA;
                 }
                 
 		//Prepare the arguments of svdfit
@@ -3249,12 +3321,13 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                                 nPointsIncluded, &parameterVector[0], &avar[0], alldata->misc.nParsFitted);
 
                         if (chisq < alldata->constants.chisqMin) {
-                            // the fit was not good enough, reset parameter vector array 
-                            // elements to NAN and continue with the next layer
+                            // the standard deviation of the fit is too low, as in the case of overfit
+                            // reset parameter vector array elements to NAN and continue with the next layer
                             parameterVector[0] = NAN;
                             parameterVector[1] = NAN;
                             parameterVector[2] = NAN;
-                            continue;
+                            // FIXME: if this happens, profile fields are not updated from NODETECT to NODATA
+                            // continue; // with for (iPass = 0; iPass < nPasses; iPass++)
                         } 
                         else {
                             
@@ -3267,47 +3340,53 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                                 hDir += 360.0f;
                             }
                             
-                        }
-                    } // endif (hasGap == FALSE)
-                    
-                    // if the fitted vrad value is more than 'absVDifMax' away from the corresponding
-                    // observed vrad value, set the gate's flagPositionVDifMax bit flag to 1, excluding the 
-                    // gate in the second svdfit iteration
-                    updateFlagFieldsInPointsArray(&yObs[0], &yFitted[0], &includedIndex[0], nPointsIncluded,
+                            // if the fitted vrad value is more than 'absVDifMax' away from the corresponding
+                            // observed vrad value, set the gate's flagPositionVDifMax bit flag to 1, excluding the 
+                            // gate in the second svdfit iteration
+                            updateFlagFieldsInPointsArray(&yObs[0], &yFitted[0], &includedIndex[0], nPointsIncluded,
                                                   &(alldata->points.points[0]), alldata);
 
+                        }
+                        
+                    } // endif (hasGap == FALSE)
+                    
                 }; // endif (fitVrad == TRUE)
-                if (hasGap){
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = iLayer * alldata->options.layerThickness;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  1] = (iLayer + 1) * alldata->options.layerThickness;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = NAN;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  3] = NAN;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  4] = NAN;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  5] = NAN;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  6] = NAN;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  7] = NAN;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  8] = (float) hasGap;
+                
+                //---------------------------------------------//
+                //         Fill the profile arrays             //
+                //---------------------------------------------//
+                
+                // always fill below profile fields, these never have a NODATA or NODETECT value.
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = iLayer * alldata->options.layerThickness;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  1] = (iLayer + 1) * alldata->options.layerThickness;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  8] = (float) hasGap;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = (float) nPointsIncluded;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = (float) nPointsIncludedZ;
+                
+                // fill below profile fields when (1) VVP fit was not performed becasue of azimuthal data gap
+                // and (2) layer contains range gates within the volume sampled by the radar.
+                if (hasGap && nPointsIncludedZ>alldata->constants.nPointsIncludedMin){
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = NODATA;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  3] = NODATA;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  4] = NODATA;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  5] = NODATA;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  6] = NODATA;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  7] = NODATA;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  9] = dbzAvg;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = (float) nPointsIncluded;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = (float) nPointsIncludedZ;
                 }
-                else{
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = iLayer * alldata->options.layerThickness;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  1] = (iLayer + 1) * alldata->options.layerThickness;
+                // case of valid fit, fill profile fields with VVP fit parameters
+                if (!hasGap){
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = parameterVector[0];
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  3] = parameterVector[1];
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  4] = parameterVector[2];
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  5] = hSpeed;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  6] = hDir;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  7] = chi;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  8] = (float) hasGap;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  9] = dbzAvg;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = (float) nPointsIncluded;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = (float) nPointsIncludedZ;
                 }
  
                 free((void*) yObs);
@@ -3318,7 +3397,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
             } // endfor (iPass = 0; iPass < nPasses; iPass++)
             
             // You need some of the results of iProfileType == 3 in order 
-            // to calculate iProfileType == 1
+            // to calculate iProfileType == 1, therefore iProfileType == 3 is executed first
             if (iProfileType == 3) {
                 if (chi < alldata->options.stdDevMinBird) {
                     alldata->misc.scatterersAreNotBirds[iLayer] = TRUE;
@@ -3326,7 +3405,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 else {
                     alldata->misc.scatterersAreNotBirds[iLayer] = FALSE;
                 }
-            }
+            }   
             if (iProfileType == 1) {
                 // set the bird density to zero if radial velocity stdev below threshold:
                 if (alldata->misc.scatterersAreNotBirds[iLayer] == TRUE){
@@ -3375,16 +3454,6 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
     
     } // endfor (iProfileType = nProfileTypes; iProfileType > 0; iProfileType--)
 
-    // map the profile data to rave fields
-    int iRowProfile;
-    int nColProfile = alldata->profiles.nColsProfile;
-    for (iRowProfile = 0; iRowProfile < alldata->profiles.nRowsProfile; iRowProfile++) {
-        RaveField_setValue(alldata->fields.height,   0, iRowProfile, alldata->profiles.profile1[0 +iRowProfile * nColProfile]);
-        RaveField_setValue(alldata->fields.dbz_bird, 0, iRowProfile, alldata->profiles.profile1[11+iRowProfile * nColProfile]);
-    }
-    
-    verticalProfile_AddCustomField(alldata->vp, alldata->fields.height,"HGHT");
-    verticalProfile_AddCustomField(alldata->vp, alldata->fields.dbz_bird,"dbz_bird");
 
 } // vol2birdCalcProfiles
 
@@ -3824,10 +3893,10 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         
     for (iRowProfile = 0; iRowProfile < alldata->profiles.nRowsProfile; iRowProfile++) {
         for (iColProfile = 0; iColProfile < alldata->profiles.nColsProfile; iColProfile++) {
-            alldata->profiles.profile[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NAN;
-            alldata->profiles.profile1[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NAN;
-            alldata->profiles.profile2[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NAN;
-            alldata->profiles.profile3[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NAN;
+            alldata->profiles.profile[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODETECT;
+            alldata->profiles.profile1[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODETECT;
+            alldata->profiles.profile2[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODETECT;
+            alldata->profiles.profile3[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODETECT;
         }
     }
 
