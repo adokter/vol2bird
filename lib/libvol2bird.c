@@ -2575,6 +2575,19 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     profileArray2RaveField(alldata, 1, 10, "n_All", RaveDataType_LONG);    
     profileArray2RaveField(alldata, 1, 13, "n_All_dBZ", RaveDataType_LONG);    
     
+    
+    RAVE_OBJECT_RELEASE(attr_beamwidth);
+    RAVE_OBJECT_RELEASE(attr_wavelength);
+    RAVE_OBJECT_RELEASE(attr_rcs_bird);
+    RAVE_OBJECT_RELEASE(attr_ff_dev_thresh);
+    RAVE_OBJECT_RELEASE(attr_task);
+    RAVE_OBJECT_RELEASE(attr_task_args);
+    RAVE_OBJECT_RELEASE(attr_minrange);
+    RAVE_OBJECT_RELEASE(attr_maxrange);
+    RAVE_OBJECT_RELEASE(attr_minazim);
+    RAVE_OBJECT_RELEASE(attr_maxazim);
+    RAVE_OBJECT_RELEASE(attr_cluttermap);
+
     result=1;
 
     return result;
