@@ -35,8 +35,8 @@ int main(int argc, char** argv) {
 
     // print default message when no input arguments
     if (argc == 1) {
-        fprintf(stderr,"usage: %s <ODIM hdf5 volume> \n",argv[0]);
-        fprintf(stderr,"   Version 0.2.1 (20-Mar-2016)\n");
+        fprintf(stderr,"usage: %s <ODIM hdf5 volume> [<ODIM hdf5 profile output>] \n",argv[0]);
+        fprintf(stderr,"   Version 0.2.2 (17-May-2016)\n");
         fprintf(stderr,"   expects OPERA ODIM hdf5 input format, see http://www.eumetnet.eu/opera-software\n\n");
         fprintf(stderr,"   Output fields to stdout:\n");
         fprintf(stderr,"   Date    - date in UTC\n");
@@ -58,8 +58,8 @@ int main(int argc, char** argv) {
         return -1;
     }
     // check to see if we have the right number of input arguments
-    if (argc != 2) {
-        fprintf(stderr, "Only one argument is allowed\n");
+    if (argc > 3) {
+        fprintf(stderr, "Only one or two arguments are allowed\n");
         return -1;
     }
     
@@ -68,7 +68,16 @@ int main(int argc, char** argv) {
     // ------------------------------------------------------------- //
 
     // the filename that the user provided as input
-    char* filename = argv[1];
+    const char* filename = argv[1];
+    const char* fileout;
+    
+    if (argc == 3){
+        fileout = argv[2];
+    }
+    else{
+        fileout = NULL;
+    }
+  
     
     // read the input file and assign it to a generic rave object
     RaveIO_t* raveio = RaveIO_open(filename);
@@ -164,18 +173,18 @@ int main(int argc, char** argv) {
         // ------------------------------------------------------------------- //
         //                 end of the getter example section                   //
         // ------------------------------------------------------------------- //            
-
-        const char* fileout = "./profout.h5";
             
         //map vol2bird profile data to Rave profile object
         mapDataToRave(volume, &alldata);
         
         //save rave profile to ODIM hdf5 file
-        int result;
-        result = saveToODIM(alldata.vp, fileout); 
-        if (result == FALSE){
-            fprintf(stderr, "critical error, cannot write file %s\n", fileout);
-            return -1;
+        if (fileout != NULL){
+            int result;
+            result = saveToODIM(alldata.vp, fileout); 
+            if (result == FALSE){
+                fprintf(stderr, "critical error, cannot write file %s\n", fileout);
+                return -1;
+            }
         }
         
         // tear down vol2bird, give memory back
