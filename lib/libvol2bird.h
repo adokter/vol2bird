@@ -195,18 +195,6 @@ struct vol2birdProfiles
 typedef struct vol2birdProfiles vol2birdProfiles_t;
 
 
-struct vol2birdFields
-{
-	RaveField_t* height;		// Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
-	RaveField_t* dbz_bird;
-	
-	
-	
-	
-};
-typedef struct vol2birdFields vol2birdFields_t;
-
-
 struct vol2birdMisc
 {
 	float rCellMax;
@@ -234,7 +222,6 @@ struct vol2bird
 	vol2birdPoints_t points;
 	vol2birdFlags_t flags;
 	vol2birdProfiles_t profiles;
-	vol2birdFields_t fields;
 	vol2birdMisc_t misc;
     VerticalProfile_t* vp;
 	cfg_t* cfg;

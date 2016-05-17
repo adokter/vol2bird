@@ -19,4 +19,5 @@
 #define VRADMIN                   1.0
 #define NODETECT                  -9999
 #define NODATA                    NAN
+#define PROGRAM                   "vol2bird"
 

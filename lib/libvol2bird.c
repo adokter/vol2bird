@@ -2531,9 +2531,35 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     VerticalProfile_setMinheight(alldata->vp, 0);
     VerticalProfile_setMaxheight(alldata->vp, alldata->options.nLayers * alldata->options.layerThickness);
     
+    //intialize attributes for /how
+    RaveAttribute_t* attr_beamwidth = RaveAttributeHelp_createDouble("how/beamwidth", PolarVolume_getBeamwidth(volume)*180/PI);
+    RaveAttribute_t* attr_wavelength = RaveAttributeHelp_createDouble("how/wavelength", alldata->options.radarWavelength);
+    RaveAttribute_t* attr_rcs_bird = RaveAttributeHelp_createDouble("how/rcs_bird", alldata->options.birdRadarCrossSection);
+    RaveAttribute_t* attr_ff_dev_thresh = RaveAttributeHelp_createDouble("how/ff_dev_thresh", alldata->options.stdDevMinBird);
+    RaveAttribute_t* attr_task = RaveAttributeHelp_createString("how/task", PROGRAM);
+    RaveAttribute_t* attr_task_args = RaveAttributeHelp_createString("how/task_args", "FIXME: to be implemented");
+    RaveAttribute_t* attr_minrange = RaveAttributeHelp_createDouble("how/minrange", alldata->options.rangeMin/1000);
+    RaveAttribute_t* attr_maxrange = RaveAttributeHelp_createDouble("how/maxrange", alldata->options.rangeMax/1000);
+    RaveAttribute_t* attr_minazim = RaveAttributeHelp_createDouble("how/minazim", alldata->options.azimMin);
+    RaveAttribute_t* attr_maxazim = RaveAttributeHelp_createDouble("how/maxazim", alldata->options.azimMax);
+    RaveAttribute_t* attr_cluttermap = RaveAttributeHelp_createString("how/clutterMap", "");
+
+    //add /how attributes
+    VerticalProfile_addAttribute(alldata->vp, attr_beamwidth);
+    VerticalProfile_addAttribute(alldata->vp, attr_wavelength);
+    VerticalProfile_addAttribute(alldata->vp, attr_rcs_bird);
+    VerticalProfile_addAttribute(alldata->vp, attr_ff_dev_thresh);
+    VerticalProfile_addAttribute(alldata->vp, attr_task);
+    VerticalProfile_addAttribute(alldata->vp, attr_task_args);
+    VerticalProfile_addAttribute(alldata->vp, attr_minrange);
+    VerticalProfile_addAttribute(alldata->vp, attr_maxrange);
+    VerticalProfile_addAttribute(alldata->vp, attr_minazim);
+    VerticalProfile_addAttribute(alldata->vp, attr_maxazim);
+    VerticalProfile_addAttribute(alldata->vp, attr_cluttermap);
+    
     // map the profile data to rave fields
     profileArray2RaveField(alldata, 1, 0, "HGHT", RaveDataType_DOUBLE);
-    profileArray2RaveField(alldata, 1, 1, "HGHT2", RaveDataType_DOUBLE);
+    profileArray2RaveField(alldata, 1, 1, "width", RaveDataType_DOUBLE);
     profileArray2RaveField(alldata, 1, 2, "U", RaveDataType_DOUBLE);
     profileArray2RaveField(alldata, 1, 3, "V", RaveDataType_DOUBLE);
     profileArray2RaveField(alldata, 1, 4, "W", RaveDataType_DOUBLE);
@@ -3213,8 +3239,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 
                 };
 
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = iLayer * alldata->options.layerThickness;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  1] = (iLayer + 1) * alldata->options.layerThickness;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = (iLayer + 0.5) * alldata->options.layerThickness;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  1] = alldata->options.layerThickness;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = NODETECT;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  3] = NODETECT;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  4] = NODETECT;
@@ -3907,19 +3933,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     // ------------------------------------------------------------- //
 
     alldata->vp = RAVE_OBJECT_NEW(&VerticalProfile_TYPE);
-    
-    alldata->fields.height = RAVE_OBJECT_NEW(&RaveField_TYPE);
-    if (RaveField_createData(alldata->fields.height, 1, alldata->options.nLayers, RaveDataType_DOUBLE) == 0){
-        fprintf(stderr,"Error pre-allocating field 'HGHT'.\n"); 
-        return -1;
-    }
-
-    alldata->fields.dbz_bird = RAVE_OBJECT_NEW(&RaveField_TYPE);
-    if (RaveField_createData(alldata->fields.dbz_bird, 1, alldata->options.nLayers, RaveDataType_DOUBLE) == 0){
-        fprintf(stderr,"Error pre-allocating field 'dbz_bird'.\n"); 
-        return -1;
-    }
-    
+        
     alldata->misc.initializationSuccessful = TRUE;
 
     if (alldata->options.printOptions == TRUE) {
@@ -3967,8 +3981,6 @@ void vol2birdTearDown(vol2bird_t* alldata) {
    
     // free all rave fields
     RAVE_OBJECT_RELEASE(alldata->vp);
-    RAVE_OBJECT_RELEASE(alldata->fields.height);
-    RAVE_OBJECT_RELEASE(alldata->fields.dbz_bird);
  
     // free the memory that holds the user configurable options
     cfg_free(alldata->cfg);
