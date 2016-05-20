@@ -75,8 +75,8 @@
   /opt/baltrad/rave/include/raveobject_list.h \
   /opt/baltrad/rave/include/rave_field.h \
   /opt/baltrad/rave/include/rave_data2d.h \
-  /opt/baltrad/rave/include/python/pyverticalprofile.h \
   /opt/baltrad/rave/include/vertical_profile.h \
+  /opt/baltrad/rave/include/python/pyverticalprofile.h \
   /opt/baltrad/rave/include/python/pypolarvolume.h \
   /opt/baltrad/rave/include/python/pyrave_debug.h \
   /opt/baltrad/rave/include/rave_debug.h \
@@ -158,8 +158,8 @@ pyvol2bird.c :
   /opt/baltrad/rave/include/raveobject_list.h :
   /opt/baltrad/rave/include/rave_field.h :
   /opt/baltrad/rave/include/rave_data2d.h :
-  /opt/baltrad/rave/include/python/pyverticalprofile.h :
   /opt/baltrad/rave/include/vertical_profile.h :
+  /opt/baltrad/rave/include/python/pyverticalprofile.h :
   /opt/baltrad/rave/include/python/pypolarvolume.h :
   /opt/baltrad/rave/include/python/pyrave_debug.h :
   /opt/baltrad/rave/include/rave_debug.h :

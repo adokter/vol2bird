@@ -2535,9 +2535,12 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     RaveAttribute_t* attr_beamwidth = RaveAttributeHelp_createDouble("how/beamwidth", PolarVolume_getBeamwidth(volume)*180/PI);
     RaveAttribute_t* attr_wavelength = RaveAttributeHelp_createDouble("how/wavelength", alldata->options.radarWavelength);
     RaveAttribute_t* attr_rcs_bird = RaveAttributeHelp_createDouble("how/rcs_bird", alldata->options.birdRadarCrossSection);
-    RaveAttribute_t* attr_ff_dev_thresh = RaveAttributeHelp_createDouble("how/ff_dev_thresh", alldata->options.stdDevMinBird);
+    RaveAttribute_t* attr_sd_vvp_thresh = RaveAttributeHelp_createDouble("how/sd_vvp_thresh", alldata->options.stdDevMinBird);
+
     RaveAttribute_t* attr_task = RaveAttributeHelp_createString("how/task", PROGRAM);
-    RaveAttribute_t* attr_task_args = RaveAttributeHelp_createString("how/task_args", "FIXME: to be implemented");
+    RaveAttribute_t* attr_task_version = RaveAttributeHelp_createString("how/task_version", VERSION);
+    RaveAttribute_t* attr_task_args = RaveAttributeHelp_createString("how/task_args", alldata->misc.task_args);
+    RaveAttribute_t* attr_comment = RaveAttributeHelp_createString("how/comment", "");
     RaveAttribute_t* attr_minrange = RaveAttributeHelp_createDouble("how/minrange", alldata->options.rangeMin/1000);
     RaveAttribute_t* attr_maxrange = RaveAttributeHelp_createDouble("how/maxrange", alldata->options.rangeMax/1000);
     RaveAttribute_t* attr_minazim = RaveAttributeHelp_createDouble("how/minazim", alldata->options.azimMin);
@@ -2548,38 +2551,50 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     VerticalProfile_addAttribute(alldata->vp, attr_beamwidth);
     VerticalProfile_addAttribute(alldata->vp, attr_wavelength);
     VerticalProfile_addAttribute(alldata->vp, attr_rcs_bird);
-    VerticalProfile_addAttribute(alldata->vp, attr_ff_dev_thresh);
+    VerticalProfile_addAttribute(alldata->vp, attr_sd_vvp_thresh);
     VerticalProfile_addAttribute(alldata->vp, attr_task);
+    VerticalProfile_addAttribute(alldata->vp, attr_task_version);
     VerticalProfile_addAttribute(alldata->vp, attr_task_args);
+    VerticalProfile_addAttribute(alldata->vp, attr_comment);
     VerticalProfile_addAttribute(alldata->vp, attr_minrange);
     VerticalProfile_addAttribute(alldata->vp, attr_maxrange);
     VerticalProfile_addAttribute(alldata->vp, attr_minazim);
     VerticalProfile_addAttribute(alldata->vp, attr_maxazim);
     VerticalProfile_addAttribute(alldata->vp, attr_cluttermap);
     
-    // map the profile data to rave fields
+    //-------------------------------------------//
+    //   map the profile data to rave fields     //
+    //-------------------------------------------//
+    
+    //layer specification:
     profileArray2RaveField(alldata, 1, 0, "HGHT", RaveDataType_DOUBLE);
     profileArray2RaveField(alldata, 1, 1, "width", RaveDataType_DOUBLE);
-    profileArray2RaveField(alldata, 1, 2, "U", RaveDataType_DOUBLE);
-    profileArray2RaveField(alldata, 1, 3, "V", RaveDataType_DOUBLE);
-    profileArray2RaveField(alldata, 1, 4, "W", RaveDataType_DOUBLE);
-    profileArray2RaveField(alldata, 1, 5, "ff_bird", RaveDataType_DOUBLE);
-    profileArray2RaveField(alldata, 1, 6, "dd_bird", RaveDataType_DOUBLE);    
-    profileArray2RaveField(alldata, 3, 7, "ff_dev", RaveDataType_DOUBLE);    
-    profileArray2RaveField(alldata, 3, 9, "dbz_bird", RaveDataType_DOUBLE);    
-    profileArray2RaveField(alldata, 1, 11, "eta_bird", RaveDataType_DOUBLE);
-    profileArray2RaveField(alldata, 1, 12, "dens_bird", RaveDataType_DOUBLE);    
-    profileArray2RaveField(alldata, 3, 9, "dbz_all", RaveDataType_DOUBLE);    
-    profileArray2RaveField(alldata, 1, 10, "n", RaveDataType_LONG);    
-    profileArray2RaveField(alldata, 1, 13, "n_dBZ", RaveDataType_LONG);    
-    profileArray2RaveField(alldata, 1, 10, "n_All", RaveDataType_LONG);    
-    profileArray2RaveField(alldata, 1, 13, "n_All_dBZ", RaveDataType_LONG);    
-    
+
+    //bird-specific quantities:
+    profileArray2RaveField(alldata, 1, 5, "ff", RaveDataType_DOUBLE);
+    profileArray2RaveField(alldata, 1, 6, "dd", RaveDataType_DOUBLE);
+    profileArray2RaveField(alldata, 1, 4, "w", RaveDataType_DOUBLE);
+    profileArray2RaveField(alldata, 1, 8, "gap", RaveDataType_INT);
+    profileArray2RaveField(alldata, 1, 9, "dbz", RaveDataType_DOUBLE);    
+    profileArray2RaveField(alldata, 1, 11, "eta", RaveDataType_DOUBLE);
+    profileArray2RaveField(alldata, 1, 12, "dens", RaveDataType_DOUBLE);        
+    profileArray2RaveField(alldata, 1, 10, "n", RaveDataType_LONG);
+    profileArray2RaveField(alldata, 1, 13, "n_dbz", RaveDataType_LONG);    
+
+    //quantities calculated from all scatterers:
+    profileArray2RaveField(alldata, 3, 7, "sd_vvp", RaveDataType_DOUBLE);    
+    profileArray2RaveField(alldata, 3, 9, alldata->options.dBZType, RaveDataType_DOUBLE);    
+    profileArray2RaveField(alldata, 3, 10, "n_all", RaveDataType_LONG);    
+    profileArray2RaveField(alldata, 3, 13, "n_dbz_all", RaveDataType_LONG);        
+
+    //some unused quantities for later reference:
+    //profileArray2RaveField(alldata, 1, 2, "u", RaveDataType_DOUBLE);
+    //profileArray2RaveField(alldata, 1, 3, "v", RaveDataType_DOUBLE);
     
     RAVE_OBJECT_RELEASE(attr_beamwidth);
     RAVE_OBJECT_RELEASE(attr_wavelength);
     RAVE_OBJECT_RELEASE(attr_rcs_bird);
-    RAVE_OBJECT_RELEASE(attr_ff_dev_thresh);
+    RAVE_OBJECT_RELEASE(attr_sd_vvp_thresh);
     RAVE_OBJECT_RELEASE(attr_task);
     RAVE_OBJECT_RELEASE(attr_task_args);
     RAVE_OBJECT_RELEASE(attr_minrange);
@@ -3757,6 +3772,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->constants.absVDifMax = VDIFMAX;
     alldata->constants.vradMin = VRADMIN;
 
+
     // ------------------------------------------------------------- //
     //                       some other variables                    //
     // ------------------------------------------------------------- //
@@ -3765,6 +3781,62 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->misc.nDims = 2;
     alldata->misc.nParsFitted = 3;
     alldata->misc.dbzFactor = (pow(alldata->constants.refracIndex,2) * 1000 * pow(PI,5))/pow(alldata->options.radarWavelength,4);
+
+    // ------------------------------------------------------------- //
+    //     store all options and constants in task_args string       //
+    // ------------------------------------------------------------- //
+
+    sprintf(alldata->misc.task_args,
+        "azimMax=%f,azimMin=%f,layerThickness=%f,nLayers=%i,rangeMax=%f,"
+        "rangeMin=%f,elevMax=%f,elevMin=%f,radarWavelength=%f,"
+        "useStaticClutterData=%i,fitVrad=%i,exportBirdProfileAsJSONVar=%i,"
+        "minNyquist=%f,birdRadarCrossSection=%f,stdDevMinBird=%f,"
+        "dBZType=%s,requireVrad=%i,"
+    
+        "nGatesCellMin=%i,cellClutterFractionMax=%f,"
+        "cellDbzMin=%f,chisqMin=%f,clutterValueMin=%f,dbzMax=%f,dbzThresMin=%f,"
+        "fringeDist=%f,nBinsGap=%i,nPointsIncludedMin=%i,nNeighborsMin=%i,"
+        "nObsGapMin=%i,nAzimNeighborhood=%i,nRangNeighborhood=%i,nCountMin=%i,"
+        "refracIndex=%f,cellStdDevMax=%f,absVDifMax=%f,vradMin=%f",
+
+        alldata->options.azimMax,
+        alldata->options.azimMin,
+        alldata->options.layerThickness,
+        alldata->options.nLayers,
+        alldata->options.rangeMax,
+        alldata->options.rangeMin,
+        alldata->options.elevMax,
+        alldata->options.elevMin,
+        alldata->options.radarWavelength,
+        alldata->options.useStaticClutterData,
+        alldata->options.fitVrad,
+        alldata->options.exportBirdProfileAsJSONVar,
+        alldata->options.minNyquist,
+        alldata->options.birdRadarCrossSection,
+        alldata->options.stdDevMinBird,
+        alldata->options.dBZType,
+        alldata->options.requireVrad,
+
+        alldata->constants.nGatesCellMin,
+        alldata->constants.cellClutterFractionMax,
+        alldata->constants.cellDbzMin,
+        alldata->constants.chisqMin,
+        alldata->constants.clutterValueMin,
+        alldata->constants.dbzMax,
+        alldata->constants.dbzThresMin,
+        alldata->constants.fringeDist,
+        alldata->constants.nBinsGap,
+        alldata->constants.nPointsIncludedMin,
+        alldata->constants.nNeighborsMin,
+        alldata->constants.nObsGapMin,
+        alldata->constants.nAzimNeighborhood,
+        alldata->constants.nRangNeighborhood,
+        alldata->constants.nCountMin,
+        alldata->constants.refracIndex,
+        alldata->constants.cellStdDevMax,
+        alldata->constants.absVDifMax,
+        alldata->constants.vradMin
+    );
 
     alldata->misc.loadConfigSuccessful = TRUE;
 

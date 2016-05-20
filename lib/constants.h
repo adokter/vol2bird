@@ -20,4 +20,5 @@
 #define NODETECT                  -9999
 #define NODATA                    NAN
 #define PROGRAM                   "vol2bird"
-
+#define VERSION                   "0.2.2"
+#define VERSIONDATE               "17-May-2016"

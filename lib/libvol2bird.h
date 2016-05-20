@@ -203,7 +203,9 @@ struct vol2birdMisc
 	float dbzFactor;
 	int initializationSuccessful;
 	int loadConfigSuccessful;
-	int* scatterersAreNotBirds;	// Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
+	int* scatterersAreNotBirds;  // Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
+    char task_args[3000];
+
 };
 typedef struct vol2birdMisc vol2birdMisc_t;
 
