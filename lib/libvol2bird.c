@@ -896,7 +896,7 @@ static int constructorInt(SCANMETA* meta, int* image, PolarScan_t* scan, const i
     meta->nRang = (int) PolarScan_getNbins(scan);
     meta->nAzim = (int) PolarScan_getNrays(scan);
     meta->rangeScale = (float) PolarScan_getRscale(scan);
-    meta->azimScale = 360.0f/meta->nAzim;   // FIXME not sure if this always works
+    meta->azimScale = 360.0f/meta->nAzim;   // for ODIM files this always works
     meta->valueOffset = 0.0f;
     meta->valueScale = 1.0f;
     meta->missing = (unsigned char) 255;  // FIXME this does not work as intended for type int
@@ -924,7 +924,7 @@ static int constructorUChar(SCANMETA* meta, unsigned char* image, PolarScan_t* s
     meta->nRang = (int) PolarScan_getNbins(scan);
     meta->nAzim = (int) PolarScan_getNrays(scan);
     meta->rangeScale = (float) PolarScan_getRscale(scan);
-    meta->azimScale = 360.0f/meta->nAzim;   // FIXME not sure if this always works
+    meta->azimScale = 360.0f/meta->nAzim;   // for ODIM files this always works
     meta->valueOffset = 0.0f;
     meta->valueScale = 1.0f;
     meta->missing = (unsigned char) 255;
@@ -2456,7 +2456,7 @@ static int mapDataFromRave(PolarScan_t* scan, SCANMETA* meta, unsigned char* val
         meta->nRang = (int) PolarScan_getNbins(scan);
         meta->nAzim = (int) PolarScan_getNrays(scan);
         meta->rangeScale = (float) PolarScan_getRscale(scan);
-        meta->azimScale = 360.0f/meta->nAzim;   // FIXME not sure if this always works
+        meta->azimScale = 360.0f/meta->nAzim;   // for ODIM files this always works
         meta->valueOffset = (float) PolarScanParam_getOffset(param);
         meta->valueScale = (float) PolarScanParam_getGain(param);
         meta->missing = (unsigned char) PolarScanParam_getNodata(param);
