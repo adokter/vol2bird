@@ -17,7 +17,7 @@
 #define STDEVCELL                 5.0
 #define VDIFMAX                   10.0
 #define VRADMIN                   1.0
-#define NODETECT                  -9999
+#define NODETECT                  NAN
 #define NODATA                    NAN
 #define PROGRAM                   "vol2bird"
 #define VERSION                   "0.2.2"

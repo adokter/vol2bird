@@ -505,7 +505,7 @@ static int analyzeCells(const unsigned char *dbzImage, const unsigned char *vrad
             cellProp[iCell].drop = FALSE;
 
             // low radial velocities are treated as clutter, not included in calculation cell properties
-            if (vradValue < alldata->constants.vradMin & vradImage[iGlobal] != vradMeta->missing){
+            if (fabs(vradValue) < alldata->constants.vradMin & vradImage[iGlobal] != vradMeta->missing){
 
                 cellProp[iCell].nGatesClutter += 1;
 
