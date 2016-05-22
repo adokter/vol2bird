@@ -567,7 +567,7 @@ static int analyzeCells(const unsigned char *dbzImage, const unsigned char *vrad
     // small area / high percentage clutter
     for (iCell = 0; iCell < nCells; iCell++) {
         int notEnoughGates = cellProp[iCell].nGates < alldata->constants.nGatesCellMin;
-        int dbzTooLow = cellProp[iCell].dbzAvg < alldata->constants.cellDbzMin;
+        int dbzTooLow = cellProp[iCell].dbzAvg < alldata->options.cellDbzMin;
         int texTooHigh = cellProp[iCell].texAvg > alldata->constants.cellStdDevMax;
         int tooMuchClutter = ((float) cellProp[iCell].nGatesClutter / cellProp[iCell].nGates) > alldata->constants.cellClutterFractionMax;
         
@@ -616,7 +616,7 @@ static int analyzeCells(const unsigned char *dbzImage, const unsigned char *vrad
     if (alldata->options.printCellProp == TRUE) {
         fprintf(stderr,"#Cell analysis for elevation %f:\n",dbzMeta->elev);
         fprintf(stderr,"#Minimum cell area in pixels   : %i\n",alldata->constants.nGatesCellMin);
-        fprintf(stderr,"#Threshold for mean dBZ cell   : %g dBZ\n",alldata->constants.cellDbzMin);
+        fprintf(stderr,"#Threshold for mean dBZ cell   : %g dBZ\n",alldata->options.cellDbzMin);
         fprintf(stderr,"#Threshold for mean stdev cell : %g dBZ\n",alldata->constants.cellStdDevMax);
         fprintf(stderr,"#Valid cells                   : %i/%i\n#\n",nCellsValid,nCells);
         fprintf(stderr,"cellProp: .index .nGates .nGatesClutter .dbzAvg .texAvg .cv   .dbzMax .iRangOfMax .iAzimOfMax .drop\n");
@@ -839,7 +839,7 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
             gateCode |= 1<<(alldata->flags.flagPositionVradMissing);
         }
 
-        if (dbzValue > alldata->constants.dbzMax) {
+        if (dbzValue > alldata->options.dbzMax) {
             // this gate's dbz value is too high to be due to birds, it must be 
             // caused by something else
             gateCode |= 1<<(alldata->flags.flagPositionDbzTooHighForBirds);
@@ -3597,12 +3597,12 @@ void vol2birdPrintOptions(vol2bird_t* alldata) {
     fprintf(stderr,"%-25s = %f\n","azimMin",alldata->options.azimMin);
     fprintf(stderr,"%-25s = %f\n","birdRadarCrossSection",alldata->options.birdRadarCrossSection);
     fprintf(stderr,"%-25s = %f\n","cellClutterFractionMax",alldata->constants.cellClutterFractionMax);
-    fprintf(stderr,"%-25s = %f\n","cellDbzMin",alldata->constants.cellDbzMin);
+    fprintf(stderr,"%-25s = %f\n","cellDbzMin",alldata->options.cellDbzMin);
     fprintf(stderr,"%-25s = %f\n","cellStdDevMax",alldata->constants.cellStdDevMax);
     fprintf(stderr,"%-25s = %f\n","chisqMin",alldata->constants.chisqMin);
     fprintf(stderr,"%-25s = %f\n","clutterValueMin",alldata->constants.clutterValueMin);
     fprintf(stderr,"%-25s = %f\n","dbzFactor",alldata->misc.dbzFactor);
-    fprintf(stderr,"%-25s = %f\n","dbzMax",alldata->constants.dbzMax);
+    fprintf(stderr,"%-25s = %f\n","dbzMax",alldata->options.dbzMax);
     fprintf(stderr,"%-25s = %f\n","dbzThresMin",alldata->constants.dbzThresMin);
     fprintf(stderr,"%-25s = %f\n","fringeDist",alldata->constants.fringeDist);
     fprintf(stderr,"%-25s = %f\n","layerThickness",alldata->options.layerThickness);
