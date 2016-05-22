@@ -567,7 +567,7 @@ static int analyzeCells(const unsigned char *dbzImage, const unsigned char *vrad
     // small area / high percentage clutter
     for (iCell = 0; iCell < nCells; iCell++) {
         int notEnoughGates = cellProp[iCell].nGates < alldata->constants.nGatesCellMin;
-        int dbzTooLow = cellProp[iCell].dbzAvg < alldata->constants.cellDbzMin;
+        int dbzTooLow = cellProp[iCell].dbzAvg < alldata->options.cellDbzMin;
         int texTooHigh = cellProp[iCell].texAvg > alldata->constants.cellStdDevMax;
         int tooMuchClutter = ((float) cellProp[iCell].nGatesClutter / cellProp[iCell].nGates) > alldata->constants.cellClutterFractionMax;
         
@@ -616,7 +616,7 @@ static int analyzeCells(const unsigned char *dbzImage, const unsigned char *vrad
     if (alldata->options.printCellProp == TRUE) {
         fprintf(stderr,"#Cell analysis for elevation %f:\n",dbzMeta->elev);
         fprintf(stderr,"#Minimum cell area in pixels   : %i\n",alldata->constants.nGatesCellMin);
-        fprintf(stderr,"#Threshold for mean dBZ cell   : %g dBZ\n",alldata->constants.cellDbzMin);
+        fprintf(stderr,"#Threshold for mean dBZ cell   : %g dBZ\n",alldata->options.cellDbzMin);
         fprintf(stderr,"#Threshold for mean stdev cell : %g dBZ\n",alldata->constants.cellStdDevMax);
         fprintf(stderr,"#Valid cells                   : %i/%i\n#\n",nCellsValid,nCells);
         fprintf(stderr,"cellProp: .index .nGates .nGatesClutter .dbzAvg .texAvg .cv   .dbzMax .iRangOfMax .iAzimOfMax .drop\n");
@@ -839,7 +839,7 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
             gateCode |= 1<<(alldata->flags.flagPositionVradMissing);
         }
 
-        if (dbzValue > alldata->constants.dbzMax) {
+        if (dbzValue > alldata->options.dbzMax) {
             // this gate's dbz value is too high to be due to birds, it must be 
             // caused by something else
             gateCode |= 1<<(alldata->flags.flagPositionDbzTooHighForBirds);
@@ -2389,32 +2389,34 @@ static int readUserConfigOptions(cfg_t** cfg) {
 
 
     cfg_opt_t opts[] = {
-        CFG_FLOAT("HLAYER",200.0f, CFGF_NONE),
-        CFG_INT("NLAYER",30, CFGF_NONE),
-        CFG_FLOAT("RANGEMIN",5000.0f, CFGF_NONE),
-        CFG_FLOAT("RANGEMAX",25000.0f, CFGF_NONE),
-        CFG_FLOAT("AZIMMIN",0.0f, CFGF_NONE),
-        CFG_FLOAT("AZIMMAX",360.0f, CFGF_NONE),
-        CFG_FLOAT("ELEVMIN",0.0f, CFGF_NONE),
-        CFG_FLOAT("ELEVMAX",360.0f, CFGF_NONE),
-        CFG_FLOAT("RADAR_WAVELENGTH_CM",5.3f, CFGF_NONE),
-        CFG_BOOL("USE_STATIC_CLUTTER_DATA",FALSE,CFGF_NONE),
-        CFG_BOOL("VERBOSE_OUTPUT_REQUIRED",FALSE,CFGF_NONE),
-        CFG_BOOL("PRINT_DBZ",FALSE,CFGF_NONE),
-        CFG_BOOL("PRINT_VRAD",FALSE,CFGF_NONE),
-        CFG_BOOL("PRINT_CELL",FALSE,CFGF_NONE),
-        CFG_BOOL("PRINT_CELL_PROP",FALSE,CFGF_NONE),
-        CFG_BOOL("PRINT_TEXTURE",FALSE,CFGF_NONE),
-        CFG_BOOL("PRINT_CLUT",FALSE,CFGF_NONE),
-        CFG_BOOL("PRINT_OPTIONS",TRUE,CFGF_NONE),
-        CFG_BOOL("FIT_VRAD",TRUE,CFGF_NONE),
-        CFG_BOOL("PRINT_PROFILE",FALSE,CFGF_NONE),
-        CFG_BOOL("PRINT_POINTS_ARRAY",FALSE,CFGF_NONE),
-        CFG_FLOAT("MIN_NYQUIST_VELOCITY",20.0f,CFGF_NONE),
-        CFG_FLOAT("STDEV_BIRD",2.0f,CFGF_NONE),
-        CFG_FLOAT("SIGMA_BIRD",11.0f,CFGF_NONE),
-        CFG_STR("DBZTYPE","DBZH",CFGF_NONE ),
-        CFG_BOOL("REQUIRE_VRAD",FALSE,CFGF_NONE),
+        CFG_FLOAT("HLAYER",HLAYER, CFGF_NONE),
+        CFG_INT("NLAYER",NLAYER, CFGF_NONE),
+        CFG_FLOAT("RANGEMIN",RANGEMIN, CFGF_NONE),
+        CFG_FLOAT("RANGEMAX",RANGEMAX, CFGF_NONE),
+        CFG_FLOAT("AZIMMIN",AZIMMIN, CFGF_NONE),
+        CFG_FLOAT("AZIMMAX",AZIMMAX, CFGF_NONE),
+        CFG_FLOAT("ELEVMIN",ELEVMIN, CFGF_NONE),
+        CFG_FLOAT("ELEVMAX",ELEVMAX, CFGF_NONE),
+        CFG_FLOAT("RADAR_WAVELENGTH_CM",RADAR_WAVELENGTH_CM,CFGF_NONE),
+        CFG_BOOL("USE_STATIC_CLUTTER_DATA",USE_STATIC_CLUTTER_DATA,CFGF_NONE),
+        CFG_BOOL("VERBOSE_OUTPUT_REQUIRED",VERBOSE_OUTPUT_REQUIRED,CFGF_NONE),
+        CFG_BOOL("PRINT_DBZ",PRINT_DBZ,CFGF_NONE),
+        CFG_BOOL("PRINT_VRAD",PRINT_VRAD,CFGF_NONE),
+        CFG_BOOL("PRINT_CELL",PRINT_CELL,CFGF_NONE),
+        CFG_BOOL("PRINT_CELL_PROP",PRINT_CELL_PROP,CFGF_NONE),
+        CFG_BOOL("PRINT_TEXTURE",PRINT_TEXTURE,CFGF_NONE),
+        CFG_BOOL("PRINT_CLUT",PRINT_CLUT,CFGF_NONE),
+        CFG_BOOL("PRINT_OPTIONS",PRINT_OPTIONS,CFGF_NONE),
+        CFG_BOOL("FIT_VRAD",FIT_VRAD,CFGF_NONE),
+        CFG_BOOL("PRINT_PROFILE",PRINT_PROFILE,CFGF_NONE),
+        CFG_BOOL("PRINT_POINTS_ARRAY",PRINT_POINTS_ARRAY,CFGF_NONE),
+        CFG_FLOAT("MIN_NYQUIST_VELOCITY",MIN_NYQUIST_VELOCITY,CFGF_NONE),
+        CFG_FLOAT("STDEV_BIRD",STDEV_BIRD,CFGF_NONE),
+        CFG_FLOAT("SIGMA_BIRD",SIGMA_BIRD,CFGF_NONE),
+        CFG_FLOAT("DBZMAX",DBZMAX,CFGF_NONE),
+        CFG_FLOAT("DBZCELL",DBZCELL,CFGF_NONE),
+        CFG_STR("DBZTYPE",DBZTYPE,CFGF_NONE),
+        CFG_BOOL("REQUIRE_VRAD",REQUIRE_VRAD,CFGF_NONE),
         CFG_BOOL("EXPORT_BIRD_PROFILE_AS_JSON",FALSE,CFGF_NONE),
         CFG_END()
     };
@@ -3595,12 +3597,12 @@ void vol2birdPrintOptions(vol2bird_t* alldata) {
     fprintf(stderr,"%-25s = %f\n","azimMin",alldata->options.azimMin);
     fprintf(stderr,"%-25s = %f\n","birdRadarCrossSection",alldata->options.birdRadarCrossSection);
     fprintf(stderr,"%-25s = %f\n","cellClutterFractionMax",alldata->constants.cellClutterFractionMax);
-    fprintf(stderr,"%-25s = %f\n","cellDbzMin",alldata->constants.cellDbzMin);
+    fprintf(stderr,"%-25s = %f\n","cellDbzMin",alldata->options.cellDbzMin);
     fprintf(stderr,"%-25s = %f\n","cellStdDevMax",alldata->constants.cellStdDevMax);
     fprintf(stderr,"%-25s = %f\n","chisqMin",alldata->constants.chisqMin);
     fprintf(stderr,"%-25s = %f\n","clutterValueMin",alldata->constants.clutterValueMin);
     fprintf(stderr,"%-25s = %f\n","dbzFactor",alldata->misc.dbzFactor);
-    fprintf(stderr,"%-25s = %f\n","dbzMax",alldata->constants.dbzMax);
+    fprintf(stderr,"%-25s = %f\n","dbzMax",alldata->options.dbzMax);
     fprintf(stderr,"%-25s = %f\n","dbzThresMin",alldata->constants.dbzThresMin);
     fprintf(stderr,"%-25s = %f\n","fringeDist",alldata->constants.fringeDist);
     fprintf(stderr,"%-25s = %f\n","layerThickness",alldata->options.layerThickness);
@@ -3745,6 +3747,8 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.minNyquist = cfg_getfloat(*cfg,"MIN_NYQUIST_VELOCITY");
     alldata->options.birdRadarCrossSection = cfg_getfloat(*cfg,"SIGMA_BIRD");
     alldata->options.stdDevMinBird = cfg_getfloat(*cfg,"STDEV_BIRD");
+    alldata->options.dbzMax = cfg_getfloat(*cfg,"DBZMAX");
+    alldata->options.cellDbzMin = cfg_getfloat(*cfg,"DBZCELL");
     strcpy(alldata->options.dBZType,cfg_getstr(*cfg,"DBZTYPE"));
     alldata->options.requireVrad = cfg_getbool(*cfg,"REQUIRE_VRAD");
 
@@ -3754,10 +3758,8 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
 
     alldata->constants.nGatesCellMin = AREACELL;
     alldata->constants.cellClutterFractionMax = CLUTPERCCELL;
-    alldata->constants.cellDbzMin = DBZCELL;
     alldata->constants.chisqMin = CHISQMIN;
     alldata->constants.clutterValueMin = DBZCLUTTER;
-    alldata->constants.dbzMax = DBZMAX;
     alldata->constants.dbzThresMin = DBZMIN;
     alldata->constants.fringeDist = FRINGEDIST;
     alldata->constants.nBinsGap = NBINSGAP;
@@ -3791,10 +3793,10 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
         "rangeMin=%f,elevMax=%f,elevMin=%f,radarWavelength=%f,"
         "useStaticClutterData=%i,fitVrad=%i,exportBirdProfileAsJSONVar=%i,"
         "minNyquist=%f,birdRadarCrossSection=%f,stdDevMinBird=%f,"
-        "dBZType=%s,requireVrad=%i,"
+        "cellDbzMin=%f,dbzMax=%f,dBZType=%s,requireVrad=%i,"
     
         "nGatesCellMin=%i,cellClutterFractionMax=%f,"
-        "cellDbzMin=%f,chisqMin=%f,clutterValueMin=%f,dbzMax=%f,dbzThresMin=%f,"
+        "chisqMin=%f,clutterValueMin=%f,dbzThresMin=%f,"
         "fringeDist=%f,nBinsGap=%i,nPointsIncludedMin=%i,nNeighborsMin=%i,"
         "nObsGapMin=%i,nAzimNeighborhood=%i,nRangNeighborhood=%i,nCountMin=%i,"
         "refracIndex=%f,cellStdDevMax=%f,absVDifMax=%f,vradMin=%f",
@@ -3814,15 +3816,15 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
         alldata->options.minNyquist,
         alldata->options.birdRadarCrossSection,
         alldata->options.stdDevMinBird,
+        alldata->options.cellDbzMin,
+        alldata->options.dbzMax,
         alldata->options.dBZType,
         alldata->options.requireVrad,
 
         alldata->constants.nGatesCellMin,
         alldata->constants.cellClutterFractionMax,
-        alldata->constants.cellDbzMin,
         alldata->constants.chisqMin,
         alldata->constants.clutterValueMin,
-        alldata->constants.dbzMax,
         alldata->constants.dbzThresMin,
         alldata->constants.fringeDist,
         alldata->constants.nBinsGap,
