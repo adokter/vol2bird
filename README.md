@@ -16,4 +16,4 @@ DOI: [10.1098/rsif.2010.0116](https://doi.org/10.1098/rsif.2010.0116)
 for compiling the code run `./configure --with-confuse=DIR`,
 with `DIR` the directory of your libconfuse installation
 
-for running the code on a baltrad node add the paths listed in `ldlib.txt` to `LD_LIBRARY_PATH`
+for running the code on a baltrad node add the paths listed in `lib/ldlib.txt` to `LD_LIBRARY_PATH`
