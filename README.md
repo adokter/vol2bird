@@ -14,6 +14,7 @@ DOI: [10.1098/rsif.2010.0116](https://doi.org/10.1098/rsif.2010.0116)
 * `pyvol2bird` is a python wrapper for the library
 
 for compiling the code run `./configure --with-confuse=DIR`,
-with `DIR` the directory of your libconfuse installation
+with `DIR` the root directory of your libconfuse installation (containing subfolders `DIR/include` and `DIR/lib` with the
+libconfuse include and library files)
 
 for running the code on a baltrad node add the paths listed in `lib/ldlib.txt` to `LD_LIBRARY_PATH`
