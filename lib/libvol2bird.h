@@ -124,14 +124,18 @@ typedef struct vol2birdOptions vol2birdOptions_t;
 
 struct vol2birdConstants
 {
+	float absVDifMax;
 	int nGatesCellMin;
 	float cellClutterFractionMax;
 	float cellDbzMin;
+	float cellStdDevMax;    
 	float chisqMin;
 	float clutterValueMin;
 	float dbzMax;
 	float dbzThresMin;
 	float fringeDist;
+	float refracIndex;
+	float vradMin;
 	int nBinsGap;
 	int nPointsIncludedMin;
 	int nNeighborsMin;
@@ -139,10 +143,6 @@ struct vol2birdConstants
 	int nAzimNeighborhood;
 	int nRangNeighborhood;
 	int nCountMin; 
-	float refracIndex;
-	float cellStdDevMax;
-	float absVDifMax;
-	float vradMin;
 };
 typedef struct vol2birdConstants vol2birdConstants_t;
 
