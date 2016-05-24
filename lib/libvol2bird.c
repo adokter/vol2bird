@@ -2247,10 +2247,11 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
         // i.e. flag 3 in gateCode is true
         // this gate has reflectivity data but no corresponding radial velocity data
         // and iQuantityType == 0, i.e. we are dealing with reflectivity quantities
+        // and requireVrad is true, i.e. we exclude gates without radial velocity data
         
         switch (iProfileType) {
             case 1 : 
-		doInclude = FALSE;
+                doInclude = FALSE;
                 break;
             case 2 : 
                 doInclude = FALSE;
