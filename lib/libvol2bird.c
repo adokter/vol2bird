@@ -1276,11 +1276,11 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 		}
 
 		if (scanUse[iScan].useScan){
-		    if(PolarScan_hasParameter(scan,alldata->options.dBZType)){
-			strcpy(scanUse[iScan].dbzName,alldata->options.dBZType);	
+		    if(PolarScan_hasParameter(scan,alldata->options.dbzType)){
+			strcpy(scanUse[iScan].dbzName,alldata->options.dbzType);	
 		    }
 		    else{
-                        fprintf(stderr,"requested reflectivity factor '%s' missing, searching for alternatives ...\n",alldata->options.dBZType);
+                        fprintf(stderr,"requested reflectivity factor '%s' missing, searching for alternatives ...\n",alldata->options.dbzType);
 		        if(PolarScan_hasParameter(scan, "DBZH")){
 			    sprintf(scanUse[iScan].dbzName,"DBZH");	
 		        }
@@ -2586,7 +2586,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
 
     //quantities calculated from all scatterers:
     profileArray2RaveField(alldata, 3, 7, "sd_vvp", RaveDataType_DOUBLE);    
-    profileArray2RaveField(alldata, 3, 9, alldata->options.dBZType, RaveDataType_DOUBLE);    
+    profileArray2RaveField(alldata, 3, 9, alldata->options.dbzType, RaveDataType_DOUBLE);    
     profileArray2RaveField(alldata, 3, 10, "n_all", RaveDataType_LONG);    
     profileArray2RaveField(alldata, 3, 13, "n_dbz_all", RaveDataType_LONG);        
 
@@ -3605,8 +3605,13 @@ void vol2birdPrintOptions(vol2bird_t* alldata) {
     fprintf(stderr,"%-25s = %f\n","dbzFactor",alldata->misc.dbzFactor);
     fprintf(stderr,"%-25s = %f\n","dbzMax",alldata->options.dbzMax);
     fprintf(stderr,"%-25s = %f\n","dbzThresMin",alldata->constants.dbzThresMin);
+    fprintf(stderr,"%-25s = %s\n","dbzType",alldata->options.dbzType);
+    fprintf(stderr,"%-25s = %f\n","elevMax",alldata->options.elevMax);
+    fprintf(stderr,"%-25s = %f\n","elevMin",alldata->options.elevMin);
+    fprintf(stderr,"%-25s = %d\n","fitVrad",alldata->options.fitVrad);
     fprintf(stderr,"%-25s = %f\n","fringeDist",alldata->constants.fringeDist);
     fprintf(stderr,"%-25s = %f\n","layerThickness",alldata->options.layerThickness);
+    fprintf(stderr,"%-25s = %f\n","minNyquist",alldata->options.minNyquist);
     fprintf(stderr,"%-25s = %d\n","nGatesCellMin",alldata->constants.nGatesCellMin);
     fprintf(stderr,"%-25s = %d\n","nAzimNeighborhood",alldata->constants.nAzimNeighborhood);
     fprintf(stderr,"%-25s = %d\n","nBinsGap",alldata->constants.nBinsGap);
@@ -3620,6 +3625,7 @@ void vol2birdPrintOptions(vol2bird_t* alldata) {
     fprintf(stderr,"%-25s = %f\n","rangeMin",alldata->options.rangeMin);
     fprintf(stderr,"%-25s = %f\n","rCellMax",alldata->misc.rCellMax);
     fprintf(stderr,"%-25s = %f\n","refracIndex",alldata->constants.refracIndex);
+    fprintf(stderr,"%-25s = %d\n","requireVrad",alldata->options.requireVrad);
     fprintf(stderr,"%-25s = %f\n","stdDevMinBird",alldata->options.stdDevMinBird);
     fprintf(stderr,"%-25s = %c\n","useStaticClutterData",alldata->options.useStaticClutterData == TRUE ? 'T' : 'F');
     fprintf(stderr,"%-25s = %f\n","vradMin",alldata->constants.vradMin);
@@ -3750,7 +3756,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.stdDevMinBird = cfg_getfloat(*cfg,"STDEV_BIRD");
     alldata->options.dbzMax = cfg_getfloat(*cfg,"DBZMAX");
     alldata->options.cellDbzMin = cfg_getfloat(*cfg,"DBZCELL");
-    strcpy(alldata->options.dBZType,cfg_getstr(*cfg,"DBZTYPE"));
+    strcpy(alldata->options.dbzType,cfg_getstr(*cfg,"DBZTYPE"));
     alldata->options.requireVrad = cfg_getbool(*cfg,"REQUIRE_VRAD");
 
     // ------------------------------------------------------------- //
@@ -3794,7 +3800,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
         "rangeMin=%f,elevMax=%f,elevMin=%f,radarWavelength=%f,"
         "useStaticClutterData=%i,fitVrad=%i,exportBirdProfileAsJSONVar=%i,"
         "minNyquist=%f,birdRadarCrossSection=%f,stdDevMinBird=%f,"
-        "cellDbzMin=%f,dbzMax=%f,dBZType=%s,requireVrad=%i,"
+        "cellDbzMin=%f,dbzMax=%f,dbzType=%s,requireVrad=%i,"
     
         "nGatesCellMin=%i,cellClutterFractionMax=%f,"
         "chisqMin=%f,clutterValueMin=%f,dbzThresMin=%f,"
@@ -3819,7 +3825,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
         alldata->options.stdDevMinBird,
         alldata->options.cellDbzMin,
         alldata->options.dbzMax,
-        alldata->options.dBZType,
+        alldata->options.dbzType,
         alldata->options.requireVrad,
 
         alldata->constants.nGatesCellMin,

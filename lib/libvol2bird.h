@@ -115,7 +115,7 @@ struct vol2birdOptions
 	float dbzMax;			/* Maximum reflectivity factor of reflectivity gates containing birds */
 	float cellDbzMin;			/* Maximum mean reflectivity factor of cells of birds */
 	float stdDevMinBird;            /* Minimum VVP radial velocity standard deviation for layer containing birds*/
-	char dBZType[10];               /* Preferred dBZ quantity to use */
+	char dbzType[10];               /* Preferred dBZ quantity to use */
 	int requireVrad;                /* require range gates to have a valid radial velocity measurement */
 };
 typedef struct vol2birdOptions vol2birdOptions_t;
