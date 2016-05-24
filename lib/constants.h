@@ -1,24 +1,56 @@
 //-------------------------------------------------------//
 //              hard-coded constants                     //
 //-------------------------------------------------------//
+
+// when analyzing cells, AREAMIN determines the minimum size of a
+// cell to be considered in the rest of the analysis
 #define AREACELL                  4
+    // minimum standard deviation of the fit
 #define CHISQMIN                  1e-5
+// cells with clutter fractions above this value are likely not birds
 #define CLUTPERCCELL              0.5
+// threshold dbz value for excluding gates as clutter (static clutter only)
 #define DBZCLUTTER                -10.0
+// minimum dbz for inclusion in a weather cell
 #define DBZMIN                    0.0
+// each weather cell identified by findWeatherCells() is grown by a distance
+// equal to 'fringeDist' using a region-growing approach
 #define FRINGEDIST                5000.0
+// when determining whether there are enough vrad observations in
+// each direction, use NBINSGAP sectors
 #define NBINSGAP                  8
+// there should be at least NOBSGAPMIN vrad observations in each sector
 #define NOBSGAPMIN                5
+// when calculating the altitude-layer averaged dbz, there should
+// be at least NDBZMIN valid data points
 #define NDBZMIN                   25
+// the minimum number of direct neighbors with dbz value above
+// dbzThresMin as used in findWeatherCells()
 #define NEIGHBORS                 5
+// vrad's texture is calculated based on the local neighborhood. The
+// neighborhood size in the azimuth direction is equal to NTEXBINAZIM
+// static int nAzimNeighborhood;
 #define NTEXBINAZIM               3
+// vrad's texture is calculated based on the local neighborhood. The
+// neighborhood size in the range direction is equal to NTEXBINRANG
+// static int nRangNeighborhood;
 #define NTEXBINRANG               3
+ // the minimum number of neighbors for the texture value to be
+// considered valid, as used in calcTexture()
 #define NTEXMIN                   4
+// the refractive index of water
 #define REFRACTIVE_INDEX_OF_WATER 0.964
+// minimum standard deviation of the VVP fit
 #define STDEVCELL                 5.0
+// after fitting the vrad data, throw out any vrad observations that are more that VDIFMAX away
+// from the fitted value, since these are likely outliers
 #define VDIFMAX                   10.0
+// When analyzing cells, radial velocities lower than VRADMIN are treated as clutter
 #define VRADMIN                   1.0
-#define NODETECT                  NAN
+// Raw value used for gates or layers void of data (never ra-diated)
+#define UNDETECT                  NAN
+// Raw value used for gates or layers when below the measurement detection threshold
+// or when information could not be retrieved (radiated but nothing detected or calculated) 
 #define NODATA                    NAN
 #define PROGRAM                   "vol2bird"
 #define VERSION                   "0.2.2"
@@ -85,5 +117,5 @@
 #define DBZTYPE                      "DBZH" 
 //for a range gate to contribute it should have a valid radial velocity
 #define REQUIRE_VRAD                 0
-//FIXME add description
+//whether you want to export the vertical bird profile as JSON
 #define EXPORT_BIRD_PROFILE_AS_JSON  0

@@ -138,13 +138,13 @@ struct vol2birdConstants {
     // (aka the texture) is less than cellStdDevMax are considered in the
     // rest of the analysis
     float cellStdDevMax;
-    // minimum standard deviation of the fit
+    // minimum standard deviation of the VVP fit
     float chisqMin;
     // threshold dbz value for excluding gates as clutter (static clutter only)
     float clutterValueMin;
     // maximum dbz used in calculation of profile dbzAvg
     float dbzMax;
-    // minimum dbz used in calculation of cell dbzAvg
+    // minimum dbz for inclusion in a cell
     float dbzThresMin;
     // each weather cell identified by findWeatherCells() is grown by a distance
     // equal to 'fringeDist' using a region-growing approach
