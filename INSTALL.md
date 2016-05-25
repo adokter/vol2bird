@@ -25,7 +25,7 @@ sudo apt-get install zlib1g-dev
 
 # install Tcl and Tk for user interface
 sudo apt-get install tcl-dev
-sudo apt-get install tk
+sudo apt-get install tk-dev
 
 # install Hierarchichal Data Format library
 sudo apt-get install libhdf5-dev
@@ -97,17 +97,21 @@ make install
 
 # create a script that sets up the environment so that Python can find _pyhlmodule.so and libhlhdf.so
 echo ". ${RADAR_ROOT_DIR}/.venv/bin/activate" >${RADAR_ROOT_DIR}/setup-env
-echo "export PYTHONPATH=${PYTHONPATH}:${RADAR_ROOT_DIR}/opt/hlhdf/lib" >>${RADAR_ROOT_DIR}/setup-env
-echo "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/hlhdf/lib" >>${RADAR_ROOT_DIR}/setup-env
+echo "export PYTHONPATH=\${PYTHONPATH}:${RADAR_ROOT_DIR}/opt/hlhdf/lib" >>${RADAR_ROOT_DIR}/setup-env
+echo "export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/hlhdf/lib" >>${RADAR_ROOT_DIR}/setup-env
 
 # activate the environment (do this first every time you use vol2bird)
-. ${RADAR_ROOT_DIR}/setup-env
-
-# cd back to the top directory
 cd ${RADAR_ROOT_DIR}
+. setup-env
+
+# cd to the source directory
+cd ${RADAR_ROOT_DIR}/src
 
 # get a copy of rave:
 git clone git://git.baltrad.eu/rave.git
+
+# cd into rave source directory
+cd rave
 
 # rave needs keyczar to manage keys
 pip install python-keyczar
@@ -146,18 +150,21 @@ make test
 make install
 
 #
-echo "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/rave/lib" >>${RADAR_ROOT_DIR}/setup-env
-echo "export PATH=${PATH}:${RADAR_ROOT_DIR}/opt/rave/bin" >>${RADAR_ROOT_DIR}/setup-env
+echo "export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/rave/lib" >>${RADAR_ROOT_DIR}/setup-env
+echo "export PATH=\${PATH}:${RADAR_ROOT_DIR}/opt/rave/bin" >>${RADAR_ROOT_DIR}/setup-env
 
 # 
 echo "${RADAR_ROOT_DIR}/opt/rave/Lib" > ${RADAR_ROOT_DIR}/.venv/lib/python2.7/site-packages/rave.pth
 
 
-# cd back to the project root
-cd ${RADAR_ROOT_DIR}
+# cd back to the project root slash source
+cd ${RADAR_ROOT_DIR}/src
 
 # get a copy of vol2bird
 git clone https://github.com/adokter/vol2bird.git
+
+# change directory into it
+cd vol2bird
 
 # configure vol2bird 
 ./configure --prefix=${RADAR_ROOT_DIR}/opt/vol2bird --with-rave=${RADAR_ROOT_DIR}/opt/rave
@@ -169,7 +176,12 @@ make
 make install
 
 # add vol2bird stuff to PATH
-echo "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/vol2bird/lib" >>${RADAR_ROOT_DIR}/setup-env
+echo "export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/vol2bird/lib" >>${RADAR_ROOT_DIR}/setup-env
+echo "export PATH=\${PATH}:${RADAR_ROOT_DIR}/opt/vol2bird/bin" >>${RADAR_ROOT_DIR}/setup-env
 
+
+# activate the environment (do this first every time you use vol2bird)
+cd ${RADAR_ROOT_DIR}
+. setup-env
 
 ```
