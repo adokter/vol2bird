@@ -1,4 +1,4 @@
-
+```bash
 # instructions for Ubuntu-based systems
 
 # cd to project directory
@@ -172,3 +172,4 @@ make install
 echo "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/vol2bird/lib" >>${RADAR_ROOT_DIR}/setup-env
 
 
+```
