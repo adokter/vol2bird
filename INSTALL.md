@@ -40,6 +40,13 @@ sudo apt-get install libproj-dev
 # (optional) install package for xmlparsing of projection definitions
 sudo apt-get install libexpat1-dev
 
+# (optional) install package for auto-generating documentation
+sudo apt-get install doxygen
+sudo apt-get install texlive-font-utils
+
+# install library for parsing options
+sudo apt-get install libconfuse-dev
+
 # update the system database to be able to locate the files later:
 sudo updatedb
 
@@ -119,16 +126,49 @@ export NUMPYDIR=${RADAR_ROOT_DIR}/.venv/lib/python2.7/site-packages/numpy/core/i
 export HLDIR=${RADAR_ROOT_DIR}/opt/hlhdf
 export PROJ4ROOT=/usr
 
+# for building extensions, python needs to know about config; virtualenv does not set that
+# up, so we'll symlink to the system python ourselves
+# (64-bit)
+ln -s /usr/lib/python2.7/config-x86_64-linux-gnu ${RADAR_ROOT_DIR}/.venv/lib/python2.7/config
+# (32-bit)
+# ln -s /usr/lib/python2.7/config ${RADAR_ROOT_DIR}/.venv/lib/python2.7/config
 
 # now we're ready to configure the install
-./configure -prefix=${RADAR_ROOT_DIR}/opt/rave -with=expat
+./configure --prefix=${RADAR_ROOT_DIR}/opt/rave --with-expat
+
+#
+make 
+
+#
+make test
+
+#
+make install
+
+#
+echo "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/rave/lib" >>${RADAR_ROOT_DIR}/setup-env
+echo "export PATH=${PATH}:${RADAR_ROOT_DIR}/opt/rave/bin" >>${RADAR_ROOT_DIR}/setup-env
+
+# 
+echo "${RADAR_ROOT_DIR}/opt/rave/Lib" > ${RADAR_ROOT_DIR}/.venv/lib/python2.7/site-packages/rave.pth
 
 
+# cd back to the project root
+cd ${RADAR_ROOT_DIR}
 
+# get a copy of vol2bird
+git clone https://github.com/adokter/vol2bird.git
 
+# configure vol2bird 
+./configure --prefix=${RADAR_ROOT_DIR}/opt/vol2bird --with-rave=${RADAR_ROOT_DIR}/opt/rave
 
+#
+make
 
+#
+make install
 
-
+# add vol2bird stuff to PATH
+echo "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/vol2bird/lib" >>${RADAR_ROOT_DIR}/setup-env
 
 
