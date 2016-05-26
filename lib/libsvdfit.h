@@ -17,7 +17,7 @@
 // ****************************************************************************
 
 #define SIGN(x)    (((x)<0)?-1:1)
-#define SQUARE(x)  ((x)*(x))
+#define SQUARE(x)  ((x) * (x))
 #define XYMAX(x,y) (((x)<(y))?(y):(x))
 #define XYMIN(x,y) (((x)<(y))?(x):(y))
 
