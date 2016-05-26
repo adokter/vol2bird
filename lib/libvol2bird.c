@@ -70,6 +70,8 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
                                   const float altitudeMin, const float altitudeMax,
                                   float* points_local, int iPoint, vol2bird_t* alldata);
 
+double PolarVolume_getWavelength(PolarVolume_t* pvol);
+
 static int hasAzimuthGap(const float *points_local, const int nPoints, vol2bird_t* alldata);
 
 static int includeGate(const int iProfileType, const int iQuantityType, const unsigned int gateCode, vol2bird_t* alldata);
@@ -960,7 +962,7 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 			}
 		    }
 		    if (scanUse[iScan].useScan == FALSE){
-                        fprintf(stderr,"radial velocity missing, dropping scan %i ...\n",iScan);
+                        fprintf(stderr,"Warning: radial velocity missing, dropping scan %i ...\n",iScan);
                     }
 		}
 
@@ -969,7 +971,7 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 			strcpy(scanUse[iScan].dbzName,alldata->options.dbzType);	
 		    }
 		    else{
-                        fprintf(stderr,"requested reflectivity factor '%s' missing, searching for alternatives ...\n",alldata->options.dbzType);
+                        fprintf(stderr,"Warning: requested reflectivity factor '%s' missing, searching for alternatives ...\n",alldata->options.dbzType);
 		        if(PolarScan_hasParameter(scan, "DBZH")){
 			    sprintf(scanUse[iScan].dbzName,"DBZH");	
 		        }
@@ -983,7 +985,7 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 		        }
                    }
 		   if (scanUse[iScan].useScan == FALSE){
-                       fprintf(stderr,"reflectivity factor missing, dropping scan %i ...\n",iScan);
+                       fprintf(stderr,"Warning: reflectivity factor missing, dropping scan %i ...\n",iScan);
                    }
 		}
 
@@ -994,7 +996,7 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
                          || 360*PolarScan_getElangle(scan) / 2 / PI > alldata->options.elevMax)
                         {
                                 scanUse[iScan].useScan = FALSE;
-                                fprintf(stderr,"Scan outside valid elevation range, dropping scan %i ...\n",iScan);
+                                fprintf(stderr,"Warning: scan outside valid elevation range, dropping scan %i ...\n",iScan);
                         }
                 }
 
@@ -1022,7 +1024,7 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 			// Set useScan to 0 if no Nyquist interval is available or if it is too low
 			if (nyquist < alldata->options.minNyquist){
                                 scanUse[iScan].useScan = 0;
-                                fprintf(stderr,"Radial velocity Nyquist interval too low, dropping scan %i ...\n",iScan);
+                                fprintf(stderr,"Warning: radial velocity Nyquist interval too low, dropping scan %i ...\n",iScan);
                         }
 		}
 		
@@ -1803,7 +1805,19 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
 
 } // getListOfSelectedGates
 
+double PolarVolume_getWavelength(PolarVolume_t* pvol)
+{
+    RAVE_ASSERT((pvol != NULL), "pvol == NULL");
+    
+    double value = 0;
 
+    RaveAttribute_t* attr = PolarVolume_getAttribute(pvol, "/how/wavelength");
+    if (attr != (RaveAttribute_t *) NULL){
+        RaveAttribute_getDouble(attr, &value);
+    }
+    
+    return value;
+}
 
 
 static int hasAzimuthGap(const float* points_local, const int nPoints, vol2bird_t* alldata) {
@@ -2339,11 +2353,6 @@ static int profileArray2RaveField(vol2bird_t* alldata, int idx_profile, int idx_
     return result;
 }
 
-//  HIER FUNCTIE TOEVOEGEN DIE ProfileArray2RaveField
-//  1) make a rave field
-//  
-//  2) fill it with profile data
-//  3) add it to the rave vertical profile
 
 static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* field, const char* quantity)
 {
@@ -3470,7 +3479,6 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->constants.absVDifMax = VDIFMAX;
     alldata->constants.vradMin = VRADMIN;
 
-
     // ------------------------------------------------------------- //
     //                       some other variables                    //
     // ------------------------------------------------------------- //
@@ -3480,10 +3488,43 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->misc.nParsFitted = 3;
     alldata->misc.dbzFactor = (pow(alldata->constants.refracIndex,2) * 1000 * pow(PI,5))/pow(alldata->options.radarWavelength,4);
 
+    alldata->misc.loadConfigSuccessful = TRUE;
+
+    return 0;
+
+}
+
+
+//int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata) {
+int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
+    
+    alldata->misc.initializationSuccessful = FALSE;
+    
+
+    if (alldata->misc.loadConfigSuccessful == FALSE){
+        fprintf(stderr,"Vol2bird configuration not loaded. Run vol2birdLoadConfig prior to vol2birdSetup\n");
+        return -1;
+    }
+ 
+    // reading radar wavelength from polar volume attribute
+    // if present, overwrite options.radarWavelength with the value found.
+    double wavelength = PolarVolume_getWavelength(volume);
+    if (wavelength > 0){
+        alldata->options.radarWavelength = wavelength;
+    }
+    else{
+        fprintf(stderr,"Warning: radar wavelength not stored in polar volume. Using user-defined value of %f cm ...\n", alldata->options.radarWavelength);
+    }
+ 
+ 
     // ------------------------------------------------------------- //
     //     store all options and constants in task_args string       //
     // ------------------------------------------------------------- //
 
+    // the radar wavelength setting is read from taken from the volume object
+    // if a wavelength attribute is present. Therefore the task_args string is
+    // set here and not in vol2birdLoadConfig(), which has no access to the volume    
+    
     sprintf(alldata->misc.task_args,
         "azimMax=%f,azimMin=%f,layerThickness=%f,nLayers=%i,rangeMax=%f,"
         "rangeMin=%f,elevMax=%f,elevMin=%f,radarWavelength=%f,"
@@ -3535,24 +3576,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
         alldata->constants.absVDifMax,
         alldata->constants.vradMin
     );
-
-    alldata->misc.loadConfigSuccessful = TRUE;
-
-    return 0;
-
-}
-
-
-//int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata) {
-int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     
-    alldata->misc.initializationSuccessful = FALSE;
-    
-
-    if (alldata->misc.loadConfigSuccessful == FALSE){
-        fprintf(stderr,"Vol2bird configuration not loaded. Run vol2birdLoadConfig prior to vol2birdSetup\n");
-        return -1;
-    }
  
     // ------------------------------------------------------------- //
     //             lists of indices into the 'points' array:         //
@@ -3610,8 +3634,6 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     for (iLayer = 0; iLayer < alldata->options.nLayers; iLayer++) {
         alldata->points.nPointsWritten[iLayer] = 0;
     }
-
-
 
 
     // ------------------------------------------------------------- //
@@ -3711,6 +3733,8 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
 
     alldata->profiles.iProfileTypeLast = -1;
 
+
+ 
     // ------------------------------------------------------------- //
     //              initialising rave profile fields                 //
     // ------------------------------------------------------------- //
