@@ -79,14 +79,19 @@ static PyVol2Bird* PyVol2Bird_New(PolarVolume_t* volume)
   PyVol2Bird* result = NULL;
   vol2bird_t* alldata = NULL;
 
-  int initSuccessful = vol2birdSetUp(volume, alldata) == 0;
-//  cp = RAVE_MALLOC(sizeof(vol2bird_t)); // REPLACE WITH ALLOC METHOD
-  if (initSuccessful == FALSE) {
-     raiseException_returnNULL(PyExc_ValueError, "vol2birdSetUp did not complete successfully.");
-  }
+  alldata = malloc(sizeof(vol2bird_t)); // REPLACE WITH ALLOC METHOD
   if (alldata == NULL) {
     RAVE_CRITICAL0("Failed to allocate memory for Vol2Bird.");
     raiseException_returnNULL(PyExc_MemoryError, "Failed to allocate memory for Vol2Bird.");
+  }
+
+  if (vol2birdLoadConfig(alldata)) {
+    raiseException_returnNULL(PyExc_ValueError, "vol2birdLoadConfig did not complete successfully.");
+  }
+
+  int initSuccessful = vol2birdSetUp(volume, alldata) == 0;
+  if (initSuccessful == FALSE) {
+     raiseException_returnNULL(PyExc_ValueError, "vol2birdSetUp did not complete successfully.");
   }
   result = PyObject_NEW(PyVol2Bird, &PyVol2Bird_Type);
   if (result != NULL) {
@@ -147,7 +152,6 @@ static PyObject* _pyvol2bird_vol2bird(PyVol2Bird* self, PyObject* args)
 {
   PyObject* pyin = NULL;
   double dBlim = 0;
-  VerticalProfile_t* vp = NULL;
   PyObject* result = NULL;
 
   if (!PyArg_ParseTuple(args, "Od", &pyin, &dBlim)) {
@@ -158,13 +162,12 @@ static PyObject* _pyvol2bird_vol2bird(PyVol2Bird* self, PyObject* args)
     raiseException_returnNULL(PyExc_ValueError, "First argument should be a Polar Scan");
   }
 
-  /* FIX ME vp = vol2bird(self->v2b, ((PyPolarVolume*)pyin)->pvol, dBlim);*/
   vol2birdCalcProfiles(self->v2b);
-  // TO ADD: constructor for vp
-  if (vp != NULL) {
-    result = (PyObject*)PyVerticalProfile_New(vp);
+  mapDataToRave(((PyPolarVolume*)pyin)->pvol, self->v2b);
+  // do we need a copy of vp?
+  if (self->v2b->vp != NULL) {
+    result = (PyObject*)PyVerticalProfile_New(self->v2b->vp);
   }
-  RAVE_OBJECT_RELEASE(vp);
   return result;
 }
 
