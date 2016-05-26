@@ -1815,9 +1815,22 @@ double PolarVolume_getWavelength(PolarVolume_t* pvol)
     if (attr != (RaveAttribute_t *) NULL){
         RaveAttribute_getDouble(attr, &value);
     }
+    else{
+        // wavelength attribute was not found in the root /how attribute
+        // check whether we can find it under /dataset1/how 
+        PolarScan_t* scan = PolarVolume_getScan(pvol, 1);
+        if (scan != (PolarScan_t *) NULL){
+            attr = PolarScan_getAttribute(scan, "/how/wavelength");
+            if (attr != (RaveAttribute_t *) NULL){
+                RaveAttribute_getDouble(attr, &value);
+                fprintf(stderr, "Warning: using radar wavelength stored for scan 1 (%f cm) for all scans ...\n", value);
+            }
+        }
+    }
     
     return value;
 }
+
 
 
 static int hasAzimuthGap(const float* points_local, const int nPoints, vol2bird_t* alldata) {
