@@ -64,6 +64,14 @@ libvol2bird :
 	$(LDFLAGS) \
 	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lm
 
+install : libvol2bird
+	# ------------------------------------
+	#  copy binaries to target directory
+	# ------------------------------------
+	install -d ${prefix}/lib
+	install -m 644 libvol2bird.so ${prefix}/lib/libvol2bird.so
+	install -d ${prefix}/bin
+	install -m 755 vol2bird ${prefix}/bin/vol2bird
 
 clean : 
 	# ------------------------------------
