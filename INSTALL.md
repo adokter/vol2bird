@@ -47,6 +47,9 @@ sudo apt-get install texlive-font-utils
 # install library for parsing options
 sudo apt-get install libconfuse-dev
 
+# install python inotify
+sudo apt-get install python-pyinotify
+
 # update the system database to be able to locate the files later:
 sudo updatedb
 
