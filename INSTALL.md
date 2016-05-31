@@ -188,3 +188,88 @@ cd ${RADAR_ROOT_DIR}
 . setup-env
 
 ```
+
+
+# Instructions for installing node-installer
+
+```
+# install instructions for Lubuntu 14.04 64-bit
+
+sudo apt-get install python
+sudo apt-get install zlib1g-dev
+sudo apt-get install postgresql-client-9.3
+sudo apt-get install postgresql-client-common
+sudo apt-get install libpq-dev
+sudo apt-get install libssl-dev
+sudo apt-get install libsasl2-dev
+sudo apt-get install libncurses5-dev
+sudo apt-get install libdb-dev
+sudo apt-get install libicu52
+sudo apt-get install libicu-dev
+sudo apt-get install libbz2-dev
+sudo apt-get install openssl libssl-dev
+sudo apt-get install doxygen
+sudo apt-get install libpng-dev
+sudo apt-get install libfreetype6 libfreetype6-dev
+sudo apt-get install libssl-dev openssl dpkg-dev
+
+
+# find if you have Java installed
+java -version
+
+# edit /etc/postgresql/9.3/main/pg_hba.conf:
+change the line that says:
+local   all             all                                     peer
+to
+local   all             all                                     md5
+
+# restart the postgresql service
+sudo service postgresql restart
+
+# add a system user, set its password to baltrad
+sudo adduser baltrad
+sudo passwd baltrad
+
+# double 'sudo':
+sudo sudo -u postres psql -c "CREATE USER baltrad with PASSWORD 'baltrad';CREATE DATABASE baltrad with OWNER baltrad;"
+
+sudo mkdir /opt/software
+sudo mkdir /opt/baltrad
+sudo chown -R baltrad:baltrad /opt/software
+sudo chown -R baltrad:baltrad /opt/baltrad
+
+# become the baltrad user:
+sudo su - baltrad
+
+#
+cd /opt/software
+
+# use git to download the baltrad node installer
+git clone git://git.baltrad.eu/node-installer.git
+
+# cd into the newly created directory
+cd node-installer
+
+# check if you already have an instance of tomcat running:
+ps -ef | grep tomcat
+# if you have one, stop it with (if your tomcat lives in /etc/init.d/):
+sudo /etc/init.d/tomcat7 stop
+
+
+
+# And now, the 'one-line installer'. Very easy...not.
+./setup --tomcatpwd=baltrad --nodename=nl.esciencecenter.balthazar --prefix=/opt/baltrad \
+--jdkhome=/usr/lib/jvm/java-7-openjdk-amd64 \
+--with-psql=/usr/include/postgresql/,/usr/lib/ \
+--dbpwd=baltrad \
+--with-rave \
+--experimental \
+install
+
+
+# if something goes wrong during installation, just rm -rf the /opt/baltrad
+# directory (or the directory that you used as prefix), then repeat steps.
+
+
+```
+
