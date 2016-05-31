@@ -65,6 +65,9 @@ pip install numpy
 # install Python Imaging Library (Pillow) into the virtual environment
 pip install Pillow
 
+# install python inotify for watching changes on files
+pip install pyinotify
+
 # change to the source directory...
 cd ${RADAR_ROOT_DIR}/src
 
