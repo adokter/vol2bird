@@ -276,6 +276,14 @@ install
 # importing your own local data from file goes with the program /opt/baltrad/rave/bin/odim_injector. First add these directories to the LD_LIBRARY_PATH:
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/baltrad/rave/lib:/opt/baltrad/hlhdf/lib/:/opt/baltrad/third_party/lib
 
+sudo mkdir /opt/baltrad/odim_injector
+# (daisycutter is the normal user)
+sudo chown -R daisycutter:daisycutter /opt/baltrad/odim_injector
+
+cd /opt/baltrad/rave/bin
+./odim_injector --help
+
+
 
 ```
 
