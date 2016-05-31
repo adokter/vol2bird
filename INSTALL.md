@@ -273,6 +273,9 @@ install
 # if something goes wrong during installation, just rm -rf the /opt/baltrad
 # directory (or the directory that you used as prefix), then repeat steps.
 
+# importing your own local data from file goes with the program /opt/baltrad/rave/bin/odim_injector. First add these directories to the LD_LIBRARY_PATH:
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/baltrad/rave/lib:/opt/baltrad/hlhdf/lib/:/opt/baltrad/third_party/lib
+
 
 ```
 
