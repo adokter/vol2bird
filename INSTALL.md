@@ -56,6 +56,9 @@ virtualenv -p /usr/bin/python2.7 ${RADAR_ROOT_DIR}/.venv
 # activate the python virtual environment if necessary (don't forget the leading dot):
 . ${RADAR_ROOT_DIR}/.venv/bin/activate
 
+# update pip to the latest version
+pip install --upgrade pip
+
 # install Numpy into the virtual environment
 pip install numpy
 
