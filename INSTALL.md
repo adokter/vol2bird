@@ -15,7 +15,7 @@ mkdir ${RADAR_ROOT_DIR}/src
 sudo apt-get install python
 
 # we'll use Pythopn virtualenv to manage the python version, and this project's dependencies
-sudo apt-get install virtualenv
+sudo apt-get install python-virtualenv
 
 # install dependencies for rave (g++, gcc, make, etc)
 sudo apt-get install build-essential
