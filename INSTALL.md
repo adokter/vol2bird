@@ -279,13 +279,10 @@ install
 # importing your own local data from file goes with the program /opt/baltrad/rave/bin/odim_injector. First add these directories to the LD_LIBRARY_PATH:
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/baltrad/rave/lib:/opt/baltrad/hlhdf/lib/:/opt/baltrad/third_party/lib
 
-sudo mkdir /opt/baltrad/odim_injector
-# (daisycutter is the normal user)
-sudo chown -R daisycutter:daisycutter /opt/baltrad/odim_injector
-
-cd /opt/baltrad/rave/bin
-./odim_injector --help
-
+# there's still some weirdness with permissions... we haven't figured out exactly how it should be. Currently 
+# running everything as root (bad idea):
+(.venv)daisycutter@daisycutter-NLeSC:/opt/baltrad$ sudo bash -c '. /opt/baltrad/etc/bltnode.rc; odim_injector -i /home/daisycutter/projects/birdradar2016/odim-injector-watched'
+# then copy an ODIM-HDF5 file into the directory, it should get picked up and show up in the messages tab of the Baltrad web interface.
 
 
 ```
