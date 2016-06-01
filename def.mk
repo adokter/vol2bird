@@ -10,7 +10,7 @@ prefix=             /opt/baltrad/vol2bird
 # basically uncomment any of the ones below if you want.
 
 CC=                 		/usr/bin/clang
-#CCOPTS=             -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes
+##CCOPTS=             -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes
 CCOPTS=             -DNDEBUG -fwrapv -O3 -Wall -Wstrict-prototypes
 LDFLAGS=            -L/opt/local/lib -Wl,-headerpad_max_install_names -L/opt/local/lib/db48 
 
