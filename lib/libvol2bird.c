@@ -1811,7 +1811,7 @@ double PolarVolume_getWavelength(PolarVolume_t* pvol)
     
     double value = 0;
 
-    RaveAttribute_t* attr = PolarVolume_getAttribute(pvol, "/how/wavelength");
+    RaveAttribute_t* attr = PolarVolume_getAttribute(pvol, "how/wavelength");
     if (attr != (RaveAttribute_t *) NULL){
         RaveAttribute_getDouble(attr, &value);
     }
@@ -1820,7 +1820,7 @@ double PolarVolume_getWavelength(PolarVolume_t* pvol)
         // check whether we can find it under /dataset1/how 
         PolarScan_t* scan = PolarVolume_getScan(pvol, 1);
         if (scan != (PolarScan_t *) NULL){
-            attr = PolarScan_getAttribute(scan, "/how/wavelength");
+            attr = PolarScan_getAttribute(scan, "how/wavelength");
             if (attr != (RaveAttribute_t *) NULL){
                 RaveAttribute_getDouble(attr, &value);
                 fprintf(stderr, "Warning: using radar wavelength stored for scan 1 (%f cm) for all scans ...\n", value);
