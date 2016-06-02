@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
                 int nRowsProfile = vol2birdGetNRowsProfile(&alldata);
                 int nColsProfile = vol2birdGetNColsProfile(&alldata);
 
-                fprintf(stdout, "# vol2bird vertical profile\n");
+                fprintf(stdout, "# vol2bird Vertical Profile of Birds (VPB)\n");
                 fprintf(stdout, "# source: %s\n",source);
                 fprintf(stdout, "# ODIM HDF5 input: %s\n",filename);
                 printf("# Date   Time Heig    U      V       W   Speed Direc StdDev Gap dBZ     eta DensBird dBZAll   n   ndBZ  nAll nAlldBZ\n");
@@ -190,6 +190,8 @@ int main(int argc, char** argv) {
         
         // tear down vol2bird, give memory back
         vol2birdTearDown(&alldata);
+        RAVE_OBJECT_RELEASE(volume);
+ 
 
         // output some performance data
         //clock_gettime(CLOCK_REALTIME, &ts);
