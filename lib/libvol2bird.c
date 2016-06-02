@@ -992,11 +992,13 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 		if (scanUse[iScan].useScan)
 		{
                         // drop scans with elevations outside the range set by user
-                        if (360*PolarScan_getElangle(scan) / 2 / PI < alldata->options.elevMin
-                         || 360*PolarScan_getElangle(scan) / 2 / PI > alldata->options.elevMax)
+                        double elev = 360*PolarScan_getElangle(scan) / 2 / PI;
+                        if (elev < alldata->options.elevMin
+                         || elev > alldata->options.elevMax)
                         {
                                 scanUse[iScan].useScan = FALSE;
-                                fprintf(stderr,"Warning: scan outside valid elevation range, dropping scan %i ...\n",iScan);
+                                fprintf(stderr,"Warning: scan elevation (%.1f deg) outside valid elevation range (%.1f-%.1f deg), dropping scan %i ...\n",\
+                                elev,alldata->options.elevMin,alldata->options.elevMax,iScan);
                         }
                 }
 
@@ -1024,7 +1026,7 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 			// Set useScan to 0 if no Nyquist interval is available or if it is too low
 			if (nyquist < alldata->options.minNyquist){
                                 scanUse[iScan].useScan = 0;
-                                fprintf(stderr,"Warning: radial velocity Nyquist interval too low, dropping scan %i ...\n",iScan);
+                                fprintf(stderr,"Warning: radial velocity Nyquist interval (%.1f m/s) too low, dropping scan %i ...\n",nyquist,iScan);
                         }
 		}
 		
