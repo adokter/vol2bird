@@ -1,26 +1,26 @@
 # test files
 
 |file | country | vol2bird test |
-|----:|:-------:|:-------------:|
+|:----|:-------:|:-------------:|
 |bejab_pvol_20151009T0000Z.h5 | be | ok |
 |bewid_pvol_20151009T0000Z.h5 | be | ok |
 |bezav_pvol_20151009T0000Z.h5 | be | ok |
-|dkbor_pvol_20151010T0000Z.h5 | dk | ok |
-|dkrom_pvol_20151010T0000Z.h5 | dk | ok |
-|dksin_pvol_20151010T0000Z.h5 | dk | ok |
-|dkste_pvol_20151010T0000Z.h5 | dk | ok |
-|dkvir_pvol_20151010T0000Z.h5 | dk | ok |
-|eehar_pvol_20151010T0000Z.h5 | ee | ok |
-|eesur_pvol_20151010T0000Z.h5 | ee | ok |
-|fianj_pvol_20151010T0000Z.h5 | fi | ok |
-|fiika_pvol_20151010T0000Z.h5 | fi | ok |
-|fikes_pvol_20151010T0000Z.h5 | fi | ok |
-|fikor_pvol_20151010T0000Z.h5 | fi | ok |
-|fikuo_pvol_20151010T0000Z.h5 | fi | ok |
-|filuo_pvol_20151010T0000Z.h5 | fi | ok |
-|fiuta_pvol_20151010T0000Z.h5 | fi | ok |
-|fivan_pvol_20151010T0000Z.h5 | fi | ok |
-|fivim_pvol_20151010T0000Z.h5 | fi | ok |
+|dkbor_pvol_20151010T0000Z.h5 | dk | Nyquist velocity too low |
+|dkrom_pvol_20151010T0000Z.h5 | dk | Nyquist velocity too low |
+|dksin_pvol_20151010T0000Z.h5 | dk | Nyquist velocity too low |
+|dkste_pvol_20151010T0000Z.h5 | dk | Nyquist velocity too low |
+|dkvir_pvol_20151010T0000Z.h5 | dk | Nyquist velocity too low |
+|eehar_pvol_20151010T0000Z.h5 | ee | Nyquist velocity too low |
+|eesur_pvol_20151010T0000Z.h5 | ee | Nyquist velocity too low |
+|fianj_pvol_20151010T0000Z.h5 | fi | Nyquist velocity too low |
+|fiika_pvol_20151010T0000Z.h5 | fi | Nyquist velocity too low |
+|fikes_pvol_20151010T0000Z.h5 | fi | Nyquist velocity too low |
+|fikor_pvol_20151010T0000Z.h5 | fi | Nyquist velocity too low |
+|fikuo_pvol_20151010T0000Z.h5 | fi | Nyquist velocity too low |
+|filuo_pvol_20151010T0000Z.h5 | fi | Nyquist velocity too low |
+|fiuta_pvol_20151010T0000Z.h5 | fi | Nyquist velocity too low |
+|fivan_pvol_20151010T0000Z.h5 | fi | Nyquist velocity too low |
+|fivim_pvol_20151010T0000Z.h5 | fi | Nyquist velocity too low |
 |frabb_pvol_20151010T0000Z.h5 | fr | ok |
 |frale_pvol_20151010T0000Z.h5 | fr | ok |
 |frbla_pvol_20151010T0000Z.h5 | fr | ok |
@@ -42,8 +42,8 @@
 |frtou_pvol_20151010T0000Z.h5 | fr | ok |
 |frtra_pvol_20151010T0000Z.h5 | fr | ok |
 |frtre_pvol_20151010T0000Z.h5 | fr | ok |
-|hrbil_pvol_20151010T0000Z.h5 | hr | ok |
-|hrosi_pvol_20151010T0000Z.h5 | hr | ok |
+|hrbil_pvol_20151010T0000Z.h5 | hr | Nyquist velocity too low |
+|hrosi_pvol_20151010T0000Z.h5 | hr | Nyquist velocity too low |
 |nldbl_pvol_20151010T0000Z.h5 | nl | ok |
 |nldhl_pvol_20151010T0000Z.h5 | nl | ok |
 |searl_pvol_20151010T0000Z.h5 | se | ok |
@@ -57,19 +57,19 @@
 |seovi_pvol_20151010T0000Z.h5 | se | ok |
 |sevar_pvol_20151010T0000Z.h5 | se | ok |
 |sevil_pvol_20151010T0000Z.h5 | se | ok |
-|silis_pvol_20151010T0000Z.h5 | si | ok |
-|sipas_pvol_20151010T0000Z.h5 | si | ok |
-|ukcas_pvol_20151010T0000Z.h5 | uk | ok |
-|ukche_pvol_20151010T0000Z.h5 | uk | ok |
-|ukcle_pvol_20151010T0000Z.h5 | uk | ok |
-|ukcob_pvol_20151010T0000Z.h5 | uk | ok |
-|ukdea_pvol_20151010T0000Z.h5 | uk | ok |
-|ukdud_pvol_20151010T0000Z.h5 | uk | ok |
-|ukham_pvol_20151010T0000Z.h5 | uk | ok |
-|ukhmy_pvol_20151010T0000Z.h5 | uk | ok |
-|uking_pvol_20151010T0000Z.h5 | uk | ok |
-|ukjer_pvol_20151010T0000Z.h5 | uk | ok |
-|uklew_pvol_20151010T0000Z.h5 | uk | ok |
-|ukmun_pvol_20151010T0000Z.h5 | uk | ok |
-|ukpre_pvol_20151010T0000Z.h5 | uk | ok |
-|ukthu_pvol_20151010T0000Z.h5 | uk | ok |
+|silis_pvol_20151010T0000Z.h5 | si | Nyquist velocity too low |
+|sipas_pvol_20151010T0000Z.h5 | si | Nyquist velocity too low |
+|ukcas_pvol_20151010T0000Z.h5 | uk | either VRAD or DBZH missing |
+|ukche_pvol_20151010T0000Z.h5 | uk | either VRAD or DBZH missing |
+|ukcle_pvol_20151010T0000Z.h5 | uk | either VRAD or DBZH missing |
+|ukcob_pvol_20151010T0000Z.h5 | uk | either VRAD or DBZH missing |
+|ukdea_pvol_20151010T0000Z.h5 | uk | either VRAD or DBZH missing |
+|ukdud_pvol_20151010T0000Z.h5 | uk | either VRAD or DBZH missing |
+|ukham_pvol_20151010T0000Z.h5 | uk | either VRAD or DBZH missing |
+|ukhmy_pvol_20151010T0000Z.h5 | uk | either VRAD or DBZH missing |
+|uking_pvol_20151010T0000Z.h5 | uk | either VRAD or DBZH missing |
+|ukjer_pvol_20151010T0000Z.h5 | uk | either VRAD or DBZH missing |
+|uklew_pvol_20151010T0000Z.h5 | uk | either VRAD or DBZH missing |
+|ukmun_pvol_20151010T0000Z.h5 | uk | either VRAD or DBZH missing |
+|ukpre_pvol_20151010T0000Z.h5 | uk | either VRAD or DBZH missing |
+|ukthu_pvol_20151010T0000Z.h5 | uk | either VRAD or DBZH missing |
