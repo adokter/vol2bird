@@ -70,6 +70,8 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
                                   const float altitudeMin, const float altitudeMax,
                                   float* points_local, int iPoint, vol2bird_t* alldata);
 
+double PolarVolume_getWavelength(PolarVolume_t* pvol);
+
 static int hasAzimuthGap(const float *points_local, const int nPoints, vol2bird_t* alldata);
 
 static int includeGate(const int iProfileType, const int iQuantityType, const unsigned int gateCode, vol2bird_t* alldata);
@@ -103,318 +105,7 @@ static int updateMap(int *cellImage, const int nGlobal, CELLPROP *cellProp, cons
 
 
 
-
-
-// ------------------------------------------------------------- //
-//              vol2bird options from options.conf               //
-// ------------------------------------------------------------- //
-
-// the configuration options 
-// static cfg_t* cfg;
-
-// the user can specify to exclude gates based on their azimuth;
-// the maximum is set by azimMax
-// static float azimMax;
-
-// the user can specify to exclude gates based on their azimuth;
-// the minimum is set by azimMin
-// static float azimMin;
-
-// the thickness in meters of a layer in the altitude profile
-// static float layerThickness;
-
-// the number of layers in an altitude profile
-// static int nLayers;
-
-// whether or not to print each scan's raw dbz values to stderr
-// static int printDbz;
-
-// whether or not to print each scan's raw vrad values to stderr
-// static int printVrad;
-
-// whether or not to print each scan's raw tex values to stderr
-// static int printTex;
-
-// whether or not to print each scan's cell values to stderr
-// static int printCell;
-
-// whether or not to print each scan's cell properties to stderr
-// static int printCellProp;
-
-// whether or not to print each scan's clutter values to stderr
-// static int printClut;
-
-// whether or not to print vol2bird's configuration options to stderr
-// static int printOptions;
-
-// whether or not to print vol2bird's profiled data to stderr
-// static int printProfileVar;
-
-// whether or not to print the 'points' array
-// static int printPointsArray;
-
-// whether or not a model should be fitted to the observed vrad values
-// static int fitVrad;
-
-// the range beyond which observations are excluded when constructing 
-// the altitude profile
-// static float rangeMax;
-
-// the range below which observations are excluded when constructing 
-// the altitude profile
-// static float rangeMin;
-
-// the wavelength of the radar in units of centimeter
-// static float radarWavelength;
-
-// whether clutter data is used
-// static int useStaticClutterData;
-
-// whether you want to export the bird density profile as JSON 
-//static int exportBirdProfileAsJSONVar;
-
-
-// ------------------------------------------------------------- //
-//              vol2bird options from constants.h                //
-// ------------------------------------------------------------- //
-
-// when analyzing cells, AREAMIN determines the minimum size of a 
-// cell to be considered in the rest of the analysis
-// static int nGatesCellMin;
-
-// cells with clutter fractions above this value are likely not birds
-// static float cellClutterFractionMax;
-
-// when analyzing cells, only cells for which the average dbz is 
-// more than DBZCELL are considered in the rest of the analysis
-// static float cellDbzMin;
-
-// minimum quality of the fit
-// static float chisqMin;
-
-// threshold dbz value for excluding gates as clutter (static clutter 
-// only)
-// static float clutterValueMin;
-
-// maximum dbz used in calculation of profile dbzAvg  
-// static float dbzMax;
-
-// minimum dbz used in calculation of cell dbzAvg
-// static float dbzThresMin;
-
-// each weather cell identified by findWeatherCells() is grown by a distance 
-// equal to 'fringeDist' using a region-growing approach
-// static float fringeDist;
-
-// when determining whether there are enough vrad observations in 
-// each direction, use NBINSGAP sectors
-// static int nBinsGap;
-
-// when calculating the altitude-layer averaged dbz, there should 
-// be at least NDBZMIN valid data points
-// static int nPointsIncludedMin;
-
-// the minimum number of direct neighbors with dbz value above 
-// dbzThresMin as used in findWeatherCells()
-// static int nNeighborsMin;
-
-// there should be at least NOBSGAPMIN vrad observations in each 
-// sector
-// static int nObsGapMin;
-
-// vrad's texture is calculated based on the local neighborhood. The
-// neighborhood size in the azimuth direction is equal to NTEXBINAZIM
-// static int nAzimNeighborhood;
-
-// vrad's texture is calculated based on the local neighborhood. The
-// neighborhood size in the range direction is equal to NTEXBINRANG
-// static int nRangNeighborhood;
-
-// the minimum number of neighbors for the texture value to be 
-// considered valid, as used in calcTexture()
-// static int nCountMin; 
-
-// the refractive index of water
-// static float refracIndex;
-
-// the bird radar cross section
-//static float birdRadarCrossSection;
-
-// when analyzing cells, only cells for which the stddev of vrad
-// (aka the texture) is less than STDEVCELL are considered in the
-// rest of the analysis
-// static float cellStdDevMax;
-
-// Minimum radial velocity standard deviation to be labeled as birds
-// static float stdDevMinBird;
-
-// after fitting the vrad data, throw out any vrad observations that 
-// are more that VDIFMAX away from the fitted value, since these are
-// likely outliers 
-// static float absVDifMax;
-
-// When analyzing cells, radial velocities lower than VRADMIN 
-// are treated as clutter
-// static float vradMin;
-
-
-// ------------------------------------------------------------- //
-//               information about the 'points' array            //
-// ------------------------------------------------------------- //
-
-// The data needed for calculating bird densities are collected
-// in one big array, 'points'. Although this array is one 
-// variable, it is partitioned into 'nLayers' parts. The parts 
-// are not equal in size, therefore we need to keep track of  
-// where the data pertaining to a certain altitude bin can be
-// written. The valid range of indexes into 'points' are stored 
-// in arrays 'indexFrom' and 'indexTo'.
-
-// the 'points' array has this many pseudo-columns
-// static int nColsPoints;
-
-// the 'points' array has this many rows
-// static int nRowsPoints;
-
-// the psuedo-column in 'points' that holds the azimuth angle
-// static int azimAngleCol;
-
-// the psuedo-column in 'points' that holds the elevation angle
-// static int elevAngleCol;
-
-// the psuedo-column in 'points' that holds the dbz value
-// static int dbzValueCol;
-
-// the psuedo-column in 'points' that holds the vrad value
-// static int vradValueCol;
-
-// the psuedo-column in 'points' that holds the cell value
-// static int cellValueCol;
-
-// the psuedo-column in 'points' that holds the gate classification code
-// static int gateCodeCol;
-
-// the 'points' array itself
-// static float* points;
-
-// ------------------------------------------------------------- //
-//             lists of indices into the 'points' array:         //
-//          where each altitude layer's data starts and ends     //
-// ------------------------------------------------------------- //
-
-// for a given altitude layer in the profile, only part of the 'points'
-// array is relevant. The 'indexFrom' and 'indexTo' arrays keep track 
-// which rows in 'points' pertains to a given layer
-// static int* indexFrom;
-// static int* indexTo;
-
-// nPointsWritten stores the number of points that was copied from one 
-// of the scan elevations to the 'points' array; it should therefore
-// never exceed indexTo[i]-indexFrom[i]
-// static int* nPointsWritten;
-
-
-
-
-// ------------------------------------------------------------- //
-//          information about the flagfields of 'gateCode'       //
-// ------------------------------------------------------------- //
-
-// the bit in 'gateCode' that says whether this gate is true in the static
-// clutter map (which we don't have yet TODO)
-// static int flagPositionStaticClutter;
-
-// the bit in 'gateCode' that says whether this gate is part of the 
-// calculated cluttermap (without fringe)
-// static int flagPositionDynamicClutter;
-
-// the bit in 'gateCode' that says whether this gate is part of the 
-// fringe of the calculated cluttermap
-// static int flagPositionDynamicClutterFringe;
-
-// the bit in 'gateCode' that says whether this gate has reflectivity data 
-// but no corresponding radial velocity data
-// static int flagPositionVradMissing;
-
-// the bit in 'gateCode' the psuedo-columnsays whether this gate's dbz value is too
-// high to be due to birds, it must be caused by something else
-// static int flagPositionDbzTooHighForBirds;
-
-// the bit in 'gateCode' the psuedo-columnsays whether this gate's radial velocity is
-// close to zero. These gates are all discarded to exclude ground 
-// clutter, which often has a radial velocity near zero.
-// static int flagPositionVradTooLow;
-
-// the bit in 'gateCode' that says whether this gate passed the VDIFMAX test
-// static int flagPositionVDifMax;
-
-// the bit in 'gateCode' that says whether the gate's azimuth angle was too low
-// static int flagPositionAzimTooLow;
-
-// the bit in 'gateCode' that says whether the gate's azimuth angle was too high
-// static int flagPositionAzimTooHigh;
-
-
-
-
-// ------------------------------------------------------------- //
-//              information about the 'profile' array            //
-// ------------------------------------------------------------- //
-
-// the number of different types of profile we're making
-// static int nProfileTypes;
-
-// how many rows there are in a profile
-// static int nRowsProfile;
-
-// columns in profile contain [altmin,altmax,u,v,w,hSpeed,hDir,chi,hasGap,dbzAvg,nPointsCopied,reflectivity,birdDensity]
-// static int nColsProfile; 
-
-// the profile array itself
-// static float* profile;
-
-// these next 3 profile arrays are an ugly way to make sure 
-// vol2birdGetProfile() can deliver its data
-//static float* profile1;
-//static float* profile2;
-//static float* profile3;
-
-// the type of profile that was last calculated
-// static int iProfileTypeLast;
-
-
-
-
-// ------------------------------------------------------------- //
-//                       some other variables                    //
-// ------------------------------------------------------------- //
-
-// rCellMax is defined as rangeMax + 5000.0f  in order to avoid 
-// edge effects when calculating the fringe
-// static float rCellMax;
-
-// the number of dimensions to describe the location of an echo 
-// (azimuth and elevAngle) as used in the 'pointsSelection' array 
-// that is passed to svdfit
-// static int nDims;
-
-// how many parameters are fitted by the svdfit procedure
-// static int nParsFitted;
-
-// the factor that is used when converting from Z to eta
-// static float dbzFactor;
-
-// whether the vol2bird module has been initialized
-// static int initializationSuccessful = FALSE;
-
-// during calculation of iProfileType == 3, use this array to store the
-// result of (chi < stdDevMinBird), such that it can be used later during 
-// calculation of iProfileType == 1
-// static int* scatterersAreNotBirds;
-
-
-
-
+// non-public function declarations (local to this file/translation unit)
 
 static int analyzeCells(const unsigned char *dbzImage, const unsigned char *vradImage,
         const unsigned char *texImage, const unsigned char *clutterImage, int *cellImage,
@@ -491,7 +182,7 @@ static int analyzeCells(const unsigned char *dbzImage, const unsigned char *vrad
 	    
             iCell = cellImage[iGlobal];
 
-	    // Note: this also throws out all nodata/nodetect values for dbzValue
+	    // Note: this also throws out all nodata/undetect values for dbzValue
             if (iCell<0) {
                 continue;
             }
@@ -1271,16 +962,16 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 			}
 		    }
 		    if (scanUse[iScan].useScan == FALSE){
-                        fprintf(stderr,"radial velocity missing, dropping scan %i ...\n",iScan);
+                        fprintf(stderr,"Warning: radial velocity missing, dropping scan %i ...\n",iScan);
                     }
 		}
 
 		if (scanUse[iScan].useScan){
-		    if(PolarScan_hasParameter(scan,alldata->options.dBZType)){
-			strcpy(scanUse[iScan].dbzName,alldata->options.dBZType);	
+		    if(PolarScan_hasParameter(scan,alldata->options.dbzType)){
+			strcpy(scanUse[iScan].dbzName,alldata->options.dbzType);	
 		    }
 		    else{
-                        fprintf(stderr,"requested reflectivity factor '%s' missing, searching for alternatives ...\n",alldata->options.dBZType);
+                        fprintf(stderr,"Warning: requested reflectivity factor '%s' missing, searching for alternatives ...\n",alldata->options.dbzType);
 		        if(PolarScan_hasParameter(scan, "DBZH")){
 			    sprintf(scanUse[iScan].dbzName,"DBZH");	
 		        }
@@ -1294,7 +985,7 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 		        }
                    }
 		   if (scanUse[iScan].useScan == FALSE){
-                       fprintf(stderr,"reflectivity factor missing, dropping scan %i ...\n",iScan);
+                       fprintf(stderr,"Warning: reflectivity factor missing, dropping scan %i ...\n",iScan);
                    }
 		}
 
@@ -1305,7 +996,7 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
                          || 360*PolarScan_getElangle(scan) / 2 / PI > alldata->options.elevMax)
                         {
                                 scanUse[iScan].useScan = FALSE;
-                                fprintf(stderr,"Scan outside valid elevation range, dropping scan %i ...\n",iScan);
+                                fprintf(stderr,"Warning: scan outside valid elevation range, dropping scan %i ...\n",iScan);
                         }
                 }
 
@@ -1333,7 +1024,7 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 			// Set useScan to 0 if no Nyquist interval is available or if it is too low
 			if (nyquist < alldata->options.minNyquist){
                                 scanUse[iScan].useScan = 0;
-                                fprintf(stderr,"Radial velocity Nyquist interval too low, dropping scan %i ...\n",iScan);
+                                fprintf(stderr,"Warning: radial velocity Nyquist interval too low, dropping scan %i ...\n",iScan);
                         }
 		}
 		
@@ -2072,7 +1763,7 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
             dbzValue = dbzValueScale * (float) dbzImage[iGlobal] + dbzValueOffset;
 
 	    // in the points array, store missing reflectivity values as the lowest possible reflectivity
-	    // this is to treat nodetects as absence of scatterers
+	    // this is to treat undetects as absence of scatterers
 	    if (dbzImage[iGlobal] == dbzMissingValue){
 		dbzValue = NAN;
 	    }
@@ -2114,6 +1805,31 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
 
 } // getListOfSelectedGates
 
+double PolarVolume_getWavelength(PolarVolume_t* pvol)
+{
+    RAVE_ASSERT((pvol != NULL), "pvol == NULL");
+    
+    double value = 0;
+
+    RaveAttribute_t* attr = PolarVolume_getAttribute(pvol, "how/wavelength");
+    if (attr != (RaveAttribute_t *) NULL){
+        RaveAttribute_getDouble(attr, &value);
+    }
+    else{
+        // wavelength attribute was not found in the root /how attribute
+        // check whether we can find it under /dataset1/how 
+        PolarScan_t* scan = PolarVolume_getScan(pvol, 1);
+        if (scan != (PolarScan_t *) NULL){
+            attr = PolarScan_getAttribute(scan, "how/wavelength");
+            if (attr != (RaveAttribute_t *) NULL){
+                RaveAttribute_getDouble(attr, &value);
+                fprintf(stderr, "Warning: using radar wavelength stored for scan 1 (%f cm) for all scans ...\n", value);
+            }
+        }
+    }
+    
+    return value;
+}
 
 
 
@@ -2586,7 +2302,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
 
     //quantities calculated from all scatterers:
     profileArray2RaveField(alldata, 3, 7, "sd_vvp", RaveDataType_DOUBLE);    
-    profileArray2RaveField(alldata, 3, 9, alldata->options.dBZType, RaveDataType_DOUBLE);    
+    profileArray2RaveField(alldata, 3, 9, alldata->options.dbzType, RaveDataType_DOUBLE);    
     profileArray2RaveField(alldata, 3, 10, "n_all", RaveDataType_LONG);    
     profileArray2RaveField(alldata, 3, 13, "n_dbz_all", RaveDataType_LONG);        
 
@@ -2650,11 +2366,6 @@ static int profileArray2RaveField(vol2bird_t* alldata, int idx_profile, int idx_
     return result;
 }
 
-//  HIER FUNCTIE TOEVOEGEN DIE ProfileArray2RaveField
-//  1) make a rave field
-//  
-//  2) fill it with profile data
-//  3) add it to the rave vertical profile
 
 static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* field, const char* quantity)
 {
@@ -2664,7 +2375,7 @@ static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* 
     RaveAttribute_t* attr_gain = RaveAttributeHelp_createDouble("what/gain", 1.0);
     RaveAttribute_t* attr_offset = RaveAttributeHelp_createDouble("what/offset", 0.0);
     RaveAttribute_t* attr_nodata = RaveAttributeHelp_createDouble("what/nodata", NODATA);
-    RaveAttribute_t* attr_nodetect = RaveAttributeHelp_createDouble("what/nodetect", NODETECT);
+    RaveAttribute_t* attr_undetect = RaveAttributeHelp_createDouble("what/undetect", UNDETECT);
 
     if (attr == NULL || !RaveField_addAttribute(field, attr)) {
         RAVE_ERROR0("Failed to add what/quantity attribute to field");
@@ -2682,8 +2393,8 @@ static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* 
         RAVE_ERROR0("Failed to add what/nodata attribute to field");
         goto done;
     }
-    if (attr_nodetect == NULL || !RaveField_addAttribute(field, attr_nodetect)) {
-        RAVE_ERROR0("Failed to add what/nodetect attribute to field");
+    if (attr_undetect == NULL || !RaveField_addAttribute(field, attr_undetect)) {
+        RAVE_ERROR0("Failed to add what/undetect attribute to field");
         goto done;
     }
     result = VerticalProfile_addField(self, field);
@@ -2693,7 +2404,7 @@ static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* 
         RAVE_OBJECT_RELEASE(attr_gain);
         RAVE_OBJECT_RELEASE(attr_offset);
         RAVE_OBJECT_RELEASE(attr_nodata);
-        RAVE_OBJECT_RELEASE(attr_nodetect);
+        RAVE_OBJECT_RELEASE(attr_undetect);
         return result;
 }
 
@@ -3272,18 +2983,18 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = (iLayer + 0.5) * alldata->options.layerThickness;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  1] = alldata->options.layerThickness;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = NODETECT;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  3] = NODETECT;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  4] = NODETECT;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  5] = NODETECT;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  6] = NODETECT;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  7] = NODETECT;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  8] = NODETECT;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  9] = NODETECT;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = NODETECT;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = NODETECT;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = NODETECT;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = NODETECT;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = NODATA;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  3] = NODATA;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  4] = NODATA;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  5] = NODATA;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  6] = NODATA;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  7] = NODATA;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  8] = NODATA;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  9] = NODATA;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = NODATA;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = NODATA;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = NODATA;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = NODATA;
 
 		//Calculate the average reflectivity Z of the layer
                 iPointIncludedZ = 0;
@@ -3318,8 +3029,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     dbzAvg = (10*log(undbzAvg))/log(10);
                 }
                 else {
-                    undbzAvg = NODATA;
-                    dbzAvg = NODATA;
+                    undbzAvg = UNDETECT;
+                    dbzAvg = UNDETECT;
                 }
 
                 // convert from Z (not dBZ) in units of mm^6/m^3 to 
@@ -3333,7 +3044,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     birdDensity = reflectivity / alldata->options.birdRadarCrossSection;
                 }
                 else {
-                    birdDensity = NODATA;
+                    birdDensity = UNDETECT;
                 }
                 
 		//Prepare the arguments of svdfit
@@ -3383,7 +3094,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                             parameterVector[0] = NAN;
                             parameterVector[1] = NAN;
                             parameterVector[2] = NAN;
-                            // FIXME: if this happens, profile fields are not updated from NODETECT to NODATA
+                            // FIXME: if this happens, profile fields are not updated from UNDETECT to NODATA
                             // continue; // with for (iPass = 0; iPass < nPasses; iPass++)
                         } 
                         else {
@@ -3413,7 +3124,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 //         Fill the profile arrays             //
                 //---------------------------------------------//
                 
-                // always fill below profile fields, these never have a NODATA or NODETECT value.
+                // always fill below profile fields, these never have a NODATA or UNDETECT value.
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  0] = iLayer * alldata->options.layerThickness;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  1] = (iLayer + 1) * alldata->options.layerThickness;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  8] = (float) hasGap;
@@ -3423,12 +3134,12 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 // fill below profile fields when (1) VVP fit was not performed becasue of azimuthal data gap
                 // and (2) layer contains range gates within the volume sampled by the radar.
                 if (hasGap && nPointsIncludedZ>alldata->constants.nPointsIncludedMin){
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = NODATA;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  3] = NODATA;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  4] = NODATA;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  5] = NODATA;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  6] = NODATA;
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  7] = NODATA;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = UNDETECT;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  3] = UNDETECT;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  4] = UNDETECT;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  5] = UNDETECT;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  6] = UNDETECT;
+                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  7] = UNDETECT;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  9] = dbzAvg;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
@@ -3605,8 +3316,13 @@ void vol2birdPrintOptions(vol2bird_t* alldata) {
     fprintf(stderr,"%-25s = %f\n","dbzFactor",alldata->misc.dbzFactor);
     fprintf(stderr,"%-25s = %f\n","dbzMax",alldata->options.dbzMax);
     fprintf(stderr,"%-25s = %f\n","dbzThresMin",alldata->constants.dbzThresMin);
+    fprintf(stderr,"%-25s = %s\n","dbzType",alldata->options.dbzType);
+    fprintf(stderr,"%-25s = %f\n","elevMax",alldata->options.elevMax);
+    fprintf(stderr,"%-25s = %f\n","elevMin",alldata->options.elevMin);
+    fprintf(stderr,"%-25s = %d\n","fitVrad",alldata->options.fitVrad);
     fprintf(stderr,"%-25s = %f\n","fringeDist",alldata->constants.fringeDist);
     fprintf(stderr,"%-25s = %f\n","layerThickness",alldata->options.layerThickness);
+    fprintf(stderr,"%-25s = %f\n","minNyquist",alldata->options.minNyquist);
     fprintf(stderr,"%-25s = %d\n","nGatesCellMin",alldata->constants.nGatesCellMin);
     fprintf(stderr,"%-25s = %d\n","nAzimNeighborhood",alldata->constants.nAzimNeighborhood);
     fprintf(stderr,"%-25s = %d\n","nBinsGap",alldata->constants.nBinsGap);
@@ -3620,6 +3336,7 @@ void vol2birdPrintOptions(vol2bird_t* alldata) {
     fprintf(stderr,"%-25s = %f\n","rangeMin",alldata->options.rangeMin);
     fprintf(stderr,"%-25s = %f\n","rCellMax",alldata->misc.rCellMax);
     fprintf(stderr,"%-25s = %f\n","refracIndex",alldata->constants.refracIndex);
+    fprintf(stderr,"%-25s = %d\n","requireVrad",alldata->options.requireVrad);
     fprintf(stderr,"%-25s = %f\n","stdDevMinBird",alldata->options.stdDevMinBird);
     fprintf(stderr,"%-25s = %c\n","useStaticClutterData",alldata->options.useStaticClutterData == TRUE ? 'T' : 'F');
     fprintf(stderr,"%-25s = %f\n","vradMin",alldata->constants.vradMin);
@@ -3750,7 +3467,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.stdDevMinBird = cfg_getfloat(*cfg,"STDEV_BIRD");
     alldata->options.dbzMax = cfg_getfloat(*cfg,"DBZMAX");
     alldata->options.cellDbzMin = cfg_getfloat(*cfg,"DBZCELL");
-    strcpy(alldata->options.dBZType,cfg_getstr(*cfg,"DBZTYPE"));
+    strcpy(alldata->options.dbzType,cfg_getstr(*cfg,"DBZTYPE"));
     alldata->options.requireVrad = cfg_getbool(*cfg,"REQUIRE_VRAD");
 
     // ------------------------------------------------------------- //
@@ -3775,7 +3492,6 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->constants.absVDifMax = VDIFMAX;
     alldata->constants.vradMin = VRADMIN;
 
-
     // ------------------------------------------------------------- //
     //                       some other variables                    //
     // ------------------------------------------------------------- //
@@ -3785,16 +3501,49 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->misc.nParsFitted = 3;
     alldata->misc.dbzFactor = (pow(alldata->constants.refracIndex,2) * 1000 * pow(PI,5))/pow(alldata->options.radarWavelength,4);
 
+    alldata->misc.loadConfigSuccessful = TRUE;
+
+    return 0;
+
+}
+
+
+//int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata) {
+int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
+    
+    alldata->misc.initializationSuccessful = FALSE;
+    
+
+    if (alldata->misc.loadConfigSuccessful == FALSE){
+        fprintf(stderr,"Vol2bird configuration not loaded. Run vol2birdLoadConfig prior to vol2birdSetup\n");
+        return -1;
+    }
+ 
+    // reading radar wavelength from polar volume attribute
+    // if present, overwrite options.radarWavelength with the value found.
+    double wavelength = PolarVolume_getWavelength(volume);
+    if (wavelength > 0){
+        alldata->options.radarWavelength = wavelength;
+    }
+    else{
+        fprintf(stderr,"Warning: radar wavelength not stored in polar volume. Using user-defined value of %f cm ...\n", alldata->options.radarWavelength);
+    }
+ 
+ 
     // ------------------------------------------------------------- //
     //     store all options and constants in task_args string       //
     // ------------------------------------------------------------- //
 
+    // the radar wavelength setting is read from taken from the volume object
+    // if a wavelength attribute is present. Therefore the task_args string is
+    // set here and not in vol2birdLoadConfig(), which has no access to the volume    
+    
     sprintf(alldata->misc.task_args,
         "azimMax=%f,azimMin=%f,layerThickness=%f,nLayers=%i,rangeMax=%f,"
         "rangeMin=%f,elevMax=%f,elevMin=%f,radarWavelength=%f,"
         "useStaticClutterData=%i,fitVrad=%i,exportBirdProfileAsJSONVar=%i,"
         "minNyquist=%f,birdRadarCrossSection=%f,stdDevMinBird=%f,"
-        "cellDbzMin=%f,dbzMax=%f,dBZType=%s,requireVrad=%i,"
+        "cellDbzMin=%f,dbzMax=%f,dbzType=%s,requireVrad=%i,"
     
         "nGatesCellMin=%i,cellClutterFractionMax=%f,"
         "chisqMin=%f,clutterValueMin=%f,dbzThresMin=%f,"
@@ -3819,7 +3568,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
         alldata->options.stdDevMinBird,
         alldata->options.cellDbzMin,
         alldata->options.dbzMax,
-        alldata->options.dBZType,
+        alldata->options.dbzType,
         alldata->options.requireVrad,
 
         alldata->constants.nGatesCellMin,
@@ -3840,24 +3589,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
         alldata->constants.absVDifMax,
         alldata->constants.vradMin
     );
-
-    alldata->misc.loadConfigSuccessful = TRUE;
-
-    return 0;
-
-}
-
-
-//int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata) {
-int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     
-    alldata->misc.initializationSuccessful = FALSE;
-    
-
-    if (alldata->misc.loadConfigSuccessful == FALSE){
-        fprintf(stderr,"Vol2bird configuration not loaded. Run vol2birdLoadConfig prior to vol2birdSetup\n");
-        return -1;
-    }
  
     // ------------------------------------------------------------- //
     //             lists of indices into the 'points' array:         //
@@ -3915,8 +3647,6 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     for (iLayer = 0; iLayer < alldata->options.nLayers; iLayer++) {
         alldata->points.nPointsWritten[iLayer] = 0;
     }
-
-
 
 
     // ------------------------------------------------------------- //
@@ -4007,15 +3737,17 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         
     for (iRowProfile = 0; iRowProfile < alldata->profiles.nRowsProfile; iRowProfile++) {
         for (iColProfile = 0; iColProfile < alldata->profiles.nColsProfile; iColProfile++) {
-            alldata->profiles.profile[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODETECT;
-            alldata->profiles.profile1[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODETECT;
-            alldata->profiles.profile2[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODETECT;
-            alldata->profiles.profile3[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODETECT;
+            alldata->profiles.profile[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODATA;
+            alldata->profiles.profile1[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODATA;
+            alldata->profiles.profile2[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODATA;
+            alldata->profiles.profile3[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODATA;
         }
     }
 
     alldata->profiles.iProfileTypeLast = -1;
 
+
+ 
     // ------------------------------------------------------------- //
     //              initialising rave profile fields                 //
     // ------------------------------------------------------------- //

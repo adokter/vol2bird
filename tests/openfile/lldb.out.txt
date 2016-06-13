@@ -1,0 +1,18 @@
+(lldb) target create --core "/cores/core.14663"
+warning: (x86_64) /cores/core.14663 load command 68 LC_SEGMENT_64 has a fileoff + filesize (0x1c726000) that extends beyond the end of the file (0x1c725000), the segment will be truncated to match
+warning: (x86_64) /cores/core.14663 load command 69 LC_SEGMENT_64 has a fileoff (0x1c726000) that extends beyond the end of the file (0x1c725000), ignoring this section
+Core file '/cores/core.14663' (x86_64) was loaded.
+(lldb) bt all
+* thread #1: tid = 0x0000, 0x0000000000000000, stop reason = signal SIGSTOP
+  * frame #0: 0x0000000000000000
+    frame #1: 0x0000000109ce2ffb libhlhdf.so`hlhdf_read_fillAttributeNodeWithData [inlined] hlhdf_read_readAttributeData(type=<unavailable>, npoints=<unavailable>, dSize=0x0000000000000000, dataptr=0x00007fd57049b1d0) + 217 at hlhdf_read.c:280
+    frame #2: 0x0000000109ce2f22 libhlhdf.so`hlhdf_read_fillAttributeNodeWithData(node=0x00007fd570442ab0, obj=<unavailable>, type=<unavailable>, npoints=<unavailable>, rawdata=0) + 34 at hlhdf_read.c:322
+    frame #3: 0x0000000109ce1a67 libhlhdf.so`fillNodeWithData + 488 at hlhdf_read.c:449
+    frame #4: 0x0000000109ce187f libhlhdf.so`fillNodeWithData(file_id=<unavailable>, node=0x00007fd570442ab0) + 159 at hlhdf_read.c:714
+    frame #5: 0x0000000109ce165f libhlhdf.so`HLNodeList_fetchMarkedNodes(nodelist=0x00007fd57043b5b0) + 207 at hlhdf_read.c:1081
+    frame #6: 0x0000000109c819d5 libravetoolbox.so`RaveIO_load [inlined] RaveIOInternal_loadHDF5(raveio=0x00007fd570404d50) + 46 at rave_io.c:424
+    frame #7: 0x0000000109c819a7 libravetoolbox.so`RaveIO_load(raveio=0x00007fd570404d50) + 55 at rave_io.c:548
+    frame #8: 0x0000000109c8182b libravetoolbox.so`RaveIO_open(filename=<unavailable>) + 107 at rave_io.c:526
+    frame #9: 0x0000000109c66ecb openfile`main(argc=2, argv=0x00007fff55f99a48) + 43 at openfile.c:8
+    frame #10: 0x00007fff87ade5c9 libdyld.dylib`start + 1
+    frame #11: 0x00007fff87ade5c9 libdyld.dylib`start + 1
