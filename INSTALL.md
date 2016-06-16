@@ -56,6 +56,9 @@ virtualenv -p /usr/bin/python2.7 ${RADAR_ROOT_DIR}/.venv
 # activate the python virtual environment if necessary (don't forget the leading dot):
 . ${RADAR_ROOT_DIR}/.venv/bin/activate
 
+# install libicu for unicode support
+sudo apt-get install libicu55 libicu-dev
+
 # install Numpy into the virtual environment
 pip install numpy
 
