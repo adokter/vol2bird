@@ -46,7 +46,7 @@ cd hlhdf
 # we need to point to the location of the hdf5 headers and binaries
 # find out where the headers live on your system with 
 mdfind -name hdf5.h
-# for OSX 10.10.5 the location is /opt/local/include/ 
+# for OSX 10.10.5 using Macports the location is /opt/local/include/ 
 # 
 # and the same for the binaries:
 mdfind -name libhdf5.a  (static)
