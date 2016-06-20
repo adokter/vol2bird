@@ -21,7 +21,7 @@ xcode-select --install
 # install zlib (gzip archiving library)
 sudo port install zlib
 
-# install Hierarchichal Data Format library
+# install HDF5, Hierarchichal Data Format library
 sudo port install hdf5
 
 # install library that can handle different projections
