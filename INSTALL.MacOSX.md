@@ -30,7 +30,7 @@ sudo port install libproj4
 # install library for parsing options
 sudo port install libconfuse
 
-# install Numpy into the virtual environment
+# install Numpy
 sudo port install py27-numpy 
 
 # change to the source directory...
