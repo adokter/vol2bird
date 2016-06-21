@@ -26,6 +26,7 @@ sudo port install hdf5
 
 # install library that can handle different projections
 sudo port install libproj4
+sudo port install proj47
 
 # install library for parsing options
 sudo port install libconfuse
@@ -52,7 +53,10 @@ mdfind -name hdf5.h
 mdfind -name libhdf5.a  (static)
 # for OSX 10.10.5 using Macports the location is /opt/local/lib/
 
+
 ./configure --prefix=${RADAR_ROOT_DIR}/opt/hlhdf --with-hdf5=/opt/local/include/,/opt/local/lib
+
+# Edit the file def.mk in the root directory of the hlhdf package, and change the LDSHARED variable from -bundle into -dynamiclib
 
 # compile hlhdf5 in the local directory
 make 
@@ -110,7 +114,7 @@ git clone https://github.com/adokter/vol2bird.git
 cd vol2bird
 
 # configure vol2bird 
-./configure --prefix=${RADAR_ROOT_DIR}/opt/vol2bird --with-rave=${RADAR_ROOT_DIR}/opt/rave
+./configure --prefix=${RADAR_ROOT_DIR}/opt/vol2bird --with-rave=${RADAR_ROOT_DIR}/opt/rave --with-confuse=/opt/local
 
 #
 make
