@@ -90,7 +90,7 @@ mdfind -name projects.h
 export PROJ4ROOT=/opt/local/lib/proj47
 
 # now we're ready to configure the install
-./configure --prefix=${RADAR_ROOT_DIR}/opt/rave  --with-proj=${PROJ4ROOT} --with-hlhdf=${RAVEROOT}
+./configure --prefix=${RADAR_ROOT_DIR}/opt/rave  --with-proj=${PROJ4ROOT} --with-hlhdf=${HLDIR}
 
 make 
 
