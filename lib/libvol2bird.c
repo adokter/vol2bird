@@ -1021,6 +1021,7 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 			{
 				param = PolarScan_getParameter(scan, scanUse[iScan].vradName);
 				nyquist = fabs(PolarScanParam_getOffset(param));
+                                fprintf(stderr,"Warning: Nyquist interval attribute not found, using radial velocity offset (%.1f m/s) instead \n",nyquist,iScan);
 			}
 			
 			// Set useScan to 0 if no Nyquist interval is available or if it is too low

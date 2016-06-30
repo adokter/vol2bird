@@ -10,7 +10,6 @@ RADAR_ROOT_DIR=${PWD}
 mkdir ${RADAR_ROOT_DIR}/opt
 mkdir ${RADAR_ROOT_DIR}/src
 
-
 # install python 2 (not python 3)
 sudo apt-get install python
 
@@ -27,7 +26,7 @@ sudo apt-get install zlib1g-dev
 sudo apt-get install tcl-dev
 sudo apt-get install tk-dev
 
-# install Hierarchichal Data Format library
+# install HDF5, Hierarchichal Data Format library
 sudo apt-get install libhdf5-dev
 
 # install dependencies for pycurl
@@ -55,6 +54,9 @@ virtualenv -p /usr/bin/python2.7 ${RADAR_ROOT_DIR}/.venv
 
 # activate the python virtual environment if necessary (don't forget the leading dot):
 . ${RADAR_ROOT_DIR}/.venv/bin/activate
+
+# install libicu for unicode support
+sudo apt-get install libicu55 libicu-dev
 
 # install Numpy into the virtual environment
 pip install numpy
