@@ -24,3 +24,6 @@ lib/vol2bird
 pyvol2bird/_vol2bird.so
 
 pyvol2bird/libvol2bird.so
+
+/**/*.pyc
+
