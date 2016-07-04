@@ -1006,22 +1006,26 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 		{
 			// Read Nyquist interval from top-level how group
 			attr = PolarVolume_getAttribute(volume, "/how/NI");
+			result = 0;
 			if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getDouble(attr, &nyquist);
-			
+			RAVE_OBJECT_RELEASE(attr)
+
 			// Read Nyquist interval from dataset how group
-			if ((attr == (RaveAttribute_t *) NULL) || (result == 0))
+			if (result == 0)
 			{
 				sprintf(attrName, "/dataset%d/how/NI", iScan + 1);
 				attr = PolarVolume_getAttribute(volume, attrName);
 				if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getDouble(attr, &nyquist);
+				RAVE_OBJECT_RELEASE(attr);
 			}
 			
 			// Derive Nyquist interval from the offset attribute of the dataset
-			if ((attr == (RaveAttribute_t *) NULL) || (result == 0))
+			if (result == 0)
 			{
 				param = PolarScan_getParameter(scan, scanUse[iScan].vradName);
 				nyquist = fabs(PolarScanParam_getOffset(param));
                                 fprintf(stderr,"Warning: Nyquist interval attribute not found, using radial velocity offset (%.1f m/s) instead \n",nyquist,iScan);
+				RAVE_OBJECT_RELEASE(param);
 			}
 			
 			// Set useScan to 0 if no Nyquist interval is available or if it is too low
@@ -1817,6 +1821,7 @@ double PolarVolume_getWavelength(PolarVolume_t* pvol)
     RaveAttribute_t* attr = PolarVolume_getAttribute(pvol, "how/wavelength");
     if (attr != (RaveAttribute_t *) NULL){
         RaveAttribute_getDouble(attr, &value);
+        RAVE_OBJECT_RELEASE(attr);
     }
     else{
         // wavelength attribute was not found in the root /how attribute
@@ -1826,8 +1831,10 @@ double PolarVolume_getWavelength(PolarVolume_t* pvol)
             attr = PolarScan_getAttribute(scan, "how/wavelength");
             if (attr != (RaveAttribute_t *) NULL){
                 RaveAttribute_getDouble(attr, &value);
+                RAVE_OBJECT_RELEASE(attr);
                 fprintf(stderr, "Warning: using radar wavelength stored for scan 1 (%f cm) for all scans ...\n", value);
             }
+            RAVE_OBJECT_RELEASE(scan);
         }
     }
     
@@ -2093,6 +2100,8 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
             default :
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
         }
+
+        RAVE_OBJECT_RELEASE(param);
     }
 
 
@@ -2318,7 +2327,9 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     RAVE_OBJECT_RELEASE(attr_rcs_bird);
     RAVE_OBJECT_RELEASE(attr_sd_vvp_thresh);
     RAVE_OBJECT_RELEASE(attr_task);
+    RAVE_OBJECT_RELEASE(attr_task_version);
     RAVE_OBJECT_RELEASE(attr_task_args);
+    RAVE_OBJECT_RELEASE(attr_comment);
     RAVE_OBJECT_RELEASE(attr_minrange);
     RAVE_OBJECT_RELEASE(attr_maxrange);
     RAVE_OBJECT_RELEASE(attr_minazim);
