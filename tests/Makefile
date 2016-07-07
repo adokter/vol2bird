@@ -42,7 +42,8 @@ fixtures :
 .PHONY: clean
 clean:
 	@\rm -rf fixtures
-	@\rm -rf *.pyc
+	@\rm -f *.h5
+	@\rm -f *.pyc
 
 .PHONY: distclean
 distclean: clean
