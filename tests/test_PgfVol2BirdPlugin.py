@@ -164,7 +164,7 @@ class PyVol2BirdTest(unittest.TestCase):
             v2boutname = rave_pgf_vol2bird_plugin.generate([testfilename], [])
 
             testvp = self._loadProfile(v2boutname)
-            testdsc = "vol2bird output of %s" % testname
+            testdsc = "vol2bird output of %s in %s" % (testname, v2boutname)
 
             refname = testname.replace("_pvol_", "_vp_")
             reffilename = os.path.join("fixtures", "vp", refname)
