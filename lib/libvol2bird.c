@@ -2100,8 +2100,6 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
             default :
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
         }
-
-        RAVE_OBJECT_RELEASE(param);
     }
 
 
@@ -2218,6 +2216,8 @@ static int mapDataFromRave(PolarScan_t* scan, SCANMETA* meta, unsigned char* val
                 iGlobal++;
             }
         }
+
+        RAVE_OBJECT_RELEASE(param);
     } 
     else {
         
