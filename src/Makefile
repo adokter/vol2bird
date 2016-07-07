@@ -17,50 +17,58 @@
  
 CC      = gcc
 #CFLAGS  = -fPIC -x c -DFPRINTFON
-CFLAGS  = -fPIC -x c
-LDFLAGS = -shared -Wall
+CFLAGS  = -fPIC -x c -I../lib
+LDFLAGS = -shared -Wall -L../lib
 
 # define where the vol2bird stuff is
 #SRC_VOL2BIRD_DIR         = /projects/baltrad/vol2bird/lib
 #SRC_VOL2BIRD_DIR         = /Users/adriaan/git/vol2bird/lib
 SRC_VOL2BIRD_DIR         = ./
 
-all : libvol2bird
+all : vol2bird
 
 libvol2bird :
+	make -C ../lib libvol2bird 
+
+vol2bird : libvol2bird
+	#
+	#
+	#
+	#
+	#
 	# ------------------------------------
-	#        making libvol2bird.so        
+	#       making vol2bird 
 	# ------------------------------------
-	$(CC) $(CFLAGS) \
+	#
+	$(CC) $(CFLAGS) vol2bird.c \
 	-I. \
 	$(RAVE_MODULE_CFLAGS) \
-	$(CONFUSE_INCLUDE_FLAG) \
 	$(RAVE_MODULE_LDFLAGS) \
 	$(PROJ_LIBRARY_FLAG) \
-	$(CONFUSE_LIBRARY_FLAG) \
-	$(SRC_VOL2BIRD_DIR)/libvol2bird.c \
-	$(SRC_VOL2BIRD_DIR)/libsvdfit.c \
-	$(LDFLAGS) \
-	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lm
+	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm -o vol2bird $(LDFLAGS)
+	
+	#
+	# (You may still have to change your LD_LIBRARY_PATH)
+	#
 
-install : libvol2bird
+install : vol2bird
 	# ------------------------------------
 	#  copy binaries to target directory
 	# ------------------------------------
-	install -d ${prefix}/lib
-	install -m 644 libvol2bird.so ${prefix}/lib/libvol2bird.so
+	install -d ${prefix}/bin
+	install -m 755 vol2bird ${prefix}/bin/vol2bird
 
 clean : 
 	# ------------------------------------
 	#  cleaning up old library and binary
 	# ------------------------------------
-	@if [ -f "./libvol2bird.so" ]; then \
-		\rm libvol2bird.so; \
+	@if [ -f "./vol2bird" ]; then \
+		\rm vol2bird; \
 	fi
 	@\rm -f *~
 
 distclean:
-	@\rm -f libvol2bird.so
 	@\rm -f *~
+	@\rm vol2bird
 
 
