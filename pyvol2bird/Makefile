@@ -51,7 +51,7 @@ LDFLAGS= -L../lib -L. $(RAVE_MODULE_LDFLAGS) $(PROJ_LIBRARY_FLAG) -L/usr/lib
 
 VOL2BIRD_SOURCE= pyvol2bird.c
 VOL2BIRD_OBJECTS= $(VOL2BIRD_SOURCE:.c=.o)
-VOL2BIRD_TARGET= _vol2bird.so
+VOL2BIRD_TARGET= _pyvol2bird.so
 
 MAKECDEPEND=$(CC) -MM $(CFLAGS) -MT '$(@D)/$(@F)' -o $(DF).d $<
 
@@ -74,8 +74,9 @@ $(VOL2BIRD_TARGET): $(DEPDIR) $(VOL2BIRD_OBJECTS) ../lib/libvol2bird.so
 .PHONY=install
 install:
 	@mkdir -p ${prefix}/share/vol2bird/pyvol2bird
-	@cp -v -f $(VOL2BIRD_TARGET) ${prefix}/share/vol2bird/pyvol2bird
-	@-echo "$(prefix)/share/vol2bird/pyvol2bird" > "$(SITEPACK_PYTHON)/pyvol2bird.pth"
+	@install -m 644 $(VOL2BIRD_TARGET) ${prefix}/share/vol2bird/pyvol2bird
+	@mkdir -p ${prefix}/etc
+	@-echo "$(prefix)/share/vol2bird/pyvol2bird" > "${prefix}/etc/pyvol2bird.pth"
 
 .PHONY=clean
 clean:
