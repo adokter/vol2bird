@@ -37,7 +37,7 @@ class PyVol2BirdTest(unittest.TestCase):
         for reffield in refvpr.getFields():
             reffieldname = reffield.getAttribute("what/quantity")
             testfield = testvpr.getField(reffieldname)
-            self.assertIsNotNone(testfield, "%s does not have field %s" % (testdsc, reffieldname))
+            self.assertIsNotNone(testfield, "%s does not have field '%s'" % (testdsc, reffieldname))
             self._assert_attributes_covered_by(refdsc, reffield, testdsc, testfield)
 
 
@@ -109,7 +109,7 @@ class PyVol2BirdTest(unittest.TestCase):
 
             # check that fields have the same shape
             self.assertEqual(refdata.shape, testdata.shape,
-                "Shapes of field %s mismatch between %s and %s" %
+                "Shapes of field '%s' mismatch between %s and %s" %
                     (reffieldname, testdsc, refdsc))
 
             # categorize values in reference field
@@ -134,13 +134,13 @@ class PyVol2BirdTest(unittest.TestCase):
             value_mismatch = (np.logical_and(ref_isdata, (refdata != testdata))).any()
 
             # ensure everything is okay
-            msg = ("%s has a %%(attr)s in field %s where %s says it cannot be %%(attr)s" %
+            msg = ("%s has a %%(attr)s in field '%s' where %s says it cannot be %%(attr)s" %
                 (testdsc, reffieldname, refdsc))
-            self.assertFalse(isnodata_mismatch.any(), msg % {"attr": "nodata"})
-            self.assertFalse(isundetect_mismatch.any(), msg % {"attr": "undetect"})
-            self.assertFalse(isundefined_mismatch.any(), msg % {"attr": "undefined"})
-            self.assertFalse(isdata_mismatch.any(), msg % {"attr": "data"})
-            self.assertFalse(value_mismatch.any(), "Values of %s and %s differ in field %s" %
+            self.assertFalse(isnodata_mismatch.any(), msg % {"attr": "'nodata'"})
+            self.assertFalse(isundetect_mismatch.any(), msg % {"attr": "'undetect'"})
+            self.assertFalse(isundefined_mismatch.any(), msg % {"attr": "'undefined'"})
+            self.assertFalse(isdata_mismatch.any(), msg % {"attr": "'data'"})
+            self.assertFalse(value_mismatch.any(), "Values of %s and %s differ in field '%s'" %
                 (testdsc, refdsc, reffieldname))
 
 
@@ -158,16 +158,16 @@ class PyVol2BirdTest(unittest.TestCase):
 
 
     def test_Vol2Bird(self):
-        files = os.listdir(os.path.join("fixtures", "vol2bird", "pvol"))
+        files = os.listdir(os.path.join("fixtures", "pvol"))
         for testname in files:
-            testfilename = os.path.join("fixtures", "vol2bird", "pvol", testname)
+            testfilename = os.path.join("fixtures", "pvol", testname)
             v2boutname = rave_pgf_vol2bird_plugin.generate([testfilename], [])
 
             testvp = self._loadProfile(v2boutname)
             testdsc = "vol2bird output of %s" % testname
 
             refname = testname.replace("_pvol_", "_vp_")
-            reffilename = os.path.join("fixtures", "vol2bird", "vp", refname)
+            reffilename = os.path.join("fixtures", "vp", refname)
             refvp = self._loadProfile(reffilename)
 
             self._assert_equal(refname, refvp, testdsc, testvp)
