@@ -25,6 +25,11 @@ test : PYTHONLIB = $(PREFIX)/third_party/lib
 test : RAVEPYTHON = $(PREFIX)/third_party/bin/python
 
 test : VOL2BIRDLIB = ../lib
+test : PYVOL2BIRD = ../pyvol2bird
+test : PGFPLUGIN = ../pgfplugin
+
+test : LDLP = $(PYTHONLIB):$(RAVELIB):$(HLHDFLIB):$(VOL2BIRDLIB)
+test : PPTH = $(HLHDFLIB):$(PYVOL2BIRD):$(PGFPLUGIN)
 test : fixtures
 	#
 	#
@@ -33,7 +38,7 @@ test : fixtures
 	#       running tests
 	# ------------------------------------
 	#
-	LD_LIBRARY_PATH=$(PYTHONLIB):$(RAVELIB):$(HLHDFLIB):$(VOL2BIRDLIB) $(RAVEPYTHON) -m unittest discover
+	LD_LIBRARY_PATH=$(LDLP) PYTHONPATH=$(PPTH) $(RAVEPYTHON) -m unittest discover
 
 
 fixtures :

@@ -25,9 +25,9 @@ LDFLAGS = -shared -Wall
 #SRC_VOL2BIRD_DIR         = /Users/adriaan/git/vol2bird/lib
 SRC_VOL2BIRD_DIR         = ./
 
-all : libvol2bird
+all : libvol2bird.so
 
-libvol2bird :
+libvol2bird.so :
 	# ------------------------------------
 	#        making libvol2bird.so        
 	# ------------------------------------
@@ -43,13 +43,15 @@ libvol2bird :
 	$(LDFLAGS) \
 	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lm
 
-install : libvol2bird
+.PHONY : install
+install : libvol2bird.so
 	# ------------------------------------
 	#  copy binaries to target directory
 	# ------------------------------------
 	install -d ${prefix}/lib
 	install -m 644 libvol2bird.so ${prefix}/lib/libvol2bird.so
 
+.PHONY : clean
 clean : 
 	# ------------------------------------
 	#  cleaning up old library and binary
@@ -59,6 +61,7 @@ clean :
 	fi
 	@\rm -f *~
 
+.PHONY : distclean
 distclean:
 	@\rm -f libvol2bird.so
 	@\rm -f *~

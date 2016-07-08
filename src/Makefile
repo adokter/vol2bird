@@ -17,8 +17,8 @@
  
 CC      = gcc
 #CFLAGS  = -fPIC -x c -DFPRINTFON
-CFLAGS  = -fPIC -x c -I../lib
-LDFLAGS = -shared -Wall -L../lib
+CFLAGS  = -I../lib -Wall
+LDFLAGS = -L../lib
 
 # define where the vol2bird stuff is
 #SRC_VOL2BIRD_DIR         = /projects/baltrad/vol2bird/lib
@@ -27,10 +27,10 @@ SRC_VOL2BIRD_DIR         = ./
 
 all : vol2bird
 
-libvol2bird :
-	make -C ../lib libvol2bird 
+../lib/libvol2bird.so :
+	make -C ../lib libvol2bird.so
 
-vol2bird : libvol2bird
+vol2bird : ../lib/libvol2bird.so
 	#
 	#
 	#
@@ -51,6 +51,7 @@ vol2bird : libvol2bird
 	# (You may still have to change your LD_LIBRARY_PATH)
 	#
 
+.PHONY : install
 install : vol2bird
 	# ------------------------------------
 	#  copy binaries to target directory
@@ -58,6 +59,7 @@ install : vol2bird
 	install -d ${prefix}/bin
 	install -m 755 vol2bird ${prefix}/bin/vol2bird
 
+.PHONY : clean
 clean : 
 	# ------------------------------------
 	#  cleaning up old library and binary
@@ -67,6 +69,7 @@ clean :
 	fi
 	@\rm -f *~
 
+.PHONY : distclean
 distclean:
 	@\rm -f *~
 	@\rm vol2bird
