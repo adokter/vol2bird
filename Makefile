@@ -34,12 +34,14 @@ build: def.mk
 	$(MAKE) -C lib
 	$(MAKE) -C src
 	$(MAKE) -C pyvol2bird
+	$(MAKE) -C pgfplugin
 
 .PHONY:install
 install: def.mk
 	$(MAKE) -C lib install
 	$(MAKE) -C src install
 	$(MAKE) -C pyvol2bird install
+	$(MAKE) -C pgfplugin install
 	@echo "################################################################"
 	@echo "To run the binaries you will need to setup your library path to"
 	@echo "LD_LIBRARY_PATH="`cat def.mk | grep LD_PRINTOUT | sed -e"s/LD_PRINTOUT=//"`
