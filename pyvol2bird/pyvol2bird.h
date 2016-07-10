@@ -88,15 +88,15 @@ static void **PyVol2Bird_API;
    ((op)->ob_type == (PyTypeObject *)PyVol2Bird_API[PyVol2Bird_Type_NUM])
 
 /**
- * Imports the PyVol2Bird module (like import _vol2bird in python).
+ * Imports the PyVol2Bird module (like import _pyvol2bird in python).
  */
 static int
-import_vol2bird(void)
+import_pyvol2bird(void)
 {
   PyObject *module;
   PyObject *c_api_object;
 
-  module = PyImport_ImportModule("_vol2bird");
+  module = PyImport_ImportModule("_pyvol2bird");
   if (module == NULL) {
     return -1;
   }

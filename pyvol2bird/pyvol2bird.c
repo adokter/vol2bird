@@ -39,7 +39,7 @@ along with beamb.  If not, see <http://www.gnu.org/licenses/>.
 /**
  * Debug this module
  */
-PYRAVE_DEBUG_MODULE("_vol2bird");
+PYRAVE_DEBUG_MODULE("_pyvol2bird");
 
 /**
  * Sets a python exception and goto tag
@@ -93,6 +93,7 @@ static PyVol2Bird* PyVol2Bird_New(PolarVolume_t* volume)
   if (initSuccessful == FALSE) {
      raiseException_returnNULL(PyExc_ValueError, "vol2birdSetUp did not complete successfully.");
   }
+  RAVE_OBJECT_RELEASE(volume);
   result = PyObject_NEW(PyVol2Bird, &PyVol2Bird_Type);
   if (result != NULL) {
     result->v2b = alldata;
@@ -104,7 +105,7 @@ static PyVol2Bird* PyVol2Bird_New(PolarVolume_t* volume)
  * Deallocates the beam blockage
  * @param[in] obj the object to deallocate.
  */
-static void _vol2bird_dealloc(PyVol2Bird* obj)
+static void _pyvol2bird_dealloc(PyVol2Bird* obj)
 {
   /*Nothing yet*/
   if (obj == NULL) {
@@ -115,8 +116,8 @@ static void _vol2bird_dealloc(PyVol2Bird* obj)
 // tear down vol2bird, give memory back
 // fairly easy to remove cfg from vol2birdTearDown, to have a single argument destrocutor
 // suggested replacement: vol2birdTearDown(cfg, obj->v2b);
-//  RAVE_FREE(obj->v2b); // REPLACE WITH FREE METHOD
   vol2birdTearDown(obj->v2b);
+  free(obj->v2b);
   PyObject_Del(obj);
 }
 
@@ -136,10 +137,9 @@ static PyObject* _pyvol2bird_new(PyObject* self, PyObject* args)
   if (!PyPolarVolume_Check(pyin)) {
     raiseException_returnNULL(PyExc_ValueError, "First argument should be a Polar Scan");
   }
-  //this gives an error at compile: pvol not known
-  //return (PyObject*)PyVol2Bird_New((PyPolarVolume*)pyin)->pvol);
-  
-  return (PyObject*)PyVol2Bird_New(PyPolarVolume_GetNative((PyPolarVolume*)pyin));
+
+  PolarVolume_t* pvol = PyPolarVolume_GetNative((PyPolarVolume*)pyin);
+  return (PyObject*)PyVol2Bird_New(pvol);
 }
 
 /**
@@ -256,7 +256,7 @@ PyTypeObject PyVol2Bird_Type =
   sizeof(PyVol2Bird), /*tp_size*/
   0, /*tp_itemsize*/
   /* methods */
-  (destructor)_vol2bird_dealloc, /*tp_dealloc*/
+  (destructor)_pyvol2bird_dealloc, /*tp_dealloc*/
   0, /*tp_print*/
   (getattrfunc)_pyvol2bird_getattr, /*tp_getattr*/
   (setattrfunc)_pyvol2bird_setattr, /*tp_setattr*/
@@ -280,14 +280,14 @@ static PyMethodDef functions[] = {
 };
 
 PyMODINIT_FUNC
-init_vol2bird(void)
+init_pyvol2bird(void)
 {
   PyObject *module=NULL,*dictionary=NULL;
   static void *PyVol2Bird_API[PyVol2Bird_API_pointers];
   PyObject *c_api_object = NULL;
   PyVol2Bird_Type.ob_type = &PyType_Type;
 
-  module = Py_InitModule("_vol2bird", functions);
+  module = Py_InitModule("_pyvol2bird", functions);
   if (module == NULL) {
     return;
   }
@@ -302,10 +302,10 @@ init_vol2bird(void)
   }
 
   dictionary = PyModule_GetDict(module);
-  ErrorObject = PyString_FromString("_vol2bird.error");
+  ErrorObject = PyString_FromString("_pyvol2bird.error");
 
   if (ErrorObject == NULL || PyDict_SetItemString(dictionary, "error", ErrorObject) != 0) {
-    Py_FatalError("Can't define _vol2bird.error");
+    Py_FatalError("Can't define _pyvol2bird.error");
   }
   import_pypolarvolume();
   import_pyverticalprofile();
