@@ -1031,7 +1031,7 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 			// Set useScan to 0 if no Nyquist interval is available or if it is too low
 			if (nyquist < alldata->options.minNyquist){
                                 scanUse[iScan].useScan = 0;
-                                fprintf(stderr,"Warning: radial velocity Nyquist interval (%.1f m/s) too low, dropping scan %i ...\n",nyquist,iScan);
+                                fprintf(stderr,"Warning: Nyquist velocity (%.1f m/s) too low, dropping scan %i ...\n",nyquist,iScan);
                         }
 		}
 		
