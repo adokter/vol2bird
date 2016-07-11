@@ -51,7 +51,7 @@ LDFLAGS= -L../lib -L. $(RAVE_MODULE_LDFLAGS) $(PROJ_LIBRARY_FLAG) -L/usr/lib
 
 VOL2BIRD_SOURCE= pyvol2bird.c
 VOL2BIRD_OBJECTS= $(VOL2BIRD_SOURCE:.c=.o)
-VOL2BIRD_TARGET= _vol2bird.so
+VOL2BIRD_TARGET= _pyvol2bird.so
 
 MAKECDEPEND=$(CC) -MM $(CFLAGS) -MT '$(@D)/$(@F)' -o $(DF).d $<
 
