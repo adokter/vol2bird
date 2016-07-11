@@ -1024,7 +1024,7 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 			{
 				param = PolarScan_getParameter(scan, scanUse[iScan].vradName);
 				nyquist = fabs(PolarScanParam_getOffset(param));
-                                fprintf(stderr,"Warning: Nyquist interval attribute not found, using radial velocity offset (%.1f m/s) instead \n",nyquist,iScan);
+                                fprintf(stderr,"Warning: Nyquist interval attribute not found for scan %i, using radial velocity offset (%.1f m/s) instead \n",iScan,nyquist);
 				RAVE_OBJECT_RELEASE(param);
 			}
 			
@@ -2101,7 +2101,6 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
         }
 
-        RAVE_OBJECT_RELEASE(param);
     }
 
 
