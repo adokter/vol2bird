@@ -5,10 +5,10 @@ run in Python as
 ```
 import _pyvol2bird, _raveio
 polarvolume = _raveio.open("test.h5").object
-a=_pyvol2bird.new(polarvolume)
+v2b=_pyvol2bird.new(polarvolume)
 # change a user option
-a.constants_nGatesCellMin = 10
+v2b.constants_nGatesCellMin = 10
 # calculate a vertical profile of birds
-vpr=a.vol2bird()
+vpr=a.vol2bird(polarvolume, 0.0)
 ```
 :
