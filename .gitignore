@@ -5,6 +5,7 @@
 .codelite/compilation.db
 .codelite/refactoring.db
 .codelite/vol2bird.session
+.codelite/vol2bird.tags
 
 
 # generated files
