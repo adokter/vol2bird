@@ -1,26 +1,26 @@
-
-*.tags
+# editor files
 
 .codelite/.tern-port
-
 .codelite/.tern-project
-
 .codelite/compilation.db
-
 .codelite/refactoring.db
-
 .codelite/vol2bird.session
 
-pyvol2bird/.dep/
 
-example
+# generated files
 
-hello.tgz
+config.log
+config.status
+/**/.dep/
+/**/def.mk
+
+
+# binaries
 
 lib/libvol2bird.so
+src/vol2bird
+pyvol2bird/_pyvol2bird.so
+/**/*.pyc
+/**/*.o
 
-lib/vol2bird
 
-pyvol2bird/_vol2bird.so
-
-pyvol2bird/libvol2bird.so

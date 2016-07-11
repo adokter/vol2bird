@@ -15,55 +15,30 @@
 # 
 -include ../def.mk 
  
-CC      = gcc
-#CFLAGS  = -fPIC -x c -DFPRINTFON
-CFLAGS  = -fPIC -x c
-LDFLAGS = -shared -Wall
-
-# define where the vol2bird stuff is
-#SRC_VOL2BIRD_DIR         = /projects/baltrad/vol2bird/lib
-#SRC_VOL2BIRD_DIR         = /Users/adriaan/git/vol2bird/lib
-SRC_VOL2BIRD_DIR         = ./
-
-all : libvol2bird.so
-
-libvol2bird.so :
-	# ------------------------------------
-	#        making libvol2bird.so        
-	# ------------------------------------
-	$(CC) $(CFLAGS) \
-	-I. \
-	$(RAVE_MODULE_CFLAGS) \
-	$(CONFUSE_INCLUDE_FLAG) \
-	$(RAVE_MODULE_LDFLAGS) \
-	$(PROJ_LIBRARY_FLAG) \
-	$(CONFUSE_LIBRARY_FLAG) \
-	$(SRC_VOL2BIRD_DIR)/libvol2bird.c \
-	$(SRC_VOL2BIRD_DIR)/libsvdfit.c \
-	$(LDFLAGS) \
-	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lm
+.PHONY : all
+all :
 
 .PHONY : install
-install : libvol2bird.so
+install :
 	# ------------------------------------
 	#  copy binaries to target directory
 	# ------------------------------------
-	install -d ${prefix}/lib
-	install -m 644 libvol2bird.so ${prefix}/lib/libvol2bird.so
+	install -d ${prefix}/share/vol2bird
+	install -m 644 rave_pgf_vol2bird_plugin.py ${prefix}/share/vol2bird
+	install -d ${prefix}/etc
+	@-echo "$(prefix)/share/vol2bird" > "${prefix}/etc/vol2bird-pgfplugin.pth"
 
 .PHONY : clean
 clean : 
 	# ------------------------------------
 	#  cleaning up old library and binary
 	# ------------------------------------
-	@if [ -f "./libvol2bird.so" ]; then \
-		\rm libvol2bird.so; \
-	fi
+	@\rm -f *.pyc
 	@\rm -f *~
 
 .PHONY : distclean
 distclean:
-	@\rm -f libvol2bird.so
+	@\rm -f *.pyc
 	@\rm -f *~
 
 
