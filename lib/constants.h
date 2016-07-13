@@ -2,6 +2,8 @@
 //  hard-coded constants assigned to vol2birdConstants struct  //
 //-------------------------------------------------------------//
 
+#include <float.h>
+
 // when analyzing cells, AREAMIN determines the minimum size of a
 // cell to be considered in the rest of the analysis
 #define AREACELL 4
@@ -53,16 +55,16 @@
 //-------------------------------------------------------//
 
 // Raw value used for gates or layers void of data (never ra-diated)
-#define UNDETECT NAN
+#define UNDETECT FLT_MAX
 // Raw value used for gates or layers when below the measurement detection threshold
 // or when information could not be retrieved (radiated but nothing detected or calculated)
-#define NODATA NAN
+#define NODATA -FLT_MAX
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
-#define VERSION "0.2.2"
+#define VERSION "0.2.3"
 // Date of latest version of the program
-#define VERSIONDATE "17-May-2016"
+#define VERSIONDATE "13-Jul-2016"
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //

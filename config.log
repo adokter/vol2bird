@@ -30,12 +30,18 @@ Kernel configured for up to 4 processors.
 Processor type: i486 (Intel 80486)
 Processors active: 0 1 2 3
 Primary memory available: 8.00 gigabytes
-Default processor set: 217 tasks, 965 threads, 4 processors
-Load average: 1.78, Mach factor: 2.21
+Default processor set: 249 tasks, 1196 threads, 4 processors
+Load average: 1.65, Mach factor: 2.34
 /bin/machine           = unknown
 /usr/bin/oslevel       = unknown
 /bin/universe          = unknown
 
+PATH: /opt/local/bin
+PATH: /opt/local/sbin
+PATH: /opt/local/bin
+PATH: /opt/local/sbin
+PATH: /opt/local/bin
+PATH: /opt/local/sbin
 PATH: /opt/local/bin
 PATH: /opt/local/sbin
 PATH: /opt/local/bin
@@ -48,6 +54,9 @@ PATH: /bin
 PATH: /usr/sbin
 PATH: /sbin
 PATH: /opt/X11/bin
+PATH: /Users/adriaan/bin
+PATH: /Users/adriaan/FortranExecutables
+PATH: /Users/adriaan/git/vol2bird/lib
 PATH: /Users/adriaan/bin
 PATH: /Users/adriaan/FortranExecutables
 PATH: /Users/adriaan/git/vol2bird/lib

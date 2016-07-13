@@ -70,8 +70,6 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
                                   const float altitudeMin, const float altitudeMax,
                                   float* points_local, int iPoint, vol2bird_t* alldata);
 
-double PolarVolume_getWavelength(PolarVolume_t* pvol);
-
 static int hasAzimuthGap(const float *points_local, const int nPoints, vol2bird_t* alldata);
 
 static int includeGate(const int iProfileType, const int iQuantityType, const unsigned int gateCode, vol2bird_t* alldata);
@@ -84,6 +82,20 @@ static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* 
 static int profileArray2RaveField(vol2bird_t* alldata, int idx_profile, int idx_quantity, const char* quantity, RaveDataType raveType);
 
 static int mapVolumeToProfile(VerticalProfile_t* vp, PolarVolume_t* volume);
+
+int PolarVolume_getEndDateTime(PolarVolume_t* pvol, char** EndDate, char** EndTime);
+
+int PolarVolume_getStartDateTime(PolarVolume_t* pvol, char** StartDate, char** StartTime);
+
+const char* PolarVolume_getEndTime(PolarVolume_t* pvol);
+
+const char* PolarVolume_getEndDate(PolarVolume_t* pvol);
+
+const char* PolarVolume_getStartDate(PolarVolume_t* pvol);
+
+const char* PolarVolume_getStartTime(PolarVolume_t* pvol);
+
+double PolarVolume_getWavelength(PolarVolume_t* pvol);
 
 static void printGateCode(char* flags, const unsigned int gateCode);
 
@@ -1006,27 +1018,32 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 		{
 			// Read Nyquist interval from top-level how group
 			attr = PolarVolume_getAttribute(volume, "/how/NI");
+			result = 0;
 			if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getDouble(attr, &nyquist);
-			
+			RAVE_OBJECT_RELEASE(attr)
+
 			// Read Nyquist interval from dataset how group
-			if ((attr == (RaveAttribute_t *) NULL) || (result == 0))
+			if (result == 0)
 			{
 				sprintf(attrName, "/dataset%d/how/NI", iScan + 1);
 				attr = PolarVolume_getAttribute(volume, attrName);
 				if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getDouble(attr, &nyquist);
+				RAVE_OBJECT_RELEASE(attr);
 			}
 			
 			// Derive Nyquist interval from the offset attribute of the dataset
-			if ((attr == (RaveAttribute_t *) NULL) || (result == 0))
+			if (result == 0)
 			{
 				param = PolarScan_getParameter(scan, scanUse[iScan].vradName);
 				nyquist = fabs(PolarScanParam_getOffset(param));
+                                fprintf(stderr,"Warning: Nyquist interval attribute not found for scan %i, using radial velocity offset (%.1f m/s) instead \n",iScan,nyquist);
+				RAVE_OBJECT_RELEASE(param);
 			}
 			
 			// Set useScan to 0 if no Nyquist interval is available or if it is too low
 			if (nyquist < alldata->options.minNyquist){
                                 scanUse[iScan].useScan = 0;
-                                fprintf(stderr,"Warning: radial velocity Nyquist interval (%.1f m/s) too low, dropping scan %i ...\n",nyquist,iScan);
+                                fprintf(stderr,"Warning: Nyquist velocity (%.1f m/s) too low, dropping scan %i ...\n",nyquist,iScan);
                         }
 		}
 		
@@ -1569,11 +1586,6 @@ static int findNearbyGateIndex(const int nAzimParent, const int nRangParent, con
 
 
 
-
-
-
-
-
 static void fringeCells(int *cellImage, int nRang, int nAzim, float aScale, float rScale, vol2bird_t* alldata) {
 
     // -------------------------------------------------------------------------- //
@@ -1807,6 +1819,170 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
 
 } // getListOfSelectedGates
 
+
+long datetime2long(char* date, char* time){
+
+    //concatenate date and time into a datetime string
+    char *datetime = malloc(strlen(date)+strlen(time)+1);
+    long result;
+    strcpy(datetime,date);
+    strcat(datetime,time);
+
+    //convert datetime string to a decimal long
+    char *eptr;
+    long ldatetime;
+    ldatetime = strtol(datetime, &eptr, 10);
+
+    // check for conversion errors
+    if (ldatetime == 0){
+        #ifdef FPRINTFON
+            fprintf(stderr,"Conversion error occurred\n");
+        #endif
+        result = (long) NULL;
+    }
+    else{
+        result = ldatetime;
+    }
+    
+    free(datetime);
+    
+    return(result);
+}
+
+const char* PolarVolume_getStartDate(PolarVolume_t* pvol){
+    RAVE_ASSERT((pvol != NULL), "pvol == NULL");
+    char* date = (char *) PolarVolume_getDate(pvol);
+    char* time = (char *) PolarVolume_getTime(pvol);
+    char* result = (char*) NULL;
+    if(PolarVolume_getStartDateTime(pvol, &date, &time)==0){
+        result = date;
+    }
+    return(result);  
+}
+
+const char* PolarVolume_getStartTime(PolarVolume_t* pvol){
+    RAVE_ASSERT((pvol != NULL), "pvol == NULL");
+    char* date = (char *) PolarVolume_getDate(pvol);
+    char* time = (char *) PolarVolume_getTime(pvol);
+    char* result = (char*) NULL;
+    if(PolarVolume_getStartDateTime(pvol, &date, &time)==0){
+        result = time;
+    }
+    return(result);  
+}
+
+const char* PolarVolume_getEndDate(PolarVolume_t* pvol){
+    RAVE_ASSERT((pvol != NULL), "pvol == NULL");
+    char* date = (char *) PolarVolume_getDate(pvol);
+    char* time = (char *) PolarVolume_getTime(pvol);
+    char* result = (char*) NULL;
+    if(PolarVolume_getEndDateTime(pvol, &date, &time)==0){
+        result = date;
+    }
+    return(result);  
+}
+
+const char* PolarVolume_getEndTime(PolarVolume_t* pvol){
+    RAVE_ASSERT((pvol != NULL), "pvol == NULL");
+    char* date = (char *) PolarVolume_getDate(pvol);
+    char* time = (char *) PolarVolume_getTime(pvol);
+    char* result = (char*) NULL;
+    if(PolarVolume_getEndDateTime(pvol, &date, &time)==0){
+        result = time;
+    }
+    return(result);  
+}
+
+int PolarVolume_getStartDateTime(PolarVolume_t* pvol, char** StartDate, char** StartTime)
+{
+    RAVE_ASSERT((pvol != NULL), "pvol == NULL");
+    
+    int result = -1;
+    
+    // Initialize datetimes
+    long StartDateTime = 99999999999999;
+    
+    int nScans;
+    char* date;
+    char* time;
+
+    // Read number of scans
+    nScans = PolarVolume_getNumberOfScans(pvol);
+    
+    // find the start date and time
+    for (int iScan = 0; iScan < nScans; iScan++)
+    {
+        PolarScan_t* scan = PolarVolume_getScan(pvol, iScan);
+        // useScan is set to zero if the quantity is not found in the scan
+        if (scan != (PolarScan_t *) NULL){
+            date = (char *) PolarScan_getStartDate(scan);
+            time = (char *) PolarScan_getStartTime(scan);
+
+            long datetime = datetime2long(date, time);
+            
+            //continue if no valid datetime can be constructed
+            if (datetime == (long) NULL){
+                continue;
+            }
+            
+            if (datetime < StartDateTime){
+                StartDateTime = datetime;
+                *StartDate = date;
+                *StartTime = time;
+                // success, we found a valid start date time
+                result = 0;
+            }
+        }
+    }
+    
+    return result;
+}
+
+int PolarVolume_getEndDateTime(PolarVolume_t* pvol, char** EndDate, char** EndTime)
+{
+    RAVE_ASSERT((pvol != NULL), "pvol == NULL");
+
+    int result = -1;
+
+    // Initialize datetimes
+    long EndDateTime = 00000000000000;
+    
+    int nScans;
+    char* date;
+    char* time;
+
+    // Read number of scans
+    nScans = PolarVolume_getNumberOfScans(pvol);
+    
+     // find the end date and time
+    for (int iScan = 0; iScan < nScans; iScan++)
+    {
+        PolarScan_t* scan = PolarVolume_getScan(pvol, iScan);
+        // useScan is set to zero if the quantity is not found in the scan
+        if (scan != (PolarScan_t *) NULL){
+            date = (char *) PolarScan_getEndDate(scan);
+            time = (char *) PolarScan_getEndTime(scan);
+
+            long datetime = datetime2long(date, time);
+            
+            //continue if no valid datetime can be constructed
+            if ((date == NULL || time == NULL || datetime == (long) NULL)){
+                continue;
+            }
+            
+            if (datetime > EndDateTime){
+                EndDateTime = datetime;
+                *EndDate = date;
+                *EndTime = time;
+                // success, we found a valid start date time
+                result = 0;
+            }
+        }
+    }
+    return result;
+}
+
+
 double PolarVolume_getWavelength(PolarVolume_t* pvol)
 {
     RAVE_ASSERT((pvol != NULL), "pvol == NULL");
@@ -1816,6 +1992,7 @@ double PolarVolume_getWavelength(PolarVolume_t* pvol)
     RaveAttribute_t* attr = PolarVolume_getAttribute(pvol, "how/wavelength");
     if (attr != (RaveAttribute_t *) NULL){
         RaveAttribute_getDouble(attr, &value);
+        RAVE_OBJECT_RELEASE(attr);
     }
     else{
         // wavelength attribute was not found in the root /how attribute
@@ -1825,8 +2002,10 @@ double PolarVolume_getWavelength(PolarVolume_t* pvol)
             attr = PolarScan_getAttribute(scan, "how/wavelength");
             if (attr != (RaveAttribute_t *) NULL){
                 RaveAttribute_getDouble(attr, &value);
+                RAVE_OBJECT_RELEASE(attr);
                 fprintf(stderr, "Warning: using radar wavelength stored for scan 1 (%f cm) for all scans ...\n", value);
             }
+            RAVE_OBJECT_RELEASE(scan);
         }
     }
     
@@ -2092,6 +2271,7 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
             default :
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
         }
+
     }
 
 
@@ -2234,7 +2414,7 @@ static int mapVolumeToProfile(VerticalProfile_t* vp, PolarVolume_t* volume){
     VerticalProfile_setLongitude(vp,PolarVolume_getLongitude(volume));
     VerticalProfile_setLatitude(vp,PolarVolume_getLatitude(volume));
     VerticalProfile_setHeight(vp,PolarVolume_getHeight(volume));
-    
+   
     return 0;
 }
 
@@ -2268,7 +2448,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     RaveAttribute_t* attr_maxazim = RaveAttributeHelp_createDouble("how/maxazim", alldata->options.azimMax);
     RaveAttribute_t* attr_cluttermap = RaveAttributeHelp_createString("how/clutterMap", "");
 
-    //add /how attributes
+    //add /how attributes to the vertical profile object
     VerticalProfile_addAttribute(alldata->vp, attr_beamwidth);
     VerticalProfile_addAttribute(alldata->vp, attr_wavelength);
     VerticalProfile_addAttribute(alldata->vp, attr_rcs_bird);
@@ -2282,7 +2462,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     VerticalProfile_addAttribute(alldata->vp, attr_minazim);
     VerticalProfile_addAttribute(alldata->vp, attr_maxazim);
     VerticalProfile_addAttribute(alldata->vp, attr_cluttermap);
-    
+        
     //-------------------------------------------//
     //   map the profile data to rave fields     //
     //-------------------------------------------//
@@ -2311,24 +2491,57 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     //some unused quantities for later reference:
     //profileArray2RaveField(alldata, 1, 2, "u", RaveDataType_DOUBLE);
     //profileArray2RaveField(alldata, 1, 3, "v", RaveDataType_DOUBLE);
-    
+  
+     //initialize start and end date attributes to the vertical profile object
+    RaveAttribute_t* attr_startdate = RaveAttributeHelp_createString("how/startdate", PolarVolume_getStartDate(volume));
+    RaveAttribute_t* attr_starttime = RaveAttributeHelp_createString("how/starttime", PolarVolume_getStartTime(volume));
+    RaveAttribute_t* attr_enddate = RaveAttributeHelp_createString("how/enddate", PolarVolume_getEndDate(volume));
+    RaveAttribute_t* attr_endtime = RaveAttributeHelp_createString("how/endtime", PolarVolume_getEndTime(volume));
+
+    //add the start and end date attributes to the vertical profile object
+    VerticalProfile_addAttribute(alldata->vp, attr_startdate);
+    VerticalProfile_addAttribute(alldata->vp, attr_starttime);
+    VerticalProfile_addAttribute(alldata->vp, attr_enddate);
+    VerticalProfile_addAttribute(alldata->vp, attr_endtime);
+  
     RAVE_OBJECT_RELEASE(attr_beamwidth);
     RAVE_OBJECT_RELEASE(attr_wavelength);
     RAVE_OBJECT_RELEASE(attr_rcs_bird);
     RAVE_OBJECT_RELEASE(attr_sd_vvp_thresh);
     RAVE_OBJECT_RELEASE(attr_task);
+    RAVE_OBJECT_RELEASE(attr_task_version);
     RAVE_OBJECT_RELEASE(attr_task_args);
+    RAVE_OBJECT_RELEASE(attr_comment);
     RAVE_OBJECT_RELEASE(attr_minrange);
     RAVE_OBJECT_RELEASE(attr_maxrange);
     RAVE_OBJECT_RELEASE(attr_minazim);
     RAVE_OBJECT_RELEASE(attr_maxazim);
     RAVE_OBJECT_RELEASE(attr_cluttermap);
 
+    RAVE_OBJECT_RELEASE(attr_startdate);
+    RAVE_OBJECT_RELEASE(attr_starttime);
+    RAVE_OBJECT_RELEASE(attr_enddate);
+    RAVE_OBJECT_RELEASE(attr_endtime);
+
     result=1;
 
     return result;
     
 }
+
+
+
+// this function replaces NODATA and UNDETECT float values to NAN
+float nanify(float value){
+    float output = value;
+    if(value == NODATA || value == UNDETECT){
+        output = NAN;
+    }
+    return output;
+} // nanify
+
+
+
 
 static int profileArray2RaveField(vol2bird_t* alldata, int idx_profile, int idx_quantity, const char* quantity, RaveDataType raveType){
     int result = 0;
