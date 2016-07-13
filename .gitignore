@@ -19,6 +19,7 @@ config.status
 # binaries
 *dSYM
 lib/libvol2bird.so
+lib/vol2bird
 src/vol2bird
 pyvol2bird/_pyvol2bird.so
 /**/*.pyc
