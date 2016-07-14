@@ -26,6 +26,9 @@
 #include "libvol2bird.h"
 #include "libsvdfit.h"
 #include "constants.h"
+#undef RAD2DEG // to suppress redefine warning, also defined in dealias.h
+#undef DEG2RAD // to suppress redefine warning, also defined in dealias.h
+#include "dealias.h"
 
 
 // non-public function prototypes (local to this file/translation unit)
@@ -82,6 +85,8 @@ static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* 
 static int profileArray2RaveField(vol2bird_t* alldata, int idx_profile, int idx_quantity, const char* quantity, RaveDataType raveType);
 
 static int mapVolumeToProfile(VerticalProfile_t* vp, PolarVolume_t* volume);
+
+int PolarVolume_dealias(PolarVolume_t* pvol);
 
 int PolarVolume_getEndDateTime(PolarVolume_t* pvol, char** EndDate, char** EndTime);
 
@@ -932,18 +937,21 @@ static int detSvdfitArraySize(PolarVolume_t* volume, vol2birdScanUse_t* scanUse,
 
 
 // Determine whether to use scan
-static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* alldata)
+static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* alldata)
 {
 	RaveAttribute_t *attr;
 	PolarScan_t *scan;
 	PolarScanParam_t *param;
-	int result, nScans, iScan;
+	int result, nScans, iScan, nScansUsed;
 	vol2birdScanUse_t *scanUse;
 	double nyquist;
 	char attrName[1024];
 	
 	// Read number of scans
 	nScans = PolarVolume_getNumberOfScans(volume);
+    
+    // variable that will contain the number of scans to be used as determined by this function
+    nScansUsed = 0;
 	
 	// Allocate memory for useScan variable
 	scanUse = (vol2birdScanUse_t *) malloc(nScans * sizeof(vol2birdScanUse_t));
@@ -1047,10 +1055,21 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
                         }
 		}
 		
+        if (scanUse[iScan].useScan){
+            nScansUsed+=1;
+        }
 		// Release the scan from memory
 		RAVE_OBJECT_RELEASE(scan);
 	}
 	
+    // FIXME: better to make scanUse a struct that contains both the array of vol2birdScanUse_t objects
+    // and the number nScansUSed, which now is stored ad hoc under alldata->misc
+    alldata->misc.nScansUsed = nScansUsed;
+    if(nScansUsed == 0){
+        alldata->misc.vol2birdSuccessful = FALSE;
+        return (vol2birdScanUse_t*) NULL;
+    }
+    
 	// Return the array scanUse
 	return scanUse;
 }
@@ -1819,6 +1838,11 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
 
 } // getListOfSelectedGates
 
+int PolarVolume_dealias(PolarVolume_t* pvol){
+    //FIXME, see issue #66 vol2bird repo github
+    return 1;
+}
+
 
 long datetime2long(char* date, char* time){
 
@@ -2316,6 +2340,7 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_FLOAT("DBZCELL",DBZCELL,CFGF_NONE),
         CFG_STR("DBZTYPE",DBZTYPE,CFGF_NONE),
         CFG_BOOL("REQUIRE_VRAD",REQUIRE_VRAD,CFGF_NONE),
+        CFG_BOOL("DEALIAS_VRAD",REQUIRE_VRAD,CFGF_NONE),
         CFG_BOOL("EXPORT_BIRD_PROFILE_AS_JSON",FALSE,CFGF_NONE),
         CFG_END()
     };
@@ -3684,6 +3709,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.cellDbzMin = cfg_getfloat(*cfg,"DBZCELL");
     strcpy(alldata->options.dbzType,cfg_getstr(*cfg,"DBZTYPE"));
     alldata->options.requireVrad = cfg_getbool(*cfg,"REQUIRE_VRAD");
+    alldata->options.dealiasVrad = cfg_getbool(*cfg,"DEALIAS_VRAD");
 
     // ------------------------------------------------------------- //
     //              vol2bird options from constants.h                //
@@ -3728,6 +3754,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     
     alldata->misc.initializationSuccessful = FALSE;
     
+    alldata->misc.vol2birdSuccessful = TRUE;
 
     if (alldata->misc.loadConfigSuccessful == FALSE){
         fprintf(stderr,"Vol2bird configuration not loaded. Run vol2birdLoadConfig prior to vol2birdSetup\n");
@@ -3805,6 +3832,19 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         alldata->constants.vradMin
     );
     
+    
+    // ------------------------------------------------------------- //
+    //         Apply pre-processing filters from rave toolbox        //
+    //                     currently dealiasing only                 //
+    // ------------------------------------------------------------- //
+    
+    if(alldata->options.dealiasVrad){
+        int result;
+        result = PolarVolume_dealias(volume);
+        if(result == 0){
+            fprintf(stderr,"Warning, failed to dealias radial velocities");
+        }
+    }
  
     // ------------------------------------------------------------- //
     //             lists of indices into the 'points' array:         //
@@ -3813,6 +3853,11 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     
     vol2birdScanUse_t* scanUse;
     scanUse = determineScanUse(volume, alldata);
+    
+    if (scanUse == (vol2birdScanUse_t*) NULL){
+        fprintf(stderr, "Error: no valid scans found in polar volume, aborting ...\n");
+        return -1;
+    }
 
     int iLayer;
     

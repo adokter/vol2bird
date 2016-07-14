@@ -21,6 +21,7 @@
 #define XYMAX(x,y) (((x)<(y))?(y):(x))
 #define XYMIN(x,y) (((x)<(y))?(x):(y))
 
+// no longer needed - already defined in dealias.h
 #define DEG2RAD    (0.017453293)  // Degrees to radians.
 
 // ****************************************************************************
