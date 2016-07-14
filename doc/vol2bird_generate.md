@@ -90,7 +90,7 @@ def process_file(out_dir, in_name):
       fname = get_filename(vol)
       v2b = _pyvol2bird.new(vol)
       # calculate a vertical profile of birds
-      vpr = v2b.vol2bird(vol, 0.0)
+      vpr = v2b.vol2bird(vol)
       write_file_to_outdir(out_dir, fname, vpr)
   else:
     print_log("Not a polar volume. Ignoring")

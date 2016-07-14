@@ -6,7 +6,7 @@
 .codelite/refactoring.db
 .codelite/vol2bird.session
 .codelite/vol2bird.tags
-
+vol2bird.workspace
 
 # generated files
 
@@ -18,6 +18,8 @@ config.status
 
 # binaries
 
+*dSYM
+/**/*dSYM
 lib/libvol2bird.so
 src/vol2bird
 pyvol2bird/_pyvol2bird.so
