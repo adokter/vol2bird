@@ -939,6 +939,8 @@ static int detSvdfitArraySize(PolarVolume_t* volume, vol2birdScanUse_t* scanUse,
 // Determine whether to use scan
 static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* alldata)
 {
+    RAVE_ASSERT((volume != NULL), "pvol == NULL");
+    
 	RaveAttribute_t *attr;
 	PolarScan_t *scan;
 	PolarScanParam_t *param;
@@ -963,65 +965,76 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 		result = 0;
 		
 		scan = PolarVolume_getScan(volume, iScan);
-		// useScan is set to zero if the quantity is not found in the scan
-		if (scan != (PolarScan_t *) NULL){
-		    if (PolarScan_hasParameter(scan, "VRAD")){
-			sprintf(scanUse[iScan].vradName,"VRAD");	
-			scanUse[iScan].useScan = TRUE;
-		    }
-		    else{
-			if (PolarScan_hasParameter(scan, "VRADH")){
-			    sprintf(scanUse[iScan].vradName,"VRADH");	
-			    scanUse[iScan].useScan = TRUE;
-		        }
-			else{
-			    if (PolarScan_hasParameter(scan, "VRADV")){
-			        sprintf(scanUse[iScan].vradName,"VRADV");	
-			        scanUse[iScan].useScan = TRUE;
-		            }
-			}
-		    }
-		    if (scanUse[iScan].useScan == FALSE){
-                        fprintf(stderr,"Warning: radial velocity missing, dropping scan %i ...\n",iScan);
-                    }
-		}
 
-		if (scanUse[iScan].useScan){
-		    if(PolarScan_hasParameter(scan,alldata->options.dbzType)){
-			strcpy(scanUse[iScan].dbzName,alldata->options.dbzType);	
-		    }
-		    else{
-                        fprintf(stderr,"Warning: requested reflectivity factor '%s' missing, searching for alternatives ...\n",alldata->options.dbzType);
-		        if(PolarScan_hasParameter(scan, "DBZH")){
-			    sprintf(scanUse[iScan].dbzName,"DBZH");	
-		        }
-		        else{
-			    if (PolarScan_hasParameter(scan, "DBZV")){
-			        sprintf(scanUse[iScan].dbzName,"DBZV");	
-		            }
-			    else{	
-			        scanUse[iScan].useScan = FALSE;
-		 	    }
-		        }
-                   }
-		   if (scanUse[iScan].useScan == FALSE){
-                       fprintf(stderr,"Warning: reflectivity factor missing, dropping scan %i ...\n",iScan);
-                   }
-		}
-
-		if (scanUse[iScan].useScan)
-		{
-                        // drop scans with elevations outside the range set by user
-                        double elev = 360*PolarScan_getElangle(scan) / 2 / PI;
-                        if (elev < alldata->options.elevMin
-                         || elev > alldata->options.elevMax)
-                        {
-                                scanUse[iScan].useScan = FALSE;
-                                fprintf(stderr,"Warning: scan elevation (%.1f deg) outside valid elevation range (%.1f-%.1f deg), dropping scan %i ...\n",\
-                                elev,alldata->options.elevMin,alldata->options.elevMax,iScan);
-                        }
+        // check that radial velocity parameter is present
+        // in the case of using dealiased radial velocities
+        if (alldata->options.dealiasVrad){
+            if (PolarScan_hasParameter(scan, "VRADDH")){
+                sprintf(scanUse[iScan].vradName,"VRADDH");	
+                scanUse[iScan].useScan = TRUE;
+            }
+        }
+        // in the case of not dealiased radial velocities
+        else{
+            if (PolarScan_hasParameter(scan, "VRAD")){
+                sprintf(scanUse[iScan].vradName,"VRAD");	
+                scanUse[iScan].useScan = TRUE;
+            }
+            else{
+                if (PolarScan_hasParameter(scan, "VRADH")){
+                    sprintf(scanUse[iScan].vradName,"VRADH");	
+                    scanUse[iScan].useScan = TRUE;
                 }
+                else{
+                    if (PolarScan_hasParameter(scan, "VRADV")){
+                        sprintf(scanUse[iScan].vradName,"VRADV");	
+                        scanUse[iScan].useScan = TRUE;
+                    }
+                }
+            }
+            if (scanUse[iScan].useScan == FALSE){
+                fprintf(stderr,"Warning: radial velocity missing, dropping scan %i ...\n",iScan);
+            }
+        }
 
+        // check that reflectivity parameter is present
+        if (scanUse[iScan].useScan){
+            if(PolarScan_hasParameter(scan,alldata->options.dbzType)){
+                strcpy(scanUse[iScan].dbzName,alldata->options.dbzType);	
+            }
+            else{
+                fprintf(stderr,"Warning: requested reflectivity factor '%s' missing, searching for alternatives ...\n",alldata->options.dbzType);
+                if(PolarScan_hasParameter(scan, "DBZH")){
+                    sprintf(scanUse[iScan].dbzName,"DBZH");	
+                }
+                else{
+                    if (PolarScan_hasParameter(scan, "DBZV")){
+                        sprintf(scanUse[iScan].dbzName,"DBZV");	
+                    }
+                    else{	
+                        scanUse[iScan].useScan = FALSE;
+                    }
+		        }
+            }
+            if (scanUse[iScan].useScan == FALSE){
+                fprintf(stderr,"Warning: reflectivity factor missing, dropping scan %i ...\n",iScan);
+            }
+        }
+        
+        // check that elevation is not too high or too low
+        if (scanUse[iScan].useScan)
+        {
+            // drop scans with elevations outside the range set by user
+            double elev = 360*PolarScan_getElangle(scan) / 2 / PI;
+            if (elev < alldata->options.elevMin || elev > alldata->options.elevMax)
+            {
+                scanUse[iScan].useScan = FALSE;
+                    fprintf(stderr,"Warning: scan elevation (%.1f deg) outside valid elevation range (%.1f-%.1f deg), dropping scan %i ...\n",\
+                    elev,alldata->options.elevMin,alldata->options.elevMax,iScan);
+            }
+        }
+        
+        // check that Nyquist velocity is not too low
 		if (scanUse[iScan].useScan)
 		{
 			// Read Nyquist interval from top-level how group
@@ -1039,20 +1052,30 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 				RAVE_OBJECT_RELEASE(attr);
 			}
 			
-			// Derive Nyquist interval from the offset attribute of the dataset
+            // Derive Nyquist interval from the offset attribute of the dataset
+            // when no NI attribute was found
 			if (result == 0)
 			{
-				param = PolarScan_getParameter(scan, scanUse[iScan].vradName);
-				nyquist = fabs(PolarScanParam_getOffset(param));
-                                fprintf(stderr,"Warning: Nyquist interval attribute not found for scan %i, using radial velocity offset (%.1f m/s) instead \n",iScan,nyquist);
-				RAVE_OBJECT_RELEASE(param);
+                // in case that we'll be using dealiased velocities, but also the original is available
+                // we want to get the offset attribute of the original
+                if(alldata->options.dealiasVrad && PolarScan_hasParameter(scan, "VRADDH") && PolarScan_hasParameter(scan, "VRADH")){
+                    param = PolarScan_getParameter(scan, "VRADH");
+                    nyquist = fabs(PolarScanParam_getOffset(param));
+                    RAVE_OBJECT_RELEASE(param);
+                }
+                else{
+                    param = PolarScan_getParameter(scan, scanUse[iScan].vradName);
+                    nyquist = fabs(PolarScanParam_getOffset(param));
+                    RAVE_OBJECT_RELEASE(param);
+                }
+                fprintf(stderr,"Warning: Nyquist interval attribute not found for scan %i, using radial velocity offset (%.1f m/s) instead \n",iScan,nyquist);
 			}
 			
 			// Set useScan to 0 if no Nyquist interval is available or if it is too low
 			if (nyquist < alldata->options.minNyquist){
-                                scanUse[iScan].useScan = 0;
-                                fprintf(stderr,"Warning: Nyquist velocity (%.1f m/s) too low, dropping scan %i ...\n",nyquist,iScan);
-                        }
+                scanUse[iScan].useScan = 0;
+                fprintf(stderr,"Warning: Nyquist velocity (%.1f m/s) too low, dropping scan %i ...\n",nyquist,iScan);
+            }
 		}
 		
         if (scanUse[iScan].useScan){
@@ -1839,7 +1862,79 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
 } // getListOfSelectedGates
 
 int PolarVolume_dealias(PolarVolume_t* pvol){
-    //FIXME, see issue #66 vol2bird repo github
+    //FIXME, skeleton only, see issue #66 vol2bird repo github
+    
+    fprintf(stderr,"Warning: dealiasing scans: ");
+    
+    int iScan, nScans;
+    int result;
+    PolarScan_t* scan;
+    PolarScanParam_t* param, *param_dealiased;
+    
+    // Read number of scans
+    nScans = PolarVolume_getNumberOfScans(pvol);
+    
+    for (iScan = 0; iScan < nScans; iScan++){
+                        
+        scan = PolarVolume_getScan(pvol, iScan);        
+
+        // continue if already dealiased velocity available
+        if (PolarScan_hasParameter(scan, "VRADDH")){
+            continue;
+        }
+
+        // continue if no radial velocity present
+        if (!(PolarScan_hasParameter(scan, "VRAD") || PolarScan_hasParameter(scan, "VRADH"))){
+            continue;
+        }
+        
+        // dealiase VRAD or VRADH quantities
+        if (PolarScan_hasParameter(scan, "VRAD")){
+            param = PolarScan_getParameter(scan, "VRAD");
+            //rename the parameter to VRADH and store it as a copy in the polar volume
+            result = PolarScanParam_setQuantity (param, "VRADH");
+            //add the copy
+            result = PolarScan_addParameter(scan, param);           
+        }
+        else{
+            param = PolarScan_getParameter(scan, "VRADH");
+            //rename the parameter to VRAD, as dealias function only works on VRAD quantity
+            result = PolarScanParam_setQuantity (param, "VRAD");
+            //add a copy
+            result = PolarScan_addParameter(scan, param);
+        }
+        
+        // dealias the radial velocity parameter (stored as VRAD) of the scan
+        result = dealias_scan(scan);
+        
+        // if dealiasing successful
+        if (result == 1){
+            fprintf(stderr,"%i,",iScan);
+
+            // remove and extract the dealiased VRAD parameter
+            param_dealiased = PolarScan_removeParameter(scan, "VRAD");
+            
+            // rename the dealiased VRAD parameter to VRADHD
+            result = PolarScanParam_setQuantity (param_dealiased, "VRADDH");
+        
+            // add the dealised VRADHD parameter to the scan
+            result = PolarScan_addParameter(scan, param);
+            
+            // release the dealiased parameter
+            RAVE_OBJECT_RELEASE(param_dealiased);
+        }
+
+        //FIXME: it seems VRADH and VRADDH refer to the same data
+//        if(PolarScan_hasParameter(scan, "VRADDH")) fprintf(stderr,"AFTER we have VRADDH\n");
+//        if(PolarScan_hasParameter(scan, "VRADH")) fprintf(stderr,"AFTER we have VRADH\n");
+//        if(PolarScan_hasParameter(scan, "VRAD")) fprintf(stderr,"AFTER we have VRAD\n");
+
+
+        // release objects
+        RAVE_OBJECT_RELEASE(param);
+        RAVE_OBJECT_RELEASE(scan);        
+    }
+    fprintf(stderr," done.\n");
     return 1;
 }
 
@@ -2462,7 +2557,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     RaveAttribute_t* attr_wavelength = RaveAttributeHelp_createDouble("how/wavelength", alldata->options.radarWavelength);
     RaveAttribute_t* attr_rcs_bird = RaveAttributeHelp_createDouble("how/rcs_bird", alldata->options.birdRadarCrossSection);
     RaveAttribute_t* attr_sd_vvp_thresh = RaveAttributeHelp_createDouble("how/sd_vvp_thresh", alldata->options.stdDevMinBird);
-
+    RaveAttribute_t* attr_dealiased = RaveAttributeHelp_createLong("how/dealiased", alldata->options.dealiasVrad);
     RaveAttribute_t* attr_task = RaveAttributeHelp_createString("how/task", PROGRAM);
     RaveAttribute_t* attr_task_version = RaveAttributeHelp_createString("how/task_version", VERSION);
     RaveAttribute_t* attr_task_args = RaveAttributeHelp_createString("how/task_args", alldata->misc.task_args);
@@ -2478,6 +2573,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     VerticalProfile_addAttribute(alldata->vp, attr_wavelength);
     VerticalProfile_addAttribute(alldata->vp, attr_rcs_bird);
     VerticalProfile_addAttribute(alldata->vp, attr_sd_vvp_thresh);
+    VerticalProfile_addAttribute(alldata->vp, attr_dealiased);
     VerticalProfile_addAttribute(alldata->vp, attr_task);
     VerticalProfile_addAttribute(alldata->vp, attr_task_version);
     VerticalProfile_addAttribute(alldata->vp, attr_task_args);
@@ -2533,6 +2629,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     RAVE_OBJECT_RELEASE(attr_wavelength);
     RAVE_OBJECT_RELEASE(attr_rcs_bird);
     RAVE_OBJECT_RELEASE(attr_sd_vvp_thresh);
+    RAVE_OBJECT_RELEASE(attr_dealiased);
     RAVE_OBJECT_RELEASE(attr_task);
     RAVE_OBJECT_RELEASE(attr_task_version);
     RAVE_OBJECT_RELEASE(attr_task_args);
