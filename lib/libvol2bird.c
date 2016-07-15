@@ -1869,7 +1869,7 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
     int iScan, nScans;
     int result;
     PolarScan_t* scan;
-    PolarScanParam_t* param, *param_dealiased;
+    PolarScanParam_t* param, *param_clone, *param_dealiased;
     
     // Read number of scans
     nScans = PolarVolume_getNumberOfScans(pvol);
@@ -1891,22 +1891,25 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
         // dealiase VRAD or VRADH quantities
         if (PolarScan_hasParameter(scan, "VRAD")){
             param = PolarScan_getParameter(scan, "VRAD");
+            param_clone = RAVE_OBJECT_CLONE(param);
             //rename the parameter to VRADH and store it as a copy in the polar volume
-            result = PolarScanParam_setQuantity (param, "VRADH");
+            result = PolarScanParam_setQuantity (param_clone, "VRADH");
             //add the copy
-            result = PolarScan_addParameter(scan, param);           
+            result = PolarScan_addParameter(scan, param_clone);
         }
         else{
             param = PolarScan_getParameter(scan, "VRADH");
+            param_clone = RAVE_OBJECT_CLONE(param);
             //rename the parameter to VRAD, as dealias function only works on VRAD quantity
-            result = PolarScanParam_setQuantity (param, "VRAD");
+            result = PolarScanParam_setQuantity (param_clone, "VRAD");
             //add a copy
-            result = PolarScan_addParameter(scan, param);
+            result = PolarScan_addParameter(scan, param_clone);
+            RAVE_OBJECT_RELEASE(param_clone);
         }
         
         // dealias the radial velocity parameter (stored as VRAD) of the scan
         result = dealias_scan(scan);
-        
+     
         // if dealiasing successful
         if (result == 1){
             fprintf(stderr,"%i,",iScan);
@@ -1914,7 +1917,7 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
             // remove and extract the dealiased VRAD parameter
             param_dealiased = PolarScan_removeParameter(scan, "VRAD");
             
-            // rename the dealiased VRAD parameter to VRADHD
+            // rename the dealiased VRAD parameter to VRADDH
             result = PolarScanParam_setQuantity (param_dealiased, "VRADDH");
         
             // add the dealised VRADHD parameter to the scan
@@ -1923,12 +1926,6 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
             // release the dealiased parameter
             RAVE_OBJECT_RELEASE(param_dealiased);
         }
-
-        //FIXME: it seems VRADH and VRADDH refer to the same data
-//        if(PolarScan_hasParameter(scan, "VRADDH")) fprintf(stderr,"AFTER we have VRADDH\n");
-//        if(PolarScan_hasParameter(scan, "VRADH")) fprintf(stderr,"AFTER we have VRADH\n");
-//        if(PolarScan_hasParameter(scan, "VRAD")) fprintf(stderr,"AFTER we have VRAD\n");
-
 
         // release objects
         RAVE_OBJECT_RELEASE(param);
@@ -3937,10 +3934,16 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     
     if(alldata->options.dealiasVrad){
         int result;
+
         result = PolarVolume_dealias(volume);
         if(result == 0){
             fprintf(stderr,"Warning, failed to dealias radial velocities");
         }
+        
+        //uncomment to output the dealised polar volume
+        //RaveIO_setObject(raveio, (RaveCoreObject*)volume);
+        //result = RaveIO_save(raveio, "dealiased.h5");
+        //RAVE_OBJECT_RELEASE(raveio);
     }
  
     // ------------------------------------------------------------- //
