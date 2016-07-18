@@ -16,3 +16,11 @@ ios.object = vpr
 ios.filename = "testout.h5"
 ios.save()
 ```
+
+Python knows about location of shared libraries either via PYTHONPATH variable, or via site-packages directory.
+```
+>>> import site
+>>> site.getsitepackages()
+/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages
+```
+In the site-packages directory files pyvol2bird.pth, rave.pth are installed, listing the location of shared libraries.
