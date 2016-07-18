@@ -100,4 +100,6 @@
     <File Name="libvol2birdjni.c"/>
     <File Name="vol2bird.c"/>
   </VirtualDirectory>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
 </CodeLite_Project>

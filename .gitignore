@@ -5,7 +5,8 @@
 .codelite/refactoring.db
 .codelite/vol2bird.session
 .codelite/vol2bird.tags
-vol2bird.workspace
+*.project
+*.workspace
 
 # generated files
 config.log
