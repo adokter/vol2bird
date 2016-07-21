@@ -1,26 +1,28 @@
 /* --------------------------------------------------------------------
-Copyright (C) 2011 Swedish Meteorological and Hydrological Institute, SMHI,
+Copyright (C) 2016 Swedish Meteorological and Hydrological Institute, SMHI,
 
-This file is part of beamb.
+This file is part of vol2bird.
 
-beamb is free software: you can redistribute it and/or modify
+vol2bird is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-beamb is distributed in the hope that it will be useful,
+vol2bird is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
-along with beamb.  If not, see <http://www.gnu.org/licenses/>.
+along with vol2bird.  If not, see <http://www.gnu.org/licenses/>.
 ------------------------------------------------------------------------*/
 /**
- * Python API to the vol2bird functions
+ * Python API to the main vol2bird function
  * @file
  * @author Anders Henja (Swedish Meteorological and Hydrological Institute, SMHI)
- * @date 2011-11-14
+ * @author Adriaan Dokter (University of Amsterdam, UvA)
+ * @author Jurriaan Spaaks, Lourens Veen (Netherlands eScience centre, NLeSC)
+ * @date 2016-06-14
  */
 #include "Python.h"
 #include <math.h>
@@ -65,7 +67,7 @@ static PyObject *ErrorObject;
 /**
  * Returns the native Vol2Bird_t instance.
  * @param[in] vol - the python Vol2Bird instance
- * @returns the native BeamBlockage_t instance.
+ * @returns the native Vol2Bird_t instance.
  */
 static vol2bird_t*
 PyVol2Bird_GetNative(PyVol2Bird* v2b)
@@ -79,7 +81,7 @@ static PyVol2Bird* PyVol2Bird_New(PolarVolume_t* volume)
   PyVol2Bird* result = NULL;
   vol2bird_t* alldata = NULL;
 
-  alldata = malloc(sizeof(vol2bird_t)); // REPLACE WITH ALLOC METHOD
+  alldata = malloc(sizeof(vol2bird_t));
   if (alldata == NULL) {
     RAVE_CRITICAL0("Failed to allocate memory for Vol2Bird.");
     raiseException_returnNULL(PyExc_MemoryError, "Failed to allocate memory for Vol2Bird.");
@@ -151,10 +153,9 @@ static PyObject* _pyvol2bird_new(PyObject* self, PyObject* args)
 static PyObject* _pyvol2bird_vol2bird(PyVol2Bird* self, PyObject* args)
 {
   PyObject* pyin = NULL;
-  double dBlim = 0;
   PyObject* result = NULL;
 
-  if (!PyArg_ParseTuple(args, "Od", &pyin, &dBlim)) {
+  if (!PyArg_ParseTuple(args, "O", &pyin)) {
     return NULL;
   }
 
@@ -176,7 +177,7 @@ static PyObject* _pyvol2bird_vol2bird(PyVol2Bird* self, PyObject* args)
  */
 static struct PyMethodDef _pyvol2bird_methods[] =
 {
-  {"constants_nGatesCellMin", NULL},
+  {"misc_vol2birdSuccessful", NULL},
   {"constants_cellDbzMin", NULL},
   {"vol2bird", (PyCFunction)_pyvol2bird_vol2bird, 1},
   {NULL, NULL} /* sentinel */
@@ -189,8 +190,8 @@ static PyObject* _pyvol2bird_getattr(PyVol2Bird* self, char* name)
 {
   PyObject* res = NULL;
 
-  if (strcmp("constants_nGatesCellMin", name) == 0) {
-    return PyInt_FromLong(self->v2b->constants.nGatesCellMin);
+  if (strcmp("misc_vol2birdSuccessful", name) == 0) {
+    return PyInt_FromLong(self->v2b->misc.vol2birdSuccessful);
   } else if(strcmp("constants_cellDbzMin", name) == 0) {
     return PyFloat_FromDouble(self->v2b->constants.cellDbzMin);
   }
@@ -214,15 +215,15 @@ static int _pyvol2bird_setattr(PyVol2Bird* self, char* name, PyObject* val)
     goto done;
   }
 
-  if (strcmp("constants_nGatesCellMin", name) == 0) {
+  if (strcmp("misc_vol2birdSuccessful", name) == 0) {
     if (PyFloat_Check(val)) {
-      self->v2b->constants.nGatesCellMin = (int)PyFloat_AsDouble(val);
+      self->v2b->misc.vol2birdSuccessful = (int)PyFloat_AsDouble(val);
     } else if (PyLong_Check(val)) {
-        self->v2b->constants.nGatesCellMin = (int)PyLong_AsDouble(val);
+        self->v2b->misc.vol2birdSuccessful = (int)PyLong_AsDouble(val);
     } else if (PyInt_Check(val)) {
-        self->v2b->constants.nGatesCellMin = (int)PyInt_AsLong(val);
+        self->v2b->misc.vol2birdSuccessful = (int)PyInt_AsLong(val);
     } else {
-      raiseException_gotoTag(done, PyExc_ValueError, "constants_nGatesCellMin must be number")
+      raiseException_gotoTag(done, PyExc_ValueError, "misc_vol2birdSuccessful must be number")
     }
   } else if (strcmp("constants_cellDbzMin", name) == 0) {
     if (PyFloat_Check(val)) {

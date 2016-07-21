@@ -1,29 +1,24 @@
 # editor files
-
 .codelite/.tern-port
 .codelite/.tern-project
 .codelite/compilation.db
 .codelite/refactoring.db
 .codelite/vol2bird.session
 .codelite/vol2bird.tags
-vol2bird.workspace
+*.project
+*.workspace
 
 # generated files
-
 config.log
 config.status
 /**/.dep/
 /**/def.mk
 
-
 # binaries
-
-*dSYM
-/**/*dSYM
 lib/libvol2bird.so
 src/vol2bird
 pyvol2bird/_pyvol2bird.so
 /**/*.pyc
 /**/*.o
-
+/**/*dSYM
 

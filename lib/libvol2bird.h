@@ -115,6 +115,7 @@ struct vol2birdOptions {
     float stdDevMinBird;            /* Minimum VVP radial velocity standard deviation for layer containing birds*/
     char dbzType[10];               /* Preferred dBZ quantity to use */
     int requireVrad;                /* require range gates to have a valid radial velocity measurement */
+    int dealiasVrad;                /* dealias radial velocities using torus mapping method by Haase et al. */
 };
 typedef struct vol2birdOptions vol2birdOptions_t;
 
@@ -298,6 +299,11 @@ struct vol2birdMisc {
     float dbzFactor;
     // whether the vol2bird module has been initialized
     int initializationSuccessful;
+    // whether vol2bird calculated a valid bird profile
+    int vol2birdSuccessful;
+    // number of scans used to calculate the profile
+    int nScansUsed;
+    // whether configuration was loaded successfully
     int loadConfigSuccessful;
     // during calculation of iProfileType == 3, use this array to store the
     // result of (chi < stdDevMinBird), such that it can be used later during
@@ -357,5 +363,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata);
 void vol2birdTearDown(vol2bird_t* alldata);
 
 int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata);
+
+float nanify(float value);
 
 int saveToODIM(VerticalProfile_t* volume, const char* filename);
