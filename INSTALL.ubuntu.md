@@ -84,11 +84,11 @@ cd hlhdf
 
 # configure hlhdf
 # we need to point to the location of the hdf5 headers and binaries
-# find out where the headers live on your system with 
+# find out where the headers live on your system with
 locate hdf5.h
-# for Ubuntu 14.04, the location is /usr/include/ 
+# for Ubuntu 14.04, the location is /usr/include/
 # for Ubuntu 16.04, the location is /usr/include/hdf5/serial (might be different on your system)
-# 
+#
 # and the same for the binaries:
 locate libhdf5.a  (static)
 locate libhdf5.so (dynamic)
@@ -98,7 +98,7 @@ locate libhdf5.so (dynamic)
 ./configure --prefix=${RADAR_ROOT_DIR}/opt/hlhdf --with-hdf5=/usr/include/,/usr/lib/x86_64-linux-gnu
 
 # compile hlhdf5 in the local directory
-make 
+make
 
 # (optional) compile hlhdf5 tests and run them
 make test
@@ -127,6 +127,19 @@ cd rave
 # rave needs keyczar to manage keys
 pip install python-keyczar
 
+# rave needs jprops to run PGF plugins
+# you can skip this if you don't need the PGF plugin
+pip install jprops
+
+# rave needs sqlalchemy to run PGF plugins
+# you can skip this if you don't need the PGF plugin
+pip install sqlalchemy
+pip install sqlalchemy_migrate
+
+# rave needs psycopg2 to run PGF plugins
+# you can skip this if you don't need the PGF plugin
+pip install psycopg2
+
 # install package for downloading
 pip install pycurl
 
@@ -152,7 +165,7 @@ ln -s /usr/lib/python2.7/config-x86_64-linux-gnu ${RADAR_ROOT_DIR}/.venv/lib/pyt
 ./configure --prefix=${RADAR_ROOT_DIR}/opt/rave --with-expat
 
 #
-make 
+make
 
 #
 make test
@@ -164,7 +177,7 @@ make install
 echo "export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/rave/lib" >>${RADAR_ROOT_DIR}/setup-env
 echo "export PATH=\${PATH}:${RADAR_ROOT_DIR}/opt/rave/bin" >>${RADAR_ROOT_DIR}/setup-env
 
-# 
+#
 echo "${RADAR_ROOT_DIR}/opt/rave/Lib" > ${RADAR_ROOT_DIR}/.venv/lib/python2.7/site-packages/rave.pth
 
 
@@ -177,11 +190,17 @@ git clone https://github.com/adokter/vol2bird.git
 # change directory into it
 cd vol2bird
 
-# configure vol2bird 
+# configure vol2bird
 ./configure --prefix=${RADAR_ROOT_DIR}/opt/vol2bird --with-rave=${RADAR_ROOT_DIR}/opt/rave
 
 #
 make
+
+# optional: run tests
+# note that we need to set some directories explicitly here, as there is no good
+# way to autodetect these, and the vol2bird tests default to assuming you have RAVE
+# installed as part of a full standard Baltrad installation
+make test PREFIX=${RADAR_ROOT_DIR}/opt RAVEPYTHON=${RADAR_ROOT_DIR}/.venv2/bin/python
 
 #
 make install
@@ -281,7 +300,7 @@ install
 # importing your own local data from file goes with the program /opt/baltrad/rave/bin/odim_injector. First add these directories to the LD_LIBRARY_PATH:
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/baltrad/rave/lib:/opt/baltrad/hlhdf/lib/:/opt/baltrad/third_party/lib
 
-# there's still some weirdness with permissions... we haven't figured out exactly how it should be. Currently 
+# there's still some weirdness with permissions... we haven't figured out exactly how it should be. Currently
 # running everything as root (bad idea):
 (.venv)daisycutter@daisycutter-NLeSC:/opt/baltrad$ sudo bash -c '. /opt/baltrad/etc/bltnode.rc; odim_injector -i /home/daisycutter/projects/birdradar2016/odim-injector-watched'
 # then copy an ODIM-HDF5 file into the directory, it should get picked up and show up in the messages tab of the Baltrad web interface.

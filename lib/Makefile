@@ -25,30 +25,9 @@ LDFLAGS = -shared -Wall
 #SRC_VOL2BIRD_DIR         = /Users/adriaan/git/vol2bird/lib
 SRC_VOL2BIRD_DIR         = ./
 
-all : libvol2bird
-	#
-	#
-	#
-	#
-	#
-	# ------------------------------------
-	#       making vol2bird 
-	# ------------------------------------
-	#
-	$(CC) $(CFLAGS) vol2bird.c \
-	-I. \
-	$(RAVE_MODULE_CFLAGS) \
-	$(RAVE_MODULE_LDFLAGS) \
-	$(PROJ_LIBRARY_FLAG) \
-	-L. \
-	-L$(PWD) \
-	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm -o vol2bird
-	
-	#
-	# (You may still have to change your LD_LIBRARY_PATH)
-	#
+all : libvol2bird.so
 
-libvol2bird :
+libvol2bird.so :
 	# ------------------------------------
 	#        making libvol2bird.so        
 	# ------------------------------------
@@ -64,15 +43,15 @@ libvol2bird :
 	$(LDFLAGS) \
 	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lm
 
-install : libvol2bird
+.PHONY : install
+install : libvol2bird.so
 	# ------------------------------------
 	#  copy binaries to target directory
 	# ------------------------------------
 	install -d ${prefix}/lib
 	install -m 644 libvol2bird.so ${prefix}/lib/libvol2bird.so
-	install -d ${prefix}/bin
-	install -m 755 vol2bird ${prefix}/bin/vol2bird
 
+.PHONY : clean
 clean : 
 	# ------------------------------------
 	#  cleaning up old library and binary
@@ -80,14 +59,11 @@ clean :
 	@if [ -f "./libvol2bird.so" ]; then \
 		\rm libvol2bird.so; \
 	fi
-	@if [ -f "./vol2bird" ]; then \
-		\rm vol2bird; \
-	fi
 	@\rm -f *~
 
+.PHONY : distclean
 distclean:
 	@\rm -f libvol2bird.so
 	@\rm -f *~
-	@\rm vol2bird
 
 
