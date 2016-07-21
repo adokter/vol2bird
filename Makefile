@@ -32,12 +32,16 @@ def.mk:
 .PHONY:build 
 build: def.mk
 	$(MAKE) -C lib
+	$(MAKE) -C src
 	$(MAKE) -C pyvol2bird
+	$(MAKE) -C pgfplugin
 
 .PHONY:install
 install: def.mk
 	$(MAKE) -C lib install
+	$(MAKE) -C src install
 	$(MAKE) -C pyvol2bird install
+	$(MAKE) -C pgfplugin install
 	@echo "################################################################"
 	@echo "To run the binaries you will need to setup your library path to"
 	@echo "LD_LIBRARY_PATH="`cat def.mk | grep LD_PRINTOUT | sed -e"s/LD_PRINTOUT=//"`
@@ -49,19 +53,20 @@ doc:
 
 .PHONY:test
 test: def.mk
-	@chmod +x ./tools/test_vol2bird.sh
-	@./tools/test_vol2bird.sh
+	$(MAKE) -C tests test
 
 .PHONY:clean
 clean:
 	$(MAKE) -C lib clean
+	$(MAKE) -C src clean
 	$(MAKE) -C pyvol2bird clean
+	$(MAKE) -C tests clean
 	@\rm -f *~
-
-	
 
 .PHONY:distclean
 distclean:
 	$(MAKE) -C lib distclean
+	$(MAKE) -C src distclean
 	$(MAKE) -C pyvol2bird distclean
+	$(MAKE) -C tests distclean
 	@\rm -f *~ config.log config.status def.mk
