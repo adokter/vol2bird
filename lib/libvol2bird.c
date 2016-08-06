@@ -20,6 +20,7 @@
 #include <vertical_profile.h>
 
 #include "rave_io.h"
+#include "rsl.h"
 #include "rave_debug.h"
 #include "polarvolume.h"
 #include "polarscan.h"
@@ -102,6 +103,8 @@ const char* PolarVolume_getStartTime(PolarVolume_t* pvol);
 
 double PolarVolume_getWavelength(PolarVolume_t* pvol);
 
+PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar);
+
 static void printGateCode(char* flags, const unsigned int gateCode);
 
 static void printImageInt(const SCANMETA* meta, const int* imageInt);
@@ -119,8 +122,6 @@ static void sortCellsByArea(CELLPROP *cellProp, const int nCells);
 static void updateFlagFieldsInPointsArray(const float* yObs, const float* yFitted, const int* includedIndex, 
                                           const int nPointsIncluded, float* points_local, vol2bird_t* alldata);
 static int updateMap(int *cellImage, const int nGlobal, CELLPROP *cellProp, const int nCells, vol2bird_t* alldata);
-
-
 
 // non-public function declarations (local to this file/translation unit)
 
@@ -2128,7 +2129,58 @@ double PolarVolume_getWavelength(PolarVolume_t* pvol)
     return value;
 }
 
+// maps a RSL polar volume to a RAVE polar volume
+PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
+    
+    PolarVolume_t* volume = NULL;
 
+    if(radar == NULL) {
+        fprintf(stderr, "Error: RSL radar object is empty...\n");
+        goto done;
+    }
+    
+    volume = RAVE_OBJECT_NEW(&VerticalProfile_TYPE);
+    
+    if (volume == NULL) {
+        RAVE_CRITICAL0("Failed to create polarvolume instance");
+        goto done;
+    }
+    
+    // sort the scans (sweeps) and rays
+    if(RSL_sort_radar(radar) == NULL) {
+        fprintf(stderr, "Error: failed to sort RSL radar data...\n");
+        goto done;
+    }
+    
+/*    
+    Volume *RSL_get_volume(Radar *r, int type_wanted);
+    Sweep *RSL_get_first_sweep_of_volume(Volume *v);
+    
+    //to release objects:
+    RSL_free_radar(Radar *r);
+    RSL_free_sweep(Sweep *s);
+    RSL_free_volume(Volume *v);
+*/
+    
+    
+    //copy the metadata
+    char pvtime[7];
+    char pvdate[9];
+    char pvsource[100];
+    sprintf(pvtime, "%02i%02i%02i",radar->h.hour,radar->h.minute,ROUND(radar->h.sec));
+    sprintf(pvdate, "%04i%02i%02i",radar->h.year,radar->h.month,radar->h.day);
+    sprintf(pvsource, "RAD:%s,PLC:%s,state:%s,radar_name:%s",radar->h.name,radar->h.city,radar->h.state,radar->h.radar_name);
+    
+    PolarVolume_setTime(volume,pvtime);
+    PolarVolume_setDate(volume,pvdate);
+    PolarVolume_setSource(volume,pvsource);
+    PolarVolume_setLongitude(volume,radar->h.lond + radar->h.lonm/60 + radar->h.lons/3600);
+    PolarVolume_setLatitude(volume,radar->h.latd + radar->h.latm/60 + radar->h.lats/3600);
+    PolarVolume_setHeight(volume, (double)radar->h.height);
+    
+    done:
+        return volume;
+}
 
 static int hasAzimuthGap(const float* points_local, const int nPoints, vol2bird_t* alldata) {
 
@@ -3757,9 +3809,94 @@ void printProfile(vol2bird_t* alldata) {
     
 } // printProfile()
 
+// reads a polar volume from file and returns it as a RAVE polar volume object
+// remember to release the polar volume object when done with it
+PolarVolume_t* vol2birdGetVolume(char* filename){
+    
+    PolarVolume_t* volume = NULL;
+    
+    RaveIO_t* raveio = RaveIO_open(filename);
+
+    // check that a valid RaveIO_t pointer was returned
+    if (raveio != (RaveIO_t*) NULL){
+        // check that the Rave object is a polar volume
+        if (RaveIO_getObjectType(raveio) == Rave_ObjectType_PVOL) {
+
+            // the if statement above tests whether we are dealing with a 
+            // PVOL object, so we can safely cast the generic object to
+            // the PolarVolume_t type:
+            
+            volume = (PolarVolume_t*) RaveIO_getObject(raveio);
+        }
+    }
+    // not a rave complient file, attempt to read the file with the RSL library instead
+    else{
+        Radar *radar;
+        
+        // select all quantities and scans
+        RSL_select_fields("all", NULL);
+        RSL_read_these_sweeps("all", NULL);
+        
+        // read the file to a RSL radar object
+        
+        // according to documentation of RSL it is not required to parse a callid
+        // but in practice it is for WSR88D.
+        char callid[5];
+        strncpy(callid, filename,4);
+        callid[4] = 0; //null terminate destination
+        radar = RSL_anyformat_to_radar(filename,callid);
+ 
+        if (radar == NULL) {
+            fprintf(stderr, "critical error, cannot open file %s\n", filename);
+            return NULL;
+        }
+        
+        // convert RSL object to RAVE polar volume
+        
+        volume = PolarVolume_RSL2Rave(radar);
+        
+        RSL_free_radar(radar);
+    }
+    
+    RAVE_OBJECT_RELEASE(raveio);
+    
+    return volume;
+}
 
 
 
+RaveIO_t* vol2birdIO_open(const char* filename)
+{
+  RaveIO_t* result = NULL;
+
+  if (filename == NULL) {
+    goto done;
+  }
+
+  result = RAVE_OBJECT_NEW(&RaveIO_TYPE);
+  if (result == NULL) {
+    RAVE_CRITICAL0("Failed to create raveio instance");
+    goto done;
+  }
+
+  if (!RaveIO_setFilename(result, filename)) {
+    RAVE_CRITICAL0("Failed to set filename");
+    RAVE_OBJECT_RELEASE(result);
+    goto done;
+  }
+
+  if (!RaveIO_load(result)) {
+    RAVE_WARNING0("Failed to load file");
+    RAVE_OBJECT_RELEASE(result);
+    goto done;
+  }
+
+done:
+  return result;
+}
+
+
+// loads configuration data in the alldata struct
 int vol2birdLoadConfig(vol2bird_t* alldata) {
 
     alldata->misc.loadConfigSuccessful = FALSE;

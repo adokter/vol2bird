@@ -14,7 +14,7 @@ hostname = MacAdriaan
 uname -m = x86_64
 uname -r = 14.5.0
 uname -s = Darwin
-uname -v = Darwin Kernel Version 14.5.0: Wed Jul 29 02:26:53 PDT 2015; root:xnu-2782.40.9~1/RELEASE_X86_64
+uname -v = Darwin Kernel Version 14.5.0: Thu Jun 16 19:58:21 PDT 2016; root:xnu-2782.50.4~1/RELEASE_X86_64
 
 /usr/bin/uname -p = i386
 /bin/uname -X     = unknown
@@ -23,25 +23,19 @@ uname -v = Darwin Kernel Version 14.5.0: Wed Jul 29 02:26:53 PDT 2015; root:xnu-
 /usr/bin/arch -k       = unknown
 /usr/convex/getsysinfo = unknown
 /usr/bin/hostinfo      = Mach kernel version:
-	 Darwin Kernel Version 14.5.0: Wed Jul 29 02:26:53 PDT 2015; root:xnu-2782.40.9~1/RELEASE_X86_64
+	 Darwin Kernel Version 14.5.0: Thu Jun 16 19:58:21 PDT 2016; root:xnu-2782.50.4~1/RELEASE_X86_64
 Kernel configured for up to 4 processors.
 2 processors are physically available.
 4 processors are logically available.
 Processor type: i486 (Intel 80486)
 Processors active: 0 1 2 3
 Primary memory available: 8.00 gigabytes
-Default processor set: 249 tasks, 1196 threads, 4 processors
-Load average: 1.65, Mach factor: 2.34
+Default processor set: 242 tasks, 1042 threads, 4 processors
+Load average: 1.96, Mach factor: 2.06
 /bin/machine           = unknown
 /usr/bin/oslevel       = unknown
 /bin/universe          = unknown
 
-PATH: /opt/local/bin
-PATH: /opt/local/sbin
-PATH: /opt/local/bin
-PATH: /opt/local/sbin
-PATH: /opt/local/bin
-PATH: /opt/local/sbin
 PATH: /opt/local/bin
 PATH: /opt/local/sbin
 PATH: /opt/local/bin
@@ -54,9 +48,6 @@ PATH: /bin
 PATH: /usr/sbin
 PATH: /sbin
 PATH: /opt/X11/bin
-PATH: /Users/adriaan/bin
-PATH: /Users/adriaan/FortranExecutables
-PATH: /Users/adriaan/git/vol2bird/lib
 PATH: /Users/adriaan/bin
 PATH: /Users/adriaan/FortranExecutables
 PATH: /Users/adriaan/git/vol2bird/lib
