@@ -2139,7 +2139,7 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
         goto done;
     }
     
-    volume = RAVE_OBJECT_NEW(&VerticalProfile_TYPE);
+    volume = RAVE_OBJECT_NEW(&PolarVolume_TYPE);
     
     if (volume == NULL) {
         RAVE_CRITICAL0("Failed to create polarvolume instance");
@@ -2162,11 +2162,11 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
     RSL_free_volume(Volume *v);
 */
     
-    
     //copy the metadata
     char pvtime[7];
     char pvdate[9];
-    char pvsource[100];
+    
+    char *pvsource = malloc(strlen(radar->h.name)+strlen(radar->h.city)+strlen(radar->h.state)+strlen(radar->h.radar_name)+30);
     sprintf(pvtime, "%02i%02i%02i",radar->h.hour,radar->h.minute,ROUND(radar->h.sec));
     sprintf(pvdate, "%04i%02i%02i",radar->h.year,radar->h.month,radar->h.day);
     sprintf(pvsource, "RAD:%s,PLC:%s,state:%s,radar_name:%s",radar->h.name,radar->h.city,radar->h.state,radar->h.radar_name);
@@ -2177,6 +2177,8 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
     PolarVolume_setLongitude(volume,radar->h.lond + radar->h.lonm/60 + radar->h.lons/3600);
     PolarVolume_setLatitude(volume,radar->h.latd + radar->h.latm/60 + radar->h.lats/3600);
     PolarVolume_setHeight(volume, (double)radar->h.height);
+    
+    free(pvsource);
     
     done:
         return volume;
