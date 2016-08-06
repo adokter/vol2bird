@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
     // ------------------------------------------------------------- //
 
     // the filename that the user provided as input
-    const char* filename = argv[1];
+    char* filename = argv[1];
     const char* fileout;
     
     if (argc == 3){
@@ -79,25 +79,13 @@ int main(int argc, char** argv) {
         fileout = NULL;
     }
   
+    PolarVolume_t* volume = NULL;
+    volume = vol2birdGetVolume(filename);
     
-    // read the input file and assign it to a generic rave object
-    RaveIO_t* raveio = RaveIO_open(filename);
-
-    if (raveio == (RaveIO_t*) NULL){
-        fprintf(stderr, "critical error, cannot open file %s\n", filename);
-        return -1;
-    }
-
-    if (RaveIO_getObjectType(raveio) == Rave_ObjectType_PVOL) {
+    if (volume != NULL) {
 
         // initialize array used for performance analysis
         //struct timespec ts = { 0 };
-
-        // the if statement above tests whether we are dealing with a 
-        // PVOL object, so we can safely cast the generic object to
-        // the PolarVolume_t type:
-        PolarVolume_t* volume = NULL;
-        volume = (PolarVolume_t*) RaveIO_getObject(raveio);
 
         int configSuccessful = vol2birdLoadConfig(&alldata) == 0;
 
@@ -199,8 +187,6 @@ int main(int argc, char** argv) {
         //fprintf(stderr, "Processing done in %.2f seconds\n",nSeconds);
 
     }
-
-    RAVE_OBJECT_RELEASE(raveio);
     
     return 0;
 

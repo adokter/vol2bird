@@ -346,6 +346,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata);
 
 float* vol2birdGetProfile(int iProfileType, vol2bird_t* alldata);
 
+PolarVolume_t* vol2birdGetVolume(char* filename);
+
 int vol2birdGetNColsProfile(vol2bird_t* alldata);
 
 int vol2birdGetNRowsProfile(vol2bird_t* alldata);
