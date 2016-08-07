@@ -2129,6 +2129,35 @@ double PolarVolume_getWavelength(PolarVolume_t* pvol)
     return value;
 }
 
+double PolarVolume_setWavelength(PolarVolume_t* pvol, double wavelength)
+{
+    RAVE_ASSERT((pvol != NULL), "pvol == NULL");
+    
+    double value = 0;
+
+    RaveAttribute_t* attr = PolarVolume_getAttribute(pvol, "how/wavelength");
+    if (attr != (RaveAttribute_t *) NULL){
+        RaveAttribute_getDouble(attr, &value);
+        RAVE_OBJECT_RELEASE(attr);
+    }
+    else{
+        // wavelength attribute was not found in the root /how attribute
+        // check whether we can find it under /dataset1/how 
+        PolarScan_t* scan = PolarVolume_getScan(pvol, 1);
+        if (scan != (PolarScan_t *) NULL){
+            attr = PolarScan_getAttribute(scan, "how/wavelength");
+            if (attr != (RaveAttribute_t *) NULL){
+                RaveAttribute_getDouble(attr, &value);
+                RAVE_OBJECT_RELEASE(attr);
+                fprintf(stderr, "Warning: using radar wavelength stored for scan 1 (%f cm) for all scans ...\n", value);
+            }
+            RAVE_OBJECT_RELEASE(scan);
+        }
+    }
+    
+    return value;
+}
+
 // maps a RSL polar volume to a RAVE polar volume
 PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
     
@@ -2142,13 +2171,13 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
     volume = RAVE_OBJECT_NEW(&PolarVolume_TYPE);
     
     if (volume == NULL) {
-        RAVE_CRITICAL0("Failed to create polarvolume instance");
+        RAVE_CRITICAL0("Error: failed to create polarvolume instance");
         goto done;
     }
     
     // sort the scans (sweeps) and rays
     if(RSL_sort_radar(radar) == NULL) {
-        fprintf(stderr, "Error: failed to sort RSL radar data...\n");
+        fprintf(stderr, "Error: failed to sort RSL radar object...\n");
         goto done;
     }
     
@@ -2162,10 +2191,9 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
     RSL_free_volume(Volume *v);
 */
     
-    //copy the metadata
+    // copy metadata stored in radar header
     char pvtime[7];
     char pvdate[9];
-    
     char *pvsource = malloc(strlen(radar->h.name)+strlen(radar->h.city)+strlen(radar->h.state)+strlen(radar->h.radar_name)+30);
     sprintf(pvtime, "%02i%02i%02i",radar->h.hour,radar->h.minute,ROUND(radar->h.sec));
     sprintf(pvdate, "%04i%02i%02i",radar->h.year,radar->h.month,radar->h.day);
@@ -2177,8 +2205,75 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
     PolarVolume_setLongitude(volume,radar->h.lond + radar->h.lonm/60 + radar->h.lons/3600);
     PolarVolume_setLatitude(volume,radar->h.latd + radar->h.latm/60 + radar->h.lats/3600);
     PolarVolume_setHeight(volume, (double)radar->h.height);
+        
+    // copy metadata stored in ray header
+    // add wavelength attribute to RAVE polar volume, as stored in RSL Ray objects
+    Volume* rslVol;
+    Ray* rslRay;
+    rslVol = RSL_get_volume(radar, DZ_INDEX);
+    if (rslVol == NULL){
+        fprintf(stderr, "Error: RSL radar object contains no volumes...\n");
+        goto done;
+    }
+    else{
+        rslRay = RSL_get_first_ray_of_volume(rslVol);
+        if (rslRay == NULL){
+            fprintf(stderr, "Error: RSL radar object contains no rays...\n");
+            goto done;
+        }
+        else{
+            float wavelength = rslRay->h.wavelength/100;
+            RaveAttribute_t* attr_wavelength = RaveAttributeHelp_createDouble("how/wavelength", (double) wavelength);
+            if (attr_wavelength == NULL && wavelength > 0){
+                fprintf(stderr, "warning: no valid wavelength found in RSL polar volume\n");
+            }
+            else{    
+                PolarVolume_addAttribute(volume, attr_wavelength);
+            }
+        }
+    }
+
+    //DZ_INDEX, VR_INDEX, ZD_INDEX, RH_INDEX, PH_INDEX 
+
+    int iScan;
+    for (iScan = 0; iScan < rslVol->h.nsweeps; iScan++){
+        Sweep* rslSweep;
+        PolarScan_t* scan;
+        float elev,nyq_vel;
+        int nazim,nrang,rscale,range_bin1;
+        
+        // start a new scan object
+        scan = RAVE_OBJECT_NEW(&PolarScan_TYPE);
+
+        // add attributes to the scan object
+        // add attribute beamwidth to scan
+        rslSweep = rslVol->sweep[iScan];
+        elev = rslSweep->h.elev;
+        nazim = rslSweep->h.nrays;
+        PolarScan_setBeamwidth(scan, (double) rslSweep->h.beam_width);
+
+        // add attribute Nyquist velocity to scan
+        rslRay = RSL_get_first_ray_of_sweep(rslSweep);
+        nyq_vel = rslRay->h.nyq_vel;
+        RaveAttribute_t* attr_NI = RaveAttributeHelp_createDouble("how/NI", (double) nyq_vel);
+        if (attr_NI == NULL && nyq_vel > 0){
+            fprintf(stderr, "warning: no valid Nyquist velocity found in RSL polar volume\n");
+        }
+        else{    
+            PolarScan_addAttribute(scan, attr_NI);
+        }
+
+        nrang = rslRay->h.nbins;
+        range_bin1 = rslRay->h.range_bin1;
+        rscale = rslRay->h.gate_size;
+        
+        RSL_clear_sweep(rslSweep);
+        RSL_clear_ray(rslRay);
+        RAVE_OBJECT_RELEASE(scan);
+    }
     
     free(pvsource);
+    RSL_clear_volume(rslVol);
     
     done:
         return volume;
@@ -2635,7 +2730,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     VerticalProfile_addAttribute(alldata->vp, attr_minazim);
     VerticalProfile_addAttribute(alldata->vp, attr_maxazim);
     VerticalProfile_addAttribute(alldata->vp, attr_cluttermap);
-        
+      
     //-------------------------------------------//
     //   map the profile data to rave fields     //
     //-------------------------------------------//
