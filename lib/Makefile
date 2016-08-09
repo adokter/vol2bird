@@ -17,7 +17,7 @@
  
 CC      = gcc
 #CFLAGS  = -fPIC -x c -DFPRINTFON
-CFLAGS  = -fPIC -x c
+CFLAGS  = -DRSL -fPIC -x c
 LDFLAGS = -shared -Wall
 
 # define where the vol2bird stuff is

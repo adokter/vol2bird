@@ -49,6 +49,10 @@
 #define VDIFMAX 10.0
 // When analyzing cells, radial velocities lower than VRADMIN are treated as clutter
 #define VRADMIN 1.0
+// By how much the elevation angle of sweeps of different quantities can differ
+// for them to be included into the same scan object.
+// Applies to data read with the RSL library only
+#define ELEVTOL 0.5
 
 //-------------------------------------------------------//
 //             other hard-coded options                  //
