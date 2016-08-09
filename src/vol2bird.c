@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
   
     PolarVolume_t* volume = NULL;
     volume = vol2birdGetVolume(filename);
-    saveToODIM(volume, "xxxtest.h5");
+    //saveToODIM(volume, "xxxtest.h5");
     
     if (volume != NULL) {
 
