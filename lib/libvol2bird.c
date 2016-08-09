@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 #include <confuse.h>
 #include <stdlib.h>
 #include <math.h>
@@ -495,8 +496,8 @@ static void calcTexture(float* texImage, const float* vradImage,
 
                 tex = sqrt(XABS(vmoment2-SQUARE(vmoment1)));
 
-                double tmpTex = ROUND((tex - texOffset) / texScale);
-                if (0 <= tmpTex && tmpTex <= 255) {
+                double tmpTex = (tex - texOffset) / texScale;
+                if (-FLT_MAX <= tmpTex && tmpTex <= FLT_MAX) {
                     texImage[iGlobal] = (float) tmpTex;
                 }
                 else {
@@ -614,7 +615,7 @@ static int constructorInt(SCANMETA* meta, int* image, PolarScan_t* scan, const i
     meta->azimScale = 360.0f/meta->nAzim;   // for ODIM files this always works
     meta->valueOffset = 0.0f;
     meta->valueScale = 1.0f;
-    meta->missing = (float) 255;  // FIXME this does not work as intended for type int
+    meta->missing = (float) INT_MAX;  // FIXME this does not work as intended for type int
     
     return 0;
 
@@ -642,7 +643,7 @@ static int constructorFloat(SCANMETA* meta, float* image, PolarScan_t* scan, con
     meta->azimScale = 360.0f/meta->nAzim;   // for ODIM files this always works
     meta->valueOffset = 0.0f;
     meta->valueScale = 1.0f;
-    meta->missing = (float) 255;
+    meta->missing = (float) FLT_MAX;
     
     return 0;
 
@@ -728,6 +729,7 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                                        &dbzMeta, alldata);
                 if (nCells<0){
                     fprintf(stderr,"Error: findWeatherCells exited with errors\n");
+                    return;
                 }
                 
                 if (alldata->options.printCellProp == TRUE) {
@@ -811,7 +813,6 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 // ------------------------------------------------------------- //
                 //                         clean up                              //
                 // ------------------------------------------------------------- //
-    
     
                 // free previously malloc'ed arrays
                 free((void*) dbzImage);
@@ -2223,8 +2224,8 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
     char *pvsource = malloc(strlen(radar->h.name)+strlen(radar->h.city)+strlen(radar->h.state)+strlen(radar->h.radar_name)+30);
     sprintf(pvtime, "%02i%02i%02i",radar->h.hour,radar->h.minute,ROUND(radar->h.sec));
     sprintf(pvdate, "%04i%02i%02i",radar->h.year,radar->h.month,radar->h.day);
-    sprintf(pvsource, "RAD:%s,PLC:%s,state:%s,radar_name:%s\n",radar->h.name,radar->h.city,radar->h.state,radar->h.radar_name);
-    fprintf(stderr,"Reading RSL polar volume with nominal time %s-%s, source:%s",pvdate,pvtime,pvsource);    
+    sprintf(pvsource, "RAD:%s,PLC:%s,state:%s,radar_name:%s",radar->h.name,radar->h.city,radar->h.state,radar->h.radar_name);
+    fprintf(stderr,"Reading RSL polar volume with nominal time %s-%s, source:%s\n",pvdate,pvtime,pvsource);    
     PolarVolume_setTime(volume,pvtime);
     PolarVolume_setDate(volume,pvdate);
     PolarVolume_setSource(volume,pvsource);
@@ -2392,15 +2393,15 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
         for(int iBin=0; iBin<nbins; iBin++){
             for(int iRay=0; iRay<nrays; iRay++){
                 float value;
-                value=RSL_get_value_from_sweep(rslSweepZ, iRay*360/nrays,iBin*rscale);
-                PolarScanParam_setValue(scanparamZ, iBin, iRay, (double) value);
-                value=RSL_get_value_from_sweep(rslSweepV, iRay*360/nrays,iBin*rscale);
+                int flag;
+                value=RSL_get_value_from_sweep(rslSweepZ, iRay*360/nrays,iBin*rscale/1000);
+                flag=PolarScanParam_setValue(scanparamZ, iBin, iRay, (double) value);
+                value=RSL_get_value_from_sweep(rslSweepV, iRay*360/nrays,iBin*rscale/1000);
                 PolarScanParam_setValue(scanparamV, iBin, iRay, (double) value);
                 if(dualpol){
-                    value=RSL_get_value_from_sweep(rslSweepRho, iRay*360/nrays,iBin*rscale);
+                    value=RSL_get_value_from_sweep(rslSweepRho, iRay*360/nrays,iBin*rscale/1000);
                     PolarScanParam_setValue(scanparamRho, iBin, iRay, (double) value);
                 }
-
             }
         }
         
@@ -3237,7 +3238,7 @@ static int printMeta(const SCANMETA* meta, const char* varName) {
     fprintf(stderr,"%s->azimScale = %f\n",varName,meta->azimScale);
     fprintf(stderr,"%s->valueOffset = %f\n",varName,meta->valueOffset);
     fprintf(stderr,"%s->valueScale = %f\n",varName,meta->valueScale);
-    fprintf(stderr,"%s->missing = %d\n",varName,meta->missing);
+    fprintf(stderr,"%s->missing = %f\n",varName,meta->missing);
     
     return 0;
 

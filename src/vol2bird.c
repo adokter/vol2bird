@@ -36,9 +36,10 @@ int main(int argc, char** argv) {
 
     // print default message when no input arguments
     if (argc == 1) {
-        fprintf(stderr,"usage: %s <ODIM hdf5 volume> [<ODIM hdf5 profile output>]\n",argv[0]);
+        fprintf(stderr,"usage: %s <polar volume> [<ODIM hdf5 profile output>]\n",argv[0]);
         fprintf(stderr,"   Version %s (%s)\n", VERSION, VERSIONDATE);
-        fprintf(stderr,"   expects OPERA ODIM hdf5 input format, see http://www.eumetnet.eu/opera-software\n\n");
+        fprintf(stderr,"   expects OPERA ODIM hdf5 input format, see http://www.eumetnet.eu/opera-software\n");
+        fprintf(stderr,"           or input formats compatible with RSL, see http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl\n\n");
         fprintf(stderr,"   Output fields to stdout:\n");
         fprintf(stderr,"   Date    - date in UTC\n");
         fprintf(stderr,"   Time    - time in UTC\n");
@@ -81,7 +82,7 @@ int main(int argc, char** argv) {
   
     PolarVolume_t* volume = NULL;
     volume = vol2birdGetVolume(filename);
-    //saveToODIM(volume, "xxxtest.h5");
+    saveToODIM(volume, "xxxtest.h5");
     
     if (volume != NULL) {
 

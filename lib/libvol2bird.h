@@ -72,7 +72,7 @@ struct scanmeta {
     float azimScale;       // Size of azimuth steps in scan in deg.
     float valueOffset;     // Offset value of quantity contained by scan.
     float valueScale;      // Scale of value of quantity contained by scan.
-    unsigned char missing; // Missing value of quantity contained by scan.
+    float missing;         // Missing value of quantity contained by scan.
 };
 
 typedef struct cellprop CELLPROP;
