@@ -110,6 +110,8 @@ double PolarVolume_getWavelength(PolarVolume_t* pvol);
 
 #ifdef RSL
 PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar);
+
+int rslCopy2Rave(Sweep *rslSweep,PolarScanParam_t* scanparam);
 #endif
 
 static void printGateCode(char* flags, const unsigned int gateCode);
@@ -2158,35 +2160,71 @@ double PolarVolume_setWavelength(PolarVolume_t* pvol, double wavelength)
 }
 
 #ifdef RSL
+
+// copies a RSL sweep to a Rave scan
+int rslCopy2Rave(Sweep *rslSweep,PolarScanParam_t* scanparam){
+    float value;
+    double setvalue;
+    float rscale;
+    int rayindex=0;
+    Ray *rslRay;
+    long nrays,nbins;
+    
+    rslRay = RSL_get_first_ray_of_sweep(rslSweep);
+    
+    if (rslRay == NULL) return 0;
+    
+    nbins = PolarScanParam_getNbins(scanparam);
+    nrays = PolarScanParam_getNrays(scanparam);
+
+    if (nbins == 0 || nrays == 0) return 0;
+
+    for(int iRay=0; iRay<rslSweep->h.nrays; iRay++){
+        // determine at which ray index we are in the rave scanparam
+        rayindex=ROUND(nrays*rslRay->h.azimuth/360);
+        // get the range gate size for this ray
+        rscale = rslRay->h.gate_size;
+        // only values between 0 and 360 degrees permitted
+        if (rayindex >= nrays) rayindex-=nrays;
+        // loop over range bins
+        for(int iBin=0; iBin<nbins; iBin++){
+            value=RSL_get_value_from_ray(rslRay, iBin*rscale/1000);
+            if (value == BADVAL){
+                // BADVAL is used in RSL library to encode for undetects, but also for nodata
+                // In most cases we are dealing with undetects, so encode as such
+                setvalue=PolarScanParam_getUndetect(scanparam);
+            }
+            else{
+                setvalue=(value-PolarScanParam_getOffset(scanparam))/PolarScanParam_getGain(scanparam);
+            }
+            PolarScanParam_setValue(scanparam, iBin, rayindex, setvalue);
+        }
+        rslRay=RSL_get_next_cwise_ray(rslSweep, rslRay);
+    }
+    
+    return 1;
+}
+
 // maps a RSL polar volume to a RAVE polar volume
 PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
     
-    // the nodata value used by the RSL library
-    double NODATA_RSL=BADVAL;
-
+    // the RAVE polar volume to be returned by this function
+    PolarVolume_t* volume = NULL;
+    
     // flag indicating whether we are dealing with dual-pol data
     int dualpol = FALSE;
-
-    // the RAVE polar volume to be returned by this function
-    PolarVolume_t* volume;
-    volume = RAVE_OBJECT_NEW(&PolarVolume_TYPE);
 
     if(radar == NULL) {
         fprintf(stderr, "Error: RSL radar object is empty...\n");
         goto done;
     }
-    
-    if (volume == NULL) {
-        RAVE_CRITICAL0("Error: failed to create polarvolume instance");
-        goto done;
-    }
-    
+
     // sort the scans (sweeps) and rays
     if(RSL_sort_radar(radar) == NULL) {
         fprintf(stderr, "Error: failed to sort RSL radar object...\n");
         goto done;
     }
-
+    
     // pointers to RSL polar volumes of reflectivity, velocity and correlation coefficient, respectively.
     Volume *rslVolZ,*rslVolV,*rslVolRho;
     // pointer to a RSL ray
@@ -2216,8 +2254,17 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
         fprintf(stderr, "Error: RSL radar object contains no rays...\n");
         goto done;
     }
+    
+    // all checks on RSL object passed
+    // make a new rave polar volume object
+    volume = RAVE_OBJECT_NEW(&PolarVolume_TYPE);
+    
+    if (volume == NULL) {
+        RAVE_CRITICAL0("Error: failed to create polarvolume instance");
+        goto done;
+    }
 
-    // if we have data, add attribute data to RAVE polar volume
+    // add attribute data to RAVE polar volume
     // first, copy metadata stored in radar header
     char pvtime[7];
     char pvdate[9];
@@ -2243,11 +2290,7 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
         PolarVolume_addAttribute(volume, attr_wavelength);
     }
 
-
-    //DZ_INDEX, VR_INDEX, ZD_INDEX, RH_INDEX, PH_INDEX 
-    //this is how to loop over the quantities:
-    
-    // print which scans (sweeps) will be read for this RSL file
+    // optional print which scans (sweeps) will be read for this RSL file
     #ifdef FPRINTFON
     for (int iVol=0; iVol<MAX_RADAR_VOLUMES; iVol++) {
         Sweep* rslSweep;
@@ -2267,7 +2310,7 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
     }
     #endif
     
-    // read the RSL scans (sweeps) and add them to RAVE polar volume  
+    // read the RSL scans (sweeps) and add them to RAVE polar volume
     for (int iScan = 0; iScan < rslVolZ->h.nsweeps; iScan++){
         Sweep *rslSweepZ, *rslSweepV, *rslSweepRho;
         Ray *rslRayZ, *rslRayV, *rslRayRho;
@@ -2275,13 +2318,15 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
         float elev,nyq_vel;
         int nrays,nbins,rscale;
         
-        // retrieve the sweeps of the reflectivity, radial velocity and correlation coeffient volumes, respectively
+        // retrieve the reflectivity sweep
         rslSweepZ = rslVolZ->sweep[iScan];
         elev = rslSweepZ->h.elev;
+        // retrieve radial velocity and correlation coeffient sweeps at the same elevation
         rslSweepV = RSL_get_sweep(rslVolV, elev);
         rslSweepRho = RSL_get_sweep(rslVolRho, elev);
 
-        // retrieve first rays of the reflectivity, radial velocity and correlation coeffient volumes, respectively        
+        // retrieve first rays of the reflectivity, radial velocity
+        // and correlation coeffient volumes, respectively        
         rslRayZ = RSL_get_first_ray_of_sweep(rslSweepZ);
         rslRayV = RSL_get_first_ray_of_sweep(rslSweepV);
         rslRayRho = RSL_get_first_ray_of_sweep(rslSweepRho);
@@ -2318,6 +2363,7 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
             }
         }
 
+        // all checks on sweep passed
         // start a new scan object
         scan = RAVE_OBJECT_NEW(&PolarScan_TYPE);
                 
@@ -2339,13 +2385,15 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
 
         // add range scale Atribute to scan
         rscale = rslRayZ->h.gate_size;
-        PolarScan_setRscale (scan, rscale);
+        PolarScan_setRscale(scan, rscale);
 
         // get the number of range bins
         nbins = 1+rslRayZ->h.nbins+rslRayZ->h.range_bin1/rscale;
         // estimate the number of azimuth bins
         // early WSR88D scans have somewhat variable azimuth spacing
         // therefore we reproject the data onto a regular azimuth grid
+        // azimuth bin size is round off to 1/n with n positive integer
+        // i.e. either 1, 0.5, 0.25 degrees etc.
         nrays = 360*ROUND((float) rslSweepZ->h.nrays/360.0);
         if (nrays != rslSweepZ->h.nrays){
             fprintf(stderr, "Warning: reprojecting DBZH sweep %i (%i rays into %i azimuth-bins) ...\n", iScan,rslSweepZ->h.nrays,nrays);
@@ -2363,55 +2411,51 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
         scanparamV = RAVE_OBJECT_NEW(&PolarScanParam_TYPE);
         scanparamRho = RAVE_OBJECT_NEW(&PolarScanParam_TYPE);
 
-        // set their attributes
+        // set the attributes needed for encoding
         PolarScanParam_setQuantity(scanparamZ, "DBZH");
         PolarScanParam_setQuantity(scanparamV, "VRADH");
         PolarScanParam_createData(scanparamZ,nbins,nrays,RaveDataType_FLOAT);
         PolarScanParam_createData(scanparamV,nbins,nrays,RaveDataType_FLOAT);
         PolarScanParam_createData(scanparamRho,nbins,nrays,RaveDataType_FLOAT);
-//        fprintf(stderr, "CONVERSION offset:%f, gain:%f, invoffset:%i, invgain:%i\n", rslRayZ->h.f(0), rslRayZ->h.f(1)-rslRayZ->h.f(0), rslRayZ->h.invf(0), rslRayZ->h.invf(1)-rslRayZ->h.invf(0));
-//        PolarScanParam_setOffset(scanparamZ,(double) rslRayZ->h.f(0));
-//        PolarScanParam_setOffset(scanparamV,(double) rslRayV->h.invf(0));
-//        PolarScanParam_setGain(scanparamZ,(double) rslRayZ->h.f(1) - (double) rslRayZ->h.f(0));
-//        PolarScanParam_setGain(scanparamV,(double) rslRayV->h.invf(1)-rslRayV->h.invf(0));
-        PolarScanParam_setOffset(scanparamZ,0);
-        PolarScanParam_setOffset(scanparamV,0);
-        PolarScanParam_setGain(scanparamZ,1);
-        PolarScanParam_setGain(scanparamV,1);
-        PolarScanParam_setNodata(scanparamZ,NODATA_RSL);
-        PolarScanParam_setNodata(scanparamV,NODATA_RSL);
+        PolarScanParam_setOffset(scanparamZ,RSL_OFFSET_DBZ);
+        PolarScanParam_setOffset(scanparamV,RSL_OFFSET_VRAD);
+        PolarScanParam_setGain(scanparamZ,RSL_GAIN_DBZ);
+        PolarScanParam_setGain(scanparamV,RSL_GAIN_VRAD);
+        PolarScanParam_setNodata(scanparamZ,RSL_NODATA);
+        PolarScanParam_setNodata(scanparamV,RSL_NODATA);
+        PolarScanParam_setUndetect(scanparamZ,RSL_UNDETECT);
+        PolarScanParam_setUndetect(scanparamV,RSL_UNDETECT);
         if (dualpol){
             PolarScanParam_setQuantity(scanparamRho, "RHOHV");
-//            PolarScanParam_setOffset(scanparamRho,(double) rslRayRho->h.invf(0));
-//            PolarScanParam_setGain(scanparamRho,(double) rslRayRho->h.invf(1)-rslRayRho->h.invf(0));
-            PolarScanParam_setOffset(scanparamRho,0);
-            PolarScanParam_setGain(scanparamRho,1);
-            PolarScanParam_setNodata(scanparamRho,NODATA_RSL);
+            PolarScanParam_setOffset(scanparamRho,RSL_OFFSET_RHOHV);
+            PolarScanParam_setGain(scanparamRho,RSL_GAIN_RHOHV);
+            PolarScanParam_setNodata(scanparamRho,RSL_NODATA);
+            PolarScanParam_setUndetect(scanparamRho,RSL_UNDETECT);
         }
         
-        // Fill the PolarScanParam_t objects with corresponding RSL data
-        for(int iBin=0; iBin<nbins; iBin++){
-            for(int iRay=0; iRay<nrays; iRay++){
-                float value;
-                int flag;
-                value=RSL_get_value_from_sweep(rslSweepZ, iRay*360/nrays,iBin*rscale/1000);
-                flag=PolarScanParam_setValue(scanparamZ, iBin, iRay, (double) value);
-                value=RSL_get_value_from_sweep(rslSweepV, iRay*360/nrays,iBin*rscale/1000);
-                PolarScanParam_setValue(scanparamV, iBin, iRay, (double) value);
-                if(dualpol){
-                    value=RSL_get_value_from_sweep(rslSweepRho, iRay*360/nrays,iBin*rscale/1000);
-                    PolarScanParam_setValue(scanparamRho, iBin, iRay, (double) value);
-                }
+        // initialize the data fields
+        for(int iRay=0; iRay<nrays; iRay++){
+            for(int iBin=0; iBin<nbins; iBin++){
+                PolarScanParam_setValue(scanparamZ, iBin, iRay, RSL_NODATA);
+                PolarScanParam_setValue(scanparamV, iBin, iRay, RSL_NODATA);
+                PolarScanParam_setValue(scanparamRho, iBin, iRay, RSL_NODATA);
             }
         }
         
+        // Fill the PolarScanParam_t objects with corresponding RSL data
+        rslCopy2Rave(rslSweepZ,scanparamZ);
+        rslCopy2Rave(rslSweepV,scanparamV);
+        if (dualpol){
+            rslCopy2Rave(rslSweepRho,scanparamRho);
+        }
+               
         // Add the scan parameters to the scan
         PolarScan_addParameter(scan, scanparamZ);
         PolarScan_addParameter(scan, scanparamV);
         if(dualpol){
             PolarScan_addParameter(scan, scanparamRho);
         }
-        
+                
         // Add the scan to the volume
         PolarVolume_addScan(volume,scan);
         

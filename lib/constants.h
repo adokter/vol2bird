@@ -49,10 +49,31 @@
 #define VDIFMAX 10.0
 // When analyzing cells, radial velocities lower than VRADMIN are treated as clutter
 #define VRADMIN 1.0
-// By how much the elevation angle of sweeps of different quantities can differ
-// for them to be included into the same scan object.
+
+
+//-------------------------------------------------------//
+//       hard-coded options for use RSL library          //
+//-------------------------------------------------------//
+
+#ifdef RSL
+// By how much the elevation angle of sweeps of different quantities
+// is allowed to differ for them to be included into the same scan object.
 // Applies to data read with the RSL library only
-#define ELEVTOL 0.5
+#define ELEVTOL 0.3
+// Offsets and gains for encoding reflectivity, velocity
+// and correlation coefficient
+// Once encoded values should be positive for storage in RAVE objects
+// Used with data read by the RSL library only
+#define RSL_OFFSET_DBZ -100
+#define RSL_GAIN_DBZ 0.01
+#define RSL_OFFSET_VRAD -60
+#define RSL_GAIN_VRAD 0.01
+#define RSL_OFFSET_RHOHV -0.002
+#define RSL_GAIN_RHOHV 0.001
+// Encoded values reserved for nodata and undetects.
+#define RSL_NODATA 0
+#define RSL_UNDETECT 1
+#endif
 
 //-------------------------------------------------------//
 //             other hard-coded options                  //
