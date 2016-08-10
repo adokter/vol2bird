@@ -109,7 +109,7 @@ const char* PolarVolume_getStartTime(PolarVolume_t* pvol);
 double PolarVolume_getWavelength(PolarVolume_t* pvol);
 
 #ifdef RSL
-PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar);
+PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax);
 
 int rslCopy2Rave(Sweep *rslSweep,PolarScanParam_t* scanparam);
 #endif
@@ -1869,9 +1869,8 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradIma
 } // getListOfSelectedGates
 
 int PolarVolume_dealias(PolarVolume_t* pvol){
-    //FIXME, skeleton only, see issue #66 vol2bird repo github
     
-    fprintf(stderr,"Warning: dealiasing scans: ");
+    fprintf(stderr,"Dealiasing scans: ");
     
     int iScan, nScans;
     int result;
@@ -1903,7 +1902,7 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
             result = PolarScanParam_setQuantity (param_clone, "VRADH");
             //add the copy
             result = PolarScan_addParameter(scan, param_clone);
-            RAVE_OBJECT_RELEASE(param_clone);
+            //RAVE_OBJECT_RELEASE(param_clone);
         }
         else{
             param = PolarScan_getParameter(scan, "VRADH");
@@ -1912,7 +1911,7 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
             result = PolarScanParam_setQuantity (param_clone, "VRAD");
             //add a copy
             result = PolarScan_addParameter(scan, param_clone);
-            RAVE_OBJECT_RELEASE(param_clone);
+            //RAVE_OBJECT_RELEASE(param_clone);
         }
         
         // dealias the radial velocity parameter (stored as VRAD) of the scan
@@ -1920,7 +1919,8 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
      
         // if dealiasing successful
         if (result == 1){
-            fprintf(stderr,"%i,",iScan);
+            // print to stderr that this scan was dealiased
+            fprintf(stderr,"%i,",iScan+1);
 
             // remove and extract the dealiased VRAD parameter
             param_dealiased = PolarScan_removeParameter(scan, "VRAD");
@@ -1929,15 +1929,15 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
             result = PolarScanParam_setQuantity (param_dealiased, "VRADDH");
         
             // add the dealised VRADHD parameter to the scan
-            result = PolarScan_addParameter(scan, param);
+            result = PolarScan_addParameter(scan, param_dealiased);
             
             // release the dealiased parameter
-            RAVE_OBJECT_RELEASE(param_dealiased);
+            //RAVE_OBJECT_RELEASE(param_dealiased);
         }
 
         // release objects
-        RAVE_OBJECT_RELEASE(param);
-        RAVE_OBJECT_RELEASE(scan);        
+        //RAVE_OBJECT_RELEASE(param);
+        //RAVE_OBJECT_RELEASE(scan);        
     }
     fprintf(stderr," done.\n");
     return 1;
@@ -2188,7 +2188,8 @@ int rslCopy2Rave(Sweep *rslSweep,PolarScanParam_t* scanparam){
         // only values between 0 and 360 degrees permitted
         if (rayindex >= nrays) rayindex-=nrays;
         // loop over range bins
-        for(int iBin=0; iBin<nbins; iBin++){
+        int iBinStart = ROUND((rslRay->h.range_bin1 + 0.5*rscale)/rscale);
+        for(int iBin=iBinStart; iBin<nbins; iBin++){
             value=RSL_get_value_from_ray(rslRay, iBin*rscale/1000);
             if (value == BADVAL){
                 // BADVAL is used in RSL library to encode for undetects, but also for nodata
@@ -2207,7 +2208,7 @@ int rslCopy2Rave(Sweep *rslSweep,PolarScanParam_t* scanparam){
 }
 
 // maps a RSL polar volume to a RAVE polar volume
-PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
+PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax){
     
     // the RAVE polar volume to be returned by this function
     PolarVolume_t* volume = NULL;
@@ -2273,7 +2274,7 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
     sprintf(pvtime, "%02i%02i%02i",radar->h.hour,radar->h.minute,ROUND(radar->h.sec));
     sprintf(pvdate, "%04i%02i%02i",radar->h.year,radar->h.month,radar->h.day);
     sprintf(pvsource, "RAD:%s,PLC:%s,state:%s,radar_name:%s",radar->h.name,radar->h.city,radar->h.state,radar->h.radar_name);
-    fprintf(stderr,"Reading RSL polar volume with nominal time %s-%s, source:%s\n",pvdate,pvtime,pvsource);    
+    fprintf(stderr,"Reading RSL polar volume with nominal time %s-%s, source: %s\n",pvdate,pvtime,pvsource);    
     PolarVolume_setTime(volume,pvtime);
     PolarVolume_setDate(volume,pvdate);
     PolarVolume_setSource(volume,pvsource);
@@ -2390,6 +2391,8 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
 
         // get the number of range bins
         nbins = 1+rslRayZ->h.nbins+rslRayZ->h.range_bin1/rscale;
+        nbins = MIN(nbins, ROUND(30000.0f/rscale));
+        
         // estimate the number of azimuth bins
         // early WSR88D scans have somewhat variable azimuth spacing
         // therefore we reproject the data onto a regular azimuth grid
@@ -2437,9 +2440,9 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
         // initialize the data fields
         for(int iRay=0; iRay<nrays; iRay++){
             for(int iBin=0; iBin<nbins; iBin++){
-                PolarScanParam_setValue(scanparamZ, iBin, iRay, RSL_NODATA);
-                PolarScanParam_setValue(scanparamV, iBin, iRay, RSL_NODATA);
-                PolarScanParam_setValue(scanparamRho, iBin, iRay, RSL_NODATA);
+                PolarScanParam_setValue(scanparamZ, iBin, iRay, PolarScanParam_getNodata(scanparamZ));
+                PolarScanParam_setValue(scanparamV, iBin, iRay, PolarScanParam_getNodata(scanparamV));
+                PolarScanParam_setValue(scanparamRho, iBin, iRay, PolarScanParam_getNodata(scanparamRho));
             }
         }
         
@@ -4100,7 +4103,7 @@ void printProfile(vol2bird_t* alldata) {
 
 // reads a polar volume from file and returns it as a RAVE polar volume object
 // remember to release the polar volume object when done with it
-PolarVolume_t* vol2birdGetVolume(char* filename){
+PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax){
     
     PolarVolume_t* volume = NULL;
     
@@ -4144,7 +4147,7 @@ PolarVolume_t* vol2birdGetVolume(char* filename){
         
         // convert RSL object to RAVE polar volume
         
-        volume = PolarVolume_RSL2Rave(radar);
+        volume = PolarVolume_RSL2Rave(radar, rangeMax);
         
         RSL_free_radar(radar);
     }
@@ -4260,7 +4263,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     //                       some other variables                    //
     // ------------------------------------------------------------- //
 
-    alldata->misc.rCellMax = alldata->options.rangeMax + 5000.0f;
+    alldata->misc.rCellMax = alldata->options.rangeMax + RCELLMAX_OFFSET;
     alldata->misc.nDims = 2;
     alldata->misc.nParsFitted = 3;
     alldata->misc.dbzFactor = (pow(alldata->constants.refracIndex,2) * 1000 * pow(PI,5))/pow(alldata->options.radarWavelength,4);
@@ -4368,11 +4371,6 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         if(result == 0){
             fprintf(stderr,"Warning, failed to dealias radial velocities");
         }
-        
-        //uncomment to output the dealised polar volume
-        //RaveIO_setObject(raveio, (RaveCoreObject*)volume);
-        //result = RaveIO_save(raveio, "dealiased.h5");
-        //RAVE_OBJECT_RELEASE(raveio);
     }
  
     // ------------------------------------------------------------- //

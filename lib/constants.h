@@ -44,6 +44,10 @@
 #define REFRACTIVE_INDEX_OF_WATER 0.964
 // minimum standard deviation of the VVP fit
 #define STDEVCELL 5.0
+// range gates up to a distance of RANGE_MAX+RCELLMAX_OFFSET are read into memory
+// the extra offset allows for the raincell search to extend somewhat further
+// than the maximum range used in the profile generation (RANGE_MAX).
+#define RCELLMAX_OFFSET 5000.0f
 // after fitting the vrad data, throw out any vrad observations that are more that VDIFMAX away
 // from the fitted value, since these are likely outliers
 #define VDIFMAX 10.0
@@ -71,8 +75,9 @@
 #define RSL_OFFSET_RHOHV -0.002
 #define RSL_GAIN_RHOHV 0.001
 // Encoded values reserved for nodata and undetects.
-#define RSL_NODATA 0
-#define RSL_UNDETECT 1
+// Should be positive integers larger than zero
+#define RSL_NODATA 1
+#define RSL_UNDETECT 2
 #endif
 
 //-------------------------------------------------------//

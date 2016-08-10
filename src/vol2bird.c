@@ -88,24 +88,28 @@ int main(int argc, char** argv) {
         fileVpOut = NULL;
         fileVolOut = NULL;
     }
-  
+    
+    // read configuration options
+    int configSuccessful = vol2birdLoadConfig(&alldata) == 0;
+
+    if (configSuccessful == FALSE) {
+        return -1;
+    }
+    
     PolarVolume_t* volume = NULL;
-    volume = vol2birdGetVolume(fileVolIn);
-    saveToODIM((RaveCoreObject*) volume, fileVolOut);
+    // read in data up to a distance of alldata.misc.rCellMax
+    // we do not read in the full volume for speed/memory
+    volume = vol2birdGetVolume(fileVolIn, alldata.misc.rCellMax);
     
     if (volume != NULL) {
 
-        // initialize array used for performance analysis
-        //struct timespec ts = { 0 };
-
-        int configSuccessful = vol2birdLoadConfig(&alldata) == 0;
-
-        if (configSuccessful == FALSE) {
-            return -1;
-        }
-
         // initialize volbird library
         int initSuccessful = vol2birdSetUp(volume, &alldata) == 0;
+        
+        // output (optionally de-aliased) volume
+        if (fileVolOut != NULL){
+            saveToODIM((RaveCoreObject*) volume, fileVolOut);
+        }
         
         if (initSuccessful == FALSE) {
             return -1;
