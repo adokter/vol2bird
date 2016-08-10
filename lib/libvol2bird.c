@@ -2181,7 +2181,8 @@ int rslCopy2Rave(Sweep *rslSweep,PolarScanParam_t* scanparam){
 
     for(int iRay=0; iRay<rslSweep->h.nrays; iRay++){
         // determine at which ray index we are in the rave scanparam
-        rayindex=ROUND(nrays*rslRay->h.azimuth/360);
+        // adding half a ray bin width, to get into the middle of the ray bin
+        rayindex=ROUND(nrays*(rslRay->h.azimuth+180.0/nrays)/360.0);
         // get the range gate size for this ray
         rscale = rslRay->h.gate_size;
         // only values between 0 and 360 degrees permitted
@@ -2416,7 +2417,6 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
         PolarScanParam_setQuantity(scanparamV, "VRADH");
         PolarScanParam_createData(scanparamZ,nbins,nrays,RaveDataType_FLOAT);
         PolarScanParam_createData(scanparamV,nbins,nrays,RaveDataType_FLOAT);
-        PolarScanParam_createData(scanparamRho,nbins,nrays,RaveDataType_FLOAT);
         PolarScanParam_setOffset(scanparamZ,RSL_OFFSET_DBZ);
         PolarScanParam_setOffset(scanparamV,RSL_OFFSET_VRAD);
         PolarScanParam_setGain(scanparamZ,RSL_GAIN_DBZ);
@@ -2426,6 +2426,7 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar){
         PolarScanParam_setUndetect(scanparamZ,RSL_UNDETECT);
         PolarScanParam_setUndetect(scanparamV,RSL_UNDETECT);
         if (dualpol){
+            PolarScanParam_createData(scanparamRho,nbins,nrays,RaveDataType_FLOAT);
             PolarScanParam_setQuantity(scanparamRho, "RHOHV");
             PolarScanParam_setOffset(scanparamRho,RSL_OFFSET_RHOHV);
             PolarScanParam_setGain(scanparamRho,RSL_GAIN_RHOHV);
@@ -3083,14 +3084,14 @@ static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* 
 }
 
 
-int saveToODIM(VerticalProfile_t* vp, const char* filename){
+int saveToODIM(RaveCoreObject* object, const char* filename){
     
     //define new Rave IO instance
     RaveIO_t* raveio = RAVE_OBJECT_NEW(&RaveIO_TYPE);
     //VpOdimIO_t* raveio = RAVE_OBJECT_NEW(&VpOdimIO_TYPE);
 
     //set the object to be saved
-    RaveIO_setObject(raveio, (RaveCoreObject*)vp);
+    RaveIO_setObject(raveio, object);
     
     //save the object
     int result;
