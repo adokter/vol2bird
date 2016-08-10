@@ -17,13 +17,13 @@
  
 CC      = gcc
 #CFLAGS  = -fPIC -x c -DFPRINTFON
-CFLAGS  = -fPIC -x c
+CFLAGS  = -DRSL -fPIC -x c
 LDFLAGS = -shared -Wall
 
 # define where the vol2bird stuff is
-#SRC_VOL2BIRD_DIR         = /projects/baltrad/vol2bird/lib
-#SRC_VOL2BIRD_DIR         = /Users/adriaan/git/vol2bird/lib
 SRC_VOL2BIRD_DIR         = ./
+RSL_LIBRARY_FLAG = -I/opt/local/lib 
+RSL_INCLUDE_FLAG = -L/opt/local/include
 
 all : libvol2bird.so
 
@@ -35,13 +35,15 @@ libvol2bird.so :
 	-I. \
 	$(RAVE_MODULE_CFLAGS) \
 	$(CONFUSE_INCLUDE_FLAG) \
+	$(RSL_INCLUDE_FLAG) \
 	$(RAVE_MODULE_LDFLAGS) \
 	$(PROJ_LIBRARY_FLAG) \
 	$(CONFUSE_LIBRARY_FLAG) \
+	$(RSL_LIBRARY_FLAG) \
 	$(SRC_VOL2BIRD_DIR)/libvol2bird.c \
 	$(SRC_VOL2BIRD_DIR)/libsvdfit.c \
 	$(LDFLAGS) \
-	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lm
+	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lrsl -lm
 
 .PHONY : install
 install : libvol2bird.so

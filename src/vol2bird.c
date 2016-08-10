@@ -36,9 +36,10 @@ int main(int argc, char** argv) {
 
     // print default message when no input arguments
     if (argc == 1) {
-        fprintf(stderr,"usage: %s <ODIM hdf5 volume> [<ODIM hdf5 profile output>]\n",argv[0]);
+        fprintf(stderr,"usage: %s <polar volume> [<ODIM hdf5 profile output> [<ODIM hdf5 volume output>]]\n",argv[0]);
         fprintf(stderr,"   Version %s (%s)\n", VERSION, VERSIONDATE);
-        fprintf(stderr,"   expects OPERA ODIM hdf5 input format, see http://www.eumetnet.eu/opera-software\n\n");
+        fprintf(stderr,"   expects OPERA ODIM hdf5 input format, see http://www.eumetnet.eu/opera-software\n");
+        fprintf(stderr,"   or input formats compatible with RSL, see http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl\n\n");
         fprintf(stderr,"   Output fields to stdout:\n");
         fprintf(stderr,"   Date    - date in UTC\n");
         fprintf(stderr,"   Time    - time in UTC\n");
@@ -59,8 +60,8 @@ int main(int argc, char** argv) {
         return -1;
     }
     // check to see if we have the right number of input arguments
-    if (argc > 3) {
-        fprintf(stderr, "Only one or two arguments are allowed\n");
+    if (argc > 4) {
+        fprintf(stderr, "Up to three arguments are allowed\n");
         return -1;
     }
     
@@ -68,45 +69,47 @@ int main(int argc, char** argv) {
     //                initialization of variables                    //
     // ------------------------------------------------------------- //
 
-    // the filename that the user provided as input
-    const char* filename = argv[1];
-    const char* fileout;
-    
+    // the polar volume file that the user provided as input
+    char* fileVolIn = argv[1];
+    // the (optional) vertical profile file that the user specified as output
+    const char* fileVpOut;
+    // the (optional) vertical profile file that the user specified as output
+    const char* fileVolOut;
+
     if (argc == 3){
-        fileout = argv[2];
+        fileVpOut = argv[2];
+        fileVolOut = NULL;
+    }
+    else if (argc == 4){
+        fileVpOut = argv[2];
+        fileVolOut = argv[3];
     }
     else{
-        fileout = NULL;
+        fileVpOut = NULL;
+        fileVolOut = NULL;
     }
-  
     
-    // read the input file and assign it to a generic rave object
-    RaveIO_t* raveio = RaveIO_open(filename);
+    // read configuration options
+    int configSuccessful = vol2birdLoadConfig(&alldata) == 0;
 
-    if (raveio == (RaveIO_t*) NULL){
-        fprintf(stderr, "critical error, cannot open file %s\n", filename);
+    if (configSuccessful == FALSE) {
         return -1;
     }
-
-    if (RaveIO_getObjectType(raveio) == Rave_ObjectType_PVOL) {
-
-        // initialize array used for performance analysis
-        //struct timespec ts = { 0 };
-
-        // the if statement above tests whether we are dealing with a 
-        // PVOL object, so we can safely cast the generic object to
-        // the PolarVolume_t type:
-        PolarVolume_t* volume = NULL;
-        volume = (PolarVolume_t*) RaveIO_getObject(raveio);
-
-        int configSuccessful = vol2birdLoadConfig(&alldata) == 0;
-
-        if (configSuccessful == FALSE) {
-            return -1;
-        }
+    
+    PolarVolume_t* volume = NULL;
+    // read in data up to a distance of alldata.misc.rCellMax
+    // we do not read in the full volume for speed/memory
+    volume = vol2birdGetVolume(fileVolIn, alldata.misc.rCellMax);
+    
+    if (volume != NULL) {
 
         // initialize volbird library
         int initSuccessful = vol2birdSetUp(volume, &alldata) == 0;
+        
+        // output (optionally de-aliased) volume
+        if (fileVolOut != NULL){
+            saveToODIM((RaveCoreObject*) volume, fileVolOut);
+        }
         
         if (initSuccessful == FALSE) {
             return -1;
@@ -134,7 +137,7 @@ int main(int argc, char** argv) {
 
                 fprintf(stdout, "# vol2bird Vertical Profile of Birds (VPB)\n");
                 fprintf(stdout, "# source: %s\n",source);
-                fprintf(stdout, "# ODIM HDF5 input: %s\n",filename);
+                fprintf(stdout, "# ODIM HDF5 input: %s\n",fileVolIn);
                 printf("# Date   Time Heig    U      V       W   Speed Direc StdDev Gap dBZ     eta DensBird dBZAll   n   ndBZ  nAll nAlldBZ\n");
                
                 float *profileBio;
@@ -179,11 +182,11 @@ int main(int argc, char** argv) {
         mapDataToRave(volume, &alldata);
         
         //save rave profile to ODIM hdf5 file
-        if (fileout != NULL){
+        if (fileVpOut != NULL){
             int result;
-            result = saveToODIM(alldata.vp, fileout); 
+            result = saveToODIM((RaveCoreObject*) alldata.vp, fileVpOut); 
             if (result == FALSE){
-                fprintf(stderr, "critical error, cannot write file %s\n", fileout);
+                fprintf(stderr, "critical error, cannot write file %s\n", fileVpOut);
                 return -1;
             }
         }
@@ -199,8 +202,6 @@ int main(int argc, char** argv) {
         //fprintf(stderr, "Processing done in %.2f seconds\n",nSeconds);
 
     }
-
-    RAVE_OBJECT_RELEASE(raveio);
     
     return 0;
 

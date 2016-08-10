@@ -72,7 +72,7 @@ struct scanmeta {
     float azimScale;       // Size of azimuth steps in scan in deg.
     float valueOffset;     // Offset value of quantity contained by scan.
     float valueScale;      // Scale of value of quantity contained by scan.
-    unsigned char missing; // Missing value of quantity contained by scan.
+    float missing;         // Missing value of quantity contained by scan.
 };
 
 typedef struct cellprop CELLPROP;
@@ -346,6 +346,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata);
 
 float* vol2birdGetProfile(int iProfileType, vol2bird_t* alldata);
 
+PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax);
+
 int vol2birdGetNColsProfile(vol2bird_t* alldata);
 
 int vol2birdGetNRowsProfile(vol2bird_t* alldata);
@@ -366,4 +368,4 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata);
 
 float nanify(float value);
 
-int saveToODIM(VerticalProfile_t* volume, const char* filename);
+int saveToODIM(RaveCoreObject* object, const char* filename);

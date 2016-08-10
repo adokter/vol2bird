@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 #include <confuse.h>
 #include <stdlib.h>
 #include <math.h>
@@ -30,24 +31,29 @@
 #undef DEG2RAD // to suppress redefine warning, also defined in dealias.h
 #include "dealias.h"
 
+#ifdef RSL
+#include "rsl.h"
+#endif
+
+
 
 // non-public function prototypes (local to this file/translation unit)
 
-static int analyzeCells(const unsigned char *dbzImage, const unsigned char *vradImage,
-                        const unsigned char *texImage, const unsigned char *clutterImage, int *cellImage,
+static int analyzeCells(const float *dbzImage, const float *vradImage,
+                        const float *texImage, const float *clutterImage, int *cellImage,
                         const SCANMETA *dbzMeta, const SCANMETA *vradMeta, const SCANMETA *texMeta, const SCANMETA *clutterMeta,
                         const int nCells, vol2bird_t* alldata);
 
 static float calcDist(const int range1, const int azim1, const int range2, const int azim2, const float rscale, const float ascale);
 
-static void calcTexture(unsigned char *texImage, const unsigned char *vradImage, const unsigned char *dbzImage,
+static void calcTexture(float *texImage, const float *vradImage, const float *dbzImage,
                         const SCANMETA *texMeta, const SCANMETA *vradMeta, const SCANMETA *dbzMeta, vol2bird_t* alldata);
 
 static void classifyGatesSimple(vol2bird_t* alldata);
 
 static int constructorInt(SCANMETA* meta, int* image, PolarScan_t* scan, const int nGlobal, const int initValue);
 
-static int constructorUChar(SCANMETA* meta, unsigned char* image, PolarScan_t* scan, const int nGlobal, const unsigned char initValue);
+static int constructorFloat(SCANMETA* meta, float* image, PolarScan_t* scan, const int nGlobal, const float initValue);
 
 static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t *scanUse, vol2bird_t* alldata);
 
@@ -60,15 +66,15 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 
 static void exportBirdProfileAsJSON(vol2bird_t* alldata);
 
-static int findWeatherCells(const unsigned char *dbzImage, int *cellImage, const SCANMETA *dbzMeta, vol2bird_t* alldata);
+static int findWeatherCells(const float *dbzImage, int *cellImage, const SCANMETA *dbzMeta, vol2bird_t* alldata);
 
 static int findNearbyGateIndex(const int nAzimParent, const int nRangParent, const int iParent,
                                const int nAzimChild,  const int nRangChild,  const int iChild);
 
 static void fringeCells(int *cellImage,int nRang, int nAzim, float aScale, float rScale, vol2bird_t* alldata);
 
-static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char *vradImage,
-                                  const SCANMETA* dbzMeta, const unsigned char *dbzImage,
+static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradImage,
+                                  const SCANMETA* dbzMeta, const float *dbzImage,
                                   const int *cellImage,
                                   const float altitudeMin, const float altitudeMax,
                                   float* points_local, int iPoint, vol2bird_t* alldata);
@@ -78,7 +84,7 @@ static int hasAzimuthGap(const float *points_local, const int nPoints, vol2bird_
 static int includeGate(const int iProfileType, const int iQuantityType, const unsigned int gateCode, vol2bird_t* alldata);
 
 static int mapDataFromRave(PolarScan_t* scan, SCANMETA *meta, 
-                           unsigned char *values, char *paramStr);
+                           float *values, char *paramStr);
 
 static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* field, const char* quantity);
 
@@ -102,11 +108,17 @@ const char* PolarVolume_getStartTime(PolarVolume_t* pvol);
 
 double PolarVolume_getWavelength(PolarVolume_t* pvol);
 
+#ifdef RSL
+PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax);
+
+int rslCopy2Rave(Sweep *rslSweep,PolarScanParam_t* scanparam);
+#endif
+
 static void printGateCode(char* flags, const unsigned int gateCode);
 
 static void printImageInt(const SCANMETA* meta, const int* imageInt);
 
-static void printImageUChar(const SCANMETA* meta, const unsigned char* imageUChar);
+static void printImageFloat(const SCANMETA* meta, const float* imageFloat);
 
 static int printMeta(const SCANMETA* meta, const char* varName);
 
@@ -120,12 +132,10 @@ static void updateFlagFieldsInPointsArray(const float* yObs, const float* yFitte
                                           const int nPointsIncluded, float* points_local, vol2bird_t* alldata);
 static int updateMap(int *cellImage, const int nGlobal, CELLPROP *cellProp, const int nCells, vol2bird_t* alldata);
 
-
-
 // non-public function declarations (local to this file/translation unit)
 
-static int analyzeCells(const unsigned char *dbzImage, const unsigned char *vradImage,
-        const unsigned char *texImage, const unsigned char *clutterImage, int *cellImage,
+static int analyzeCells(const float *dbzImage, const float *vradImage,
+        const float *texImage, const float *clutterImage, int *cellImage,
         const SCANMETA *dbzMeta, const SCANMETA *vradMeta, const SCANMETA *texMeta, const SCANMETA *clutterMeta,
         const int nCells, vol2bird_t* alldata) {
 
@@ -166,11 +176,11 @@ static int analyzeCells(const unsigned char *dbzImage, const unsigned char *vrad
         }
         return nCellsValid;
     }
-
+    
     // Allocating and initializing memory for cell properties.
     cellProp = (CELLPROP *)malloc(nCells*sizeof(CELLPROP));
     if (!cellProp) {
-        fprintf(stderr,"Requested memory could not be allocated!\n");
+        fprintf(stderr,"Requested memory could not be allocated in analyzeCells!\n");
         return -10;
     }
     for (iCell = 0; iCell < nCells; iCell++) {
@@ -384,8 +394,8 @@ static float calcDist(const int iRang1, const int iAzim1, const int iRang2,
 
 
 
-static void calcTexture(unsigned char* texImage, const unsigned char* vradImage,
-        const unsigned char* dbzImage, const SCANMETA* texMeta, const SCANMETA* vradMeta,
+static void calcTexture(float* texImage, const float* vradImage,
+        const float* dbzImage, const SCANMETA* texMeta, const SCANMETA* vradMeta,
         const SCANMETA* dbzMeta, vol2bird_t* alldata) {
 
 
@@ -403,9 +413,9 @@ static void calcTexture(unsigned char* texImage, const unsigned char* vradImage,
     int iNeighborhood;
     int nNeighborhood;
     int count;
-    unsigned char vradMissingValue;
-    unsigned char dbzMissingValue;
-    unsigned char texMissingValue;
+    float vradMissingValue;
+    float dbzMissingValue;
+    float texMissingValue;
     double vmoment1;
     double vmoment2;
     double dbz;
@@ -488,12 +498,12 @@ static void calcTexture(unsigned char* texImage, const unsigned char* vradImage,
 
                 tex = sqrt(XABS(vmoment2-SQUARE(vmoment1)));
 
-                double tmpTex = ROUND((tex - texOffset) / texScale);
-                if (0 <= tmpTex && tmpTex <= 255) {
-                    texImage[iGlobal] = (unsigned char) tmpTex;
+                double tmpTex = (tex - texOffset) / texScale;
+                if (-FLT_MAX <= tmpTex && tmpTex <= FLT_MAX) {
+                    texImage[iGlobal] = (float) tmpTex;
                 }
                 else {
-                    fprintf(stderr, "Error casting texture value of %f to unsigned char type at texImage[%d]. Aborting.\n",tmpTex,iGlobal);
+                    fprintf(stderr, "Error casting texture value of %f to float type at texImage[%d]. Aborting.\n",tmpTex,iGlobal);
                     return;
                 }
                 
@@ -607,7 +617,7 @@ static int constructorInt(SCANMETA* meta, int* image, PolarScan_t* scan, const i
     meta->azimScale = 360.0f/meta->nAzim;   // for ODIM files this always works
     meta->valueOffset = 0.0f;
     meta->valueScale = 1.0f;
-    meta->missing = (unsigned char) 255;  // FIXME this does not work as intended for type int
+    meta->missing = (float) INT_MAX;  // FIXME this does not work as intended for type int
     
     return 0;
 
@@ -616,7 +626,7 @@ static int constructorInt(SCANMETA* meta, int* image, PolarScan_t* scan, const i
 
 
 
-static int constructorUChar(SCANMETA* meta, unsigned char* image, PolarScan_t* scan, const int nGlobal, const unsigned char initValue) {
+static int constructorFloat(SCANMETA* meta, float* image, PolarScan_t* scan, const int nGlobal, const float initValue) {
 
     int iGlobal;
     
@@ -635,7 +645,7 @@ static int constructorUChar(SCANMETA* meta, unsigned char* image, PolarScan_t* s
     meta->azimScale = 360.0f/meta->nAzim;   // for ODIM files this always works
     meta->valueOffset = 0.0f;
     meta->valueScale = 1.0f;
-    meta->missing = (unsigned char) 255;
+    meta->missing = (float) FLT_MAX;
     
     return 0;
 
@@ -666,24 +676,24 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 int nGlobal = (int) PolarScan_getNbins(scan) * PolarScan_getNrays(scan);
                 
                 // pre-allocate the dbz variables
-                unsigned char* dbzImage = malloc(sizeof(unsigned char) * nGlobal);
+                float* dbzImage = malloc(sizeof(float) * nGlobal);
                 SCANMETA dbzMeta;
-                constructorUChar(&dbzMeta, &dbzImage[0], scan, nGlobal, NAN);
+                constructorFloat(&dbzMeta, &dbzImage[0], scan, nGlobal, NAN);
                 
                 // pre-allocate the vrad variables
-                unsigned char* vradImage = malloc(sizeof(unsigned char) * nGlobal);
+                float* vradImage = malloc(sizeof(float) * nGlobal);
                 SCANMETA vradMeta;
-                constructorUChar(&vradMeta, &vradImage[0], scan, nGlobal, NAN);
+                constructorFloat(&vradMeta, &vradImage[0], scan, nGlobal, NAN);
                 
                 // pre-allocate the tex variables
-                unsigned char* texImage = malloc(sizeof(unsigned char) * nGlobal);
+                float* texImage = malloc(sizeof(float) * nGlobal);
                 SCANMETA texMeta;
-                constructorUChar(&texMeta, &texImage[0], scan, nGlobal, NAN);
+                constructorFloat(&texMeta, &texImage[0], scan, nGlobal, NAN);
                 
                 // pre-allocate the clutter variables
-                unsigned char* clutterImage = malloc(sizeof(unsigned char) * nGlobal);
+                float* clutterImage = malloc(sizeof(float) * nGlobal);
                 SCANMETA clutterMeta;
-                constructorUChar(&clutterMeta, &clutterImage[0], scan, nGlobal, NAN);
+                constructorFloat(&clutterMeta, &clutterImage[0], scan, nGlobal, NAN);
                 
                 // pre-allocate the cell variables
                 int* cellImage = malloc(sizeof(int) * nGlobal);
@@ -719,6 +729,10 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 
                 int nCells = findWeatherCells(&dbzImage[0], &cellImage[0], 
                                        &dbzMeta, alldata);
+                if (nCells<0){
+                    fprintf(stderr,"Error: findWeatherCells exited with errors\n");
+                    return;
+                }
                 
                 if (alldata->options.printCellProp == TRUE) {
                     fprintf(stderr,"(%d/%d): found %d cells.\n",iScan, nScans, nCells);
@@ -747,17 +761,17 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 if (alldata->options.printDbz == TRUE) {
                     fprintf(stderr,"product = dbz\n");
                     printMeta(&dbzMeta,"dbzMeta");
-                    printImageUChar(&dbzMeta,&dbzImage[0]);
+                    printImageFloat(&dbzMeta,&dbzImage[0]);
                 }
                 if (alldata->options.printVrad == TRUE) {
                     fprintf(stderr,"product = vrad\n");
                     printMeta(&vradMeta,"vradMeta");
-                    printImageUChar(&vradMeta,&vradImage[0]);
+                    printImageFloat(&vradMeta,&vradImage[0]);
                 }
                 if (alldata->options.printTex == TRUE) {
                     fprintf(stderr,"product = tex\n");
                     printMeta(&texMeta,"texMeta");
-                    printImageUChar(&texMeta,&texImage[0]);
+                    printImageFloat(&texMeta,&texImage[0]);
                 }
                 if (alldata->options.printCell == TRUE) {
                     fprintf(stderr,"product = cell\n");
@@ -767,7 +781,7 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 if (alldata->options.printClut == TRUE) { 
                     fprintf(stderr,"product = clut\n");
                     printMeta(&clutterMeta,"clutterMeta");
-                    printImageUChar(&clutterMeta,&clutterImage[0]);
+                    printImageFloat(&clutterMeta,&clutterImage[0]);
                 }
                             
                 // ------------------------------------------------------------- //
@@ -801,7 +815,6 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 // ------------------------------------------------------------- //
                 //                         clean up                              //
                 // ------------------------------------------------------------- //
-    
     
                 // free previously malloc'ed arrays
                 free((void*) dbzImage);
@@ -947,7 +960,6 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 	int result, nScans, iScan, nScansUsed;
 	vol2birdScanUse_t *scanUse;
 	double nyquist;
-	char attrName[1024];
 	
 	// Read number of scans
 	nScans = PolarVolume_getNumberOfScans(volume);
@@ -1037,19 +1049,16 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
         // check that Nyquist velocity is not too low
 		if (scanUse[iScan].useScan)
 		{
-			// Read Nyquist interval from top-level how group
-			attr = PolarVolume_getAttribute(volume, "/how/NI");
+			// Read Nyquist interval from scan how group
+			attr = PolarScan_getAttribute(scan, "how/NI");
 			result = 0;
 			if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getDouble(attr, &nyquist);
-			RAVE_OBJECT_RELEASE(attr)
 
-			// Read Nyquist interval from dataset how group
+			// Read Nyquist interval from top level how group
 			if (result == 0)
 			{
-				sprintf(attrName, "/dataset%d/how/NI", iScan + 1);
-				attr = PolarVolume_getAttribute(volume, attrName);
+				attr = PolarVolume_getAttribute(volume, "how/NI");
 				if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getDouble(attr, &nyquist);
-				RAVE_OBJECT_RELEASE(attr);
 			}
 			
             // Derive Nyquist interval from the offset attribute of the dataset
@@ -1061,14 +1070,13 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
                 if(alldata->options.dealiasVrad && PolarScan_hasParameter(scan, "VRADDH") && PolarScan_hasParameter(scan, "VRADH")){
                     param = PolarScan_getParameter(scan, "VRADH");
                     nyquist = fabs(PolarScanParam_getOffset(param));
-                    RAVE_OBJECT_RELEASE(param);
                 }
                 else{
                     param = PolarScan_getParameter(scan, scanUse[iScan].vradName);
                     nyquist = fabs(PolarScanParam_getOffset(param));
-                    RAVE_OBJECT_RELEASE(param);
                 }
                 fprintf(stderr,"Warning: Nyquist interval attribute not found for scan %i, using radial velocity offset (%.1f m/s) instead \n",iScan,nyquist);
+                RAVE_OBJECT_RELEASE(param);
 			}
 			
 			// Set useScan to 0 if no Nyquist interval is available or if it is too low
@@ -1081,10 +1089,8 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
         if (scanUse[iScan].useScan){
             nScansUsed+=1;
         }
-		// Release the scan from memory
-		RAVE_OBJECT_RELEASE(scan);
 	}
-	
+	    
     // FIXME: better to make scanUse a struct that contains both the array of vol2birdScanUse_t objects
     // and the number nScansUSed, which now is stored ad hoc under alldata->misc
     alldata->misc.nScansUsed = nScansUsed;
@@ -1295,7 +1301,7 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
 
 
 
-static int findWeatherCells(const unsigned char *dbzImage, int *cellImage,
+static int findWeatherCells(const float *dbzImage, int *cellImage,
         const SCANMETA *dbzMeta, vol2bird_t* alldata) {
 
     //  ----------------------------------------------------------------------------- //
@@ -1317,14 +1323,14 @@ static int findWeatherCells(const unsigned char *dbzImage, int *cellImage,
     int count;
     int cellImageInitialValue;
 
-    unsigned char dbzThres;
+    float dbzThres;
 
     int iGlobal;
     int iGlobalOther;
     int nGlobal;
     int iLocal;
 
-    unsigned char dbzMissing;
+    float dbzMissing;
     int dbznAzim;
     int dbznRang;
     float dbzValueOffset;
@@ -1383,7 +1389,7 @@ static int findWeatherCells(const unsigned char *dbzImage, int *cellImage,
 
 
     if (dbzImage != NULL) {
-        dbzThres = (unsigned char) ROUND((alldata->constants.dbzThresMin - dbzValueOffset) / dbzValueScale);
+        dbzThres = (float) ROUND((alldata->constants.dbzThresMin - dbzValueOffset) / dbzValueScale);
     }
 
     cellImageInitialValue = -1;
@@ -1393,6 +1399,7 @@ static int findWeatherCells(const unsigned char *dbzImage, int *cellImage,
 
     // If threshold value is equal to missing value, return. FIXME: makes non-general assumption on dbzMissing
     if (dbzThres == dbzMissing) {
+        fprintf(stderr,"Error: dbzThres equals dbzMissing\n");
         return -1;
     }
 
@@ -1433,7 +1440,7 @@ static int findWeatherCells(const unsigned char *dbzImage, int *cellImage,
             fprintf(stderr,"iGlobal = %d\n",iGlobal);
             #endif
 
-            if (dbzImage[iGlobal] == (unsigned char) dbzMissing) {
+            if (dbzImage[iGlobal] == (float) dbzMissing) {
 
                 #ifdef FPRINTFON
                 fprintf(stderr,"dbzImage[%d] == dbzMissing\n",iGlobal);
@@ -1442,7 +1449,7 @@ static int findWeatherCells(const unsigned char *dbzImage, int *cellImage,
                 continue;
             }
 
-            if (dbzImage[iGlobal] < (unsigned char) dbzThres) {
+            if (dbzImage[iGlobal] < (float) dbzThres) {
                 continue;
             }
 
@@ -1734,8 +1741,8 @@ static void fringeCells(int *cellImage, int nRang, int nAzim, float aScale, floa
 
 
 
-static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char *vradImage, 
-                           const SCANMETA* dbzMeta, const unsigned char *dbzImage,
+static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradImage, 
+                           const SCANMETA* dbzMeta, const float *dbzImage,
                            const int *cellImage,
                            const float altitudeMin, const float altitudeMax,
                            float* points_local, int iRowPoints, vol2bird_t* alldata) {
@@ -1768,8 +1775,8 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
     float vradValue;
     float dbzValue;
     
-    unsigned char dbzMissingValue;
-    unsigned char vradMissingValue;
+    float dbzMissingValue;
+    float vradMissingValue;
 
     nPointsWritten_local = 0;
 
@@ -1862,9 +1869,8 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const unsigned char 
 } // getListOfSelectedGates
 
 int PolarVolume_dealias(PolarVolume_t* pvol){
-    //FIXME, skeleton only, see issue #66 vol2bird repo github
     
-    fprintf(stderr,"Warning: dealiasing scans: ");
+    fprintf(stderr,"Dealiasing scans: ");
     
     int iScan, nScans;
     int result;
@@ -1896,6 +1902,7 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
             result = PolarScanParam_setQuantity (param_clone, "VRADH");
             //add the copy
             result = PolarScan_addParameter(scan, param_clone);
+            //RAVE_OBJECT_RELEASE(param_clone);
         }
         else{
             param = PolarScan_getParameter(scan, "VRADH");
@@ -1904,7 +1911,7 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
             result = PolarScanParam_setQuantity (param_clone, "VRAD");
             //add a copy
             result = PolarScan_addParameter(scan, param_clone);
-            RAVE_OBJECT_RELEASE(param_clone);
+            //RAVE_OBJECT_RELEASE(param_clone);
         }
         
         // dealias the radial velocity parameter (stored as VRAD) of the scan
@@ -1912,7 +1919,8 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
      
         // if dealiasing successful
         if (result == 1){
-            fprintf(stderr,"%i,",iScan);
+            // print to stderr that this scan was dealiased
+            fprintf(stderr,"%i,",iScan+1);
 
             // remove and extract the dealiased VRAD parameter
             param_dealiased = PolarScan_removeParameter(scan, "VRAD");
@@ -1921,15 +1929,15 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
             result = PolarScanParam_setQuantity (param_dealiased, "VRADDH");
         
             // add the dealised VRADHD parameter to the scan
-            result = PolarScan_addParameter(scan, param);
+            result = PolarScan_addParameter(scan, param_dealiased);
             
             // release the dealiased parameter
-            RAVE_OBJECT_RELEASE(param_dealiased);
+            //RAVE_OBJECT_RELEASE(param_dealiased);
         }
 
         // release objects
-        RAVE_OBJECT_RELEASE(param);
-        RAVE_OBJECT_RELEASE(scan);        
+        //RAVE_OBJECT_RELEASE(param);
+        //RAVE_OBJECT_RELEASE(scan);        
     }
     fprintf(stderr," done.\n");
     return 1;
@@ -2108,7 +2116,6 @@ double PolarVolume_getWavelength(PolarVolume_t* pvol)
     RaveAttribute_t* attr = PolarVolume_getAttribute(pvol, "how/wavelength");
     if (attr != (RaveAttribute_t *) NULL){
         RaveAttribute_getDouble(attr, &value);
-        RAVE_OBJECT_RELEASE(attr);
     }
     else{
         // wavelength attribute was not found in the root /how attribute
@@ -2118,17 +2125,358 @@ double PolarVolume_getWavelength(PolarVolume_t* pvol)
             attr = PolarScan_getAttribute(scan, "how/wavelength");
             if (attr != (RaveAttribute_t *) NULL){
                 RaveAttribute_getDouble(attr, &value);
-                RAVE_OBJECT_RELEASE(attr);
                 fprintf(stderr, "Warning: using radar wavelength stored for scan 1 (%f cm) for all scans ...\n", value);
             }
-            RAVE_OBJECT_RELEASE(scan);
         }
     }
     
     return value;
 }
 
+double PolarVolume_setWavelength(PolarVolume_t* pvol, double wavelength)
+{
+    RAVE_ASSERT((pvol != NULL), "pvol == NULL");
+    
+    double value = 0;
 
+    RaveAttribute_t* attr = PolarVolume_getAttribute(pvol, "how/wavelength");
+    if (attr != (RaveAttribute_t *) NULL){
+        RaveAttribute_getDouble(attr, &value);
+    }
+    else{
+        // wavelength attribute was not found in the root /how attribute
+        // check whether we can find it under /dataset1/how 
+        PolarScan_t* scan = PolarVolume_getScan(pvol, 1);
+        if (scan != (PolarScan_t *) NULL){
+            attr = PolarScan_getAttribute(scan, "how/wavelength");
+            if (attr != (RaveAttribute_t *) NULL){
+                RaveAttribute_getDouble(attr, &value);
+                fprintf(stderr, "Warning: using radar wavelength stored for scan 1 (%f cm) for all scans ...\n", value);
+            }
+        }
+    }
+    
+    return value;
+}
+
+#ifdef RSL
+
+// copies a RSL sweep to a Rave scan
+int rslCopy2Rave(Sweep *rslSweep,PolarScanParam_t* scanparam){
+    float value;
+    double setvalue;
+    float rscale;
+    int rayindex=0;
+    Ray *rslRay;
+    long nrays,nbins;
+    
+    rslRay = RSL_get_first_ray_of_sweep(rslSweep);
+    
+    if (rslRay == NULL) return 0;
+    
+    nbins = PolarScanParam_getNbins(scanparam);
+    nrays = PolarScanParam_getNrays(scanparam);
+
+    if (nbins == 0 || nrays == 0) return 0;
+
+    for(int iRay=0; iRay<rslSweep->h.nrays; iRay++){
+        // determine at which ray index we are in the rave scanparam
+        // adding half a ray bin width, to get into the middle of the ray bin
+        rayindex=ROUND(nrays*(rslRay->h.azimuth+180.0/nrays)/360.0);
+        // get the range gate size for this ray
+        rscale = rslRay->h.gate_size;
+        // only values between 0 and 360 degrees permitted
+        if (rayindex >= nrays) rayindex-=nrays;
+        // loop over range bins
+        int iBinStart = ROUND((rslRay->h.range_bin1 + 0.5*rscale)/rscale);
+        for(int iBin=iBinStart; iBin<nbins; iBin++){
+            value=RSL_get_value_from_ray(rslRay, iBin*rscale/1000);
+            if (value == BADVAL){
+                // BADVAL is used in RSL library to encode for undetects, but also for nodata
+                // In most cases we are dealing with undetects, so encode as such
+                setvalue=PolarScanParam_getUndetect(scanparam);
+            }
+            else{
+                setvalue=(value-PolarScanParam_getOffset(scanparam))/PolarScanParam_getGain(scanparam);
+            }
+            PolarScanParam_setValue(scanparam, iBin, rayindex, setvalue);
+        }
+        rslRay=RSL_get_next_cwise_ray(rslSweep, rslRay);
+    }
+    
+    return 1;
+}
+
+// maps a RSL polar volume to a RAVE polar volume
+PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax){
+    
+    // the RAVE polar volume to be returned by this function
+    PolarVolume_t* volume = NULL;
+    
+    // flag indicating whether we are dealing with dual-pol data
+    int dualpol = FALSE;
+
+    if(radar == NULL) {
+        fprintf(stderr, "Error: RSL radar object is empty...\n");
+        goto done;
+    }
+
+    // sort the scans (sweeps) and rays
+    if(RSL_sort_radar(radar) == NULL) {
+        fprintf(stderr, "Error: failed to sort RSL radar object...\n");
+        goto done;
+    }
+    
+    // pointers to RSL polar volumes of reflectivity, velocity and correlation coefficient, respectively.
+    Volume *rslVolZ,*rslVolV,*rslVolRho;
+    // pointer to a RSL ray
+    Ray* rslRay;
+    
+    // retrieve the polar volumes from the Radar object
+    rslVolZ = radar->v[DZ_INDEX];
+    rslVolV = radar->v[VR_INDEX];
+    rslVolRho = radar->v[RH_INDEX];
+    
+    // several checks that the volumes contain data
+    if (rslVolZ == NULL){
+        fprintf(stderr, "Error: RSL radar object contains no reflectivity volume...\n");
+        goto done;
+    }
+    else if (rslVolV == NULL){
+        fprintf(stderr, "Error: RSL radar object contains no radial velocity volume...\n");
+        goto done;
+    }
+    if (rslVolRho){
+        dualpol=TRUE;
+    }
+    
+    // retrieve the first ray, for extracting some metadata
+    rslRay = RSL_get_first_ray_of_volume(rslVolZ);
+    if (rslRay == NULL){
+        fprintf(stderr, "Error: RSL radar object contains no rays...\n");
+        goto done;
+    }
+    
+    // all checks on RSL object passed
+    // make a new rave polar volume object
+    volume = RAVE_OBJECT_NEW(&PolarVolume_TYPE);
+    
+    if (volume == NULL) {
+        RAVE_CRITICAL0("Error: failed to create polarvolume instance");
+        goto done;
+    }
+
+    // add attribute data to RAVE polar volume
+    // first, copy metadata stored in radar header
+    char pvtime[7];
+    char pvdate[9];
+    char *pvsource = malloc(strlen(radar->h.name)+strlen(radar->h.city)+strlen(radar->h.state)+strlen(radar->h.radar_name)+30);
+    sprintf(pvtime, "%02i%02i%02i",radar->h.hour,radar->h.minute,ROUND(radar->h.sec));
+    sprintf(pvdate, "%04i%02i%02i",radar->h.year,radar->h.month,radar->h.day);
+    sprintf(pvsource, "RAD:%s,PLC:%s,state:%s,radar_name:%s",radar->h.name,radar->h.city,radar->h.state,radar->h.radar_name);
+    fprintf(stderr,"Reading RSL polar volume with nominal time %s-%s, source: %s\n",pvdate,pvtime,pvsource);    
+    PolarVolume_setTime(volume,pvtime);
+    PolarVolume_setDate(volume,pvdate);
+    PolarVolume_setSource(volume,pvsource);
+    PolarVolume_setLongitude(volume,(double) (radar->h.lond + radar->h.lonm/60.0 + radar->h.lons/3600.0)*PI/180);
+    PolarVolume_setLatitude(volume,(double) (radar->h.latd + radar->h.latm/60.0 + radar->h.lats/3600.0)*PI/180);
+    PolarVolume_setHeight(volume, (double) radar->h.height);
+
+    // second, copy metadata stored in ray header; assume attributes of first ray applies to entire volume
+    float wavelength = rslRay->h.wavelength*100;
+    RaveAttribute_t* attr_wavelength = RaveAttributeHelp_createDouble("how/wavelength", (double) wavelength);
+    if (attr_wavelength == NULL && wavelength > 0){
+        fprintf(stderr, "warning: no valid wavelength found in RSL polar volume\n");
+    }
+    else{    
+        PolarVolume_addAttribute(volume, attr_wavelength);
+    }
+
+    // optional print which scans (sweeps) will be read for this RSL file
+    #ifdef FPRINTFON
+    for (int iVol=0; iVol<MAX_RADAR_VOLUMES; iVol++) {
+        Sweep* rslSweep;
+        rslSweep = radar->v[iVol]->sweep[0];
+        rslRay   = rslSweep->ray[0];
+        fprintf(stderr, "Scans to be read from RSL file:\n"
+        if (rslSweep && rslRay) {
+            for(int iScan=0; iScan<radar->v[iVol]->h.nsweeps; iScan++){
+                rslSweep = radar->v[iVol]->sweep[iScan];
+                rslRay   = rslSweep->ray[0];
+                sprintf(pvtime, "%02i%02i%02i",rslRay->h.hour,rslRay->h.minute,ROUND(rslRay->h.sec));
+                sprintf(pvdate, "%04i%02i%02i",rslRay->h.year,rslRay->h.month,rslRay->h.day);
+
+                fprintf(stderr, "%s-%s,%s,elev=%f,vol=%i,scan=%i,nrays=%i,nbins=%i,rscale=%i\n",pvdate,pvtime,radar->v[iVol]->h.type_str,rslSweep->h.elev,iVol,iScan,rslSweep->h.nrays, rslRay->h.nbins,rslRay->h.gate_size);
+            }
+        }
+    }
+    #endif
+    
+    // read the RSL scans (sweeps) and add them to RAVE polar volume
+    for (int iScan = 0; iScan < rslVolZ->h.nsweeps; iScan++){
+        Sweep *rslSweepZ, *rslSweepV, *rslSweepRho;
+        Ray *rslRayZ, *rslRayV, *rslRayRho;
+        PolarScan_t* scan;
+        float elev,nyq_vel;
+        int nrays,nbins,rscale;
+        
+        // retrieve the reflectivity sweep
+        rslSweepZ = rslVolZ->sweep[iScan];
+        elev = rslSweepZ->h.elev;
+        // retrieve radial velocity and correlation coeffient sweeps at the same elevation
+        rslSweepV = RSL_get_sweep(rslVolV, elev);
+        rslSweepRho = RSL_get_sweep(rslVolRho, elev);
+
+        // retrieve first rays of the reflectivity, radial velocity
+        // and correlation coeffient volumes, respectively        
+        rslRayZ = RSL_get_first_ray_of_sweep(rslSweepZ);
+        rslRayV = RSL_get_first_ray_of_sweep(rslSweepV);
+        rslRayRho = RSL_get_first_ray_of_sweep(rslSweepRho);
+        
+        // check that we have data and that the elevations of the sweeps of each quantity match
+        if(rslSweepV == NULL){
+            fprintf(stderr,"Warning: no velocity (VRAD) data found, dropping sweep %i...\n",iScan);
+            continue;
+        }
+        if(ABS(rslSweepV->h.elev-elev)>ELEVTOL){
+            fprintf(stderr,"Warning: elevation angle of radial velocity scan does not match reflectivity scan, dropping sweep %i...\n",iScan);
+            continue;
+        }
+        if(rslRayZ == NULL){
+            fprintf(stderr,"Warning: no reflectivity ray data found, dropping sweep %i...\n",iScan);
+            continue;
+        }
+        if(rslRayV == NULL){
+            fprintf(stderr,"Warning: no radial velocity ray data found, dropping sweep %i...\n",iScan);
+            continue;
+        }
+        if(dualpol){
+            if(rslSweepRho == NULL){
+                fprintf(stderr,"Warning: no correlation coefficient (RhoHV) data found, dropping sweep %i...\n",iScan);
+                continue;
+            }
+            if(rslRayRho == NULL){
+                fprintf(stderr,"Warning: no correlation coefficient ray data found, dropping sweep %i...\n",iScan);
+                continue;
+            }
+            if(ABS(rslSweepRho->h.elev-elev)>ELEVTOL){
+                fprintf(stderr,"Warning: elevation angle of correlation coefficient (RhoHV) scan does not match reflectivity scan, dropping sweep %i...\n",iScan);
+                continue;
+            }
+        }
+
+        // all checks on sweep passed
+        // start a new scan object
+        scan = RAVE_OBJECT_NEW(&PolarScan_TYPE);
+                
+        // add attribute Elevation to scan
+        PolarScan_setElangle(scan, (double) elev*PI/180);
+
+        // add attribute Beamwidth to scan
+        PolarScan_setBeamwidth(scan, (double) rslSweepZ->h.beam_width);
+
+        // add attribute Nyquist velocity to scan
+        nyq_vel = rslRayV->h.nyq_vel;
+        RaveAttribute_t* attr_NI = RaveAttributeHelp_createDouble("how/NI", (double) nyq_vel);
+        if (attr_NI == NULL && nyq_vel > 0){
+            fprintf(stderr, "warning: no valid Nyquist velocity found in RSL polar volume\n");
+        }
+        else{    
+            PolarScan_addAttribute(scan, attr_NI);
+        }
+
+        // add range scale Atribute to scan
+        rscale = rslRayZ->h.gate_size;
+        PolarScan_setRscale(scan, rscale);
+
+        // get the number of range bins
+        nbins = 1+rslRayZ->h.nbins+rslRayZ->h.range_bin1/rscale;
+        nbins = MIN(nbins, ROUND(30000.0f/rscale));
+        
+        // estimate the number of azimuth bins
+        // early WSR88D scans have somewhat variable azimuth spacing
+        // therefore we reproject the data onto a regular azimuth grid
+        // azimuth bin size is round off to 1/n with n positive integer
+        // i.e. either 1, 0.5, 0.25 degrees etc.
+        nrays = 360*ROUND((float) rslSweepZ->h.nrays/360.0);
+        if (nrays != rslSweepZ->h.nrays){
+            fprintf(stderr, "Warning: reprojecting DBZH sweep %i (%i rays into %i azimuth-bins) ...\n", iScan,rslSweepZ->h.nrays,nrays);
+        }
+        if (nrays != rslSweepV->h.nrays){
+            fprintf(stderr, "Warning: reprojecting VRADH sweep %i (%i rays into %i azimuth-bins) ...\n", iScan,rslSweepZ->h.nrays,nrays);
+        }
+        if (dualpol && nrays != rslSweepRho->h.nrays){
+            fprintf(stderr, "Warning: reprojecting RHOHV sweep %i (%i rays into %i azimuth-bins) ...\n", iScan,rslSweepZ->h.nrays,nrays);
+        }
+
+        // make new PolarScanParam_t objects with attributes
+        PolarScanParam_t *scanparamZ, *scanparamV, *scanparamRho;
+        scanparamZ = RAVE_OBJECT_NEW(&PolarScanParam_TYPE);
+        scanparamV = RAVE_OBJECT_NEW(&PolarScanParam_TYPE);
+        scanparamRho = RAVE_OBJECT_NEW(&PolarScanParam_TYPE);
+
+        // set the attributes needed for encoding
+        PolarScanParam_setQuantity(scanparamZ, "DBZH");
+        PolarScanParam_setQuantity(scanparamV, "VRADH");
+        PolarScanParam_createData(scanparamZ,nbins,nrays,RaveDataType_FLOAT);
+        PolarScanParam_createData(scanparamV,nbins,nrays,RaveDataType_FLOAT);
+        PolarScanParam_setOffset(scanparamZ,RSL_OFFSET_DBZ);
+        PolarScanParam_setOffset(scanparamV,RSL_OFFSET_VRAD);
+        PolarScanParam_setGain(scanparamZ,RSL_GAIN_DBZ);
+        PolarScanParam_setGain(scanparamV,RSL_GAIN_VRAD);
+        PolarScanParam_setNodata(scanparamZ,RSL_NODATA);
+        PolarScanParam_setNodata(scanparamV,RSL_NODATA);
+        PolarScanParam_setUndetect(scanparamZ,RSL_UNDETECT);
+        PolarScanParam_setUndetect(scanparamV,RSL_UNDETECT);
+        if (dualpol){
+            PolarScanParam_createData(scanparamRho,nbins,nrays,RaveDataType_FLOAT);
+            PolarScanParam_setQuantity(scanparamRho, "RHOHV");
+            PolarScanParam_setOffset(scanparamRho,RSL_OFFSET_RHOHV);
+            PolarScanParam_setGain(scanparamRho,RSL_GAIN_RHOHV);
+            PolarScanParam_setNodata(scanparamRho,RSL_NODATA);
+            PolarScanParam_setUndetect(scanparamRho,RSL_UNDETECT);
+        }
+        
+        // initialize the data fields
+        for(int iRay=0; iRay<nrays; iRay++){
+            for(int iBin=0; iBin<nbins; iBin++){
+                PolarScanParam_setValue(scanparamZ, iBin, iRay, PolarScanParam_getNodata(scanparamZ));
+                PolarScanParam_setValue(scanparamV, iBin, iRay, PolarScanParam_getNodata(scanparamV));
+                PolarScanParam_setValue(scanparamRho, iBin, iRay, PolarScanParam_getNodata(scanparamRho));
+            }
+        }
+        
+        // Fill the PolarScanParam_t objects with corresponding RSL data
+        rslCopy2Rave(rslSweepZ,scanparamZ);
+        rslCopy2Rave(rslSweepV,scanparamV);
+        if (dualpol){
+            rslCopy2Rave(rslSweepRho,scanparamRho);
+        }
+               
+        // Add the scan parameters to the scan
+        PolarScan_addParameter(scan, scanparamZ);
+        PolarScan_addParameter(scan, scanparamV);
+        if(dualpol){
+            PolarScan_addParameter(scan, scanparamRho);
+        }
+                
+        // Add the scan to the volume
+        PolarVolume_addScan(volume,scan);
+        
+        // clean up before continuing with next scan/sweep
+        RAVE_OBJECT_RELEASE(scan);
+        RAVE_OBJECT_RELEASE(scanparamZ);
+        RAVE_OBJECT_RELEASE(scanparamV);
+        RAVE_OBJECT_RELEASE(scanparamRho);
+        RAVE_OBJECT_RELEASE(attr_NI);
+    }
+    
+    free(pvsource);
+    
+    done:
+        return volume;
+}
+#endif
 
 static int hasAzimuthGap(const float* points_local, const int nPoints, vol2bird_t* alldata) {
 
@@ -2451,7 +2799,7 @@ static int readUserConfigOptions(cfg_t** cfg) {
 
 
 
-static int mapDataFromRave(PolarScan_t* scan, SCANMETA* meta, unsigned char* values, char* paramStr) {
+static int mapDataFromRave(PolarScan_t* scan, SCANMETA* meta, float* values, char* paramStr) {
 
     PolarScanParam_t* param = PolarScan_getParameter(scan,paramStr);
 
@@ -2476,10 +2824,10 @@ static int mapDataFromRave(PolarScan_t* scan, SCANMETA* meta, unsigned char* val
         meta->azimScale = 360.0f/meta->nAzim;   // for ODIM files this always works
         meta->valueOffset = (float) PolarScanParam_getOffset(param);
         meta->valueScale = (float) PolarScanParam_getGain(param);
-        meta->missing = (unsigned char) PolarScanParam_getNodata(param);
+        meta->missing = (float) PolarScanParam_getNodata(param);
         double value;
         double* valuePtr = &value;
-        unsigned char valueUChar;
+        float valueFloat;
         
         
         for (iAzim = 0; iAzim < nAzim; iAzim++) {
@@ -2487,19 +2835,14 @@ static int mapDataFromRave(PolarScan_t* scan, SCANMETA* meta, unsigned char* val
             
                 RaveValueType t = PolarScanParam_getValue(param, iRang, iAzim, valuePtr);
                 
-                if (0 <= value && value <=255) {
-                    valueUChar = (unsigned char) value;
+                valueFloat = (float) value;
+                
+                //the below conditions sets RaveValueType_UNDEFINED, RaveValueType_UNDETECT, RaveValueType_NODATA all to nodata value
+                //thereby the difference between these three types is lost
+                if(t != RaveValueType_DATA ){
+                    valueFloat = meta->missing;
                 }
-                else {
-                    fprintf(stderr,"Out of range value read at iRang = %d, iAzim = %d\n",iRang,iAzim);
-                    return -1;
-                }
-		//the below conditions sets RaveValueType_UNDEFINED, RaveValueType_UNDETECT, RaveValueType_NODATA all to nodata value
-		//thereby the difference between these three types is lost
-		if(t != RaveValueType_DATA ){
-                    valueUChar = meta->missing;
-		}
-                values[iGlobal] = valueUChar;
+                values[iGlobal] = valueFloat;
 
                 iGlobal++;
             }
@@ -2581,7 +2924,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     VerticalProfile_addAttribute(alldata->vp, attr_minazim);
     VerticalProfile_addAttribute(alldata->vp, attr_maxazim);
     VerticalProfile_addAttribute(alldata->vp, attr_cluttermap);
-        
+      
     //-------------------------------------------//
     //   map the profile data to rave fields     //
     //-------------------------------------------//
@@ -2744,14 +3087,14 @@ static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* 
 }
 
 
-int saveToODIM(VerticalProfile_t* vp, const char* filename){
+int saveToODIM(RaveCoreObject* object, const char* filename){
     
     //define new Rave IO instance
     RaveIO_t* raveio = RAVE_OBJECT_NEW(&RaveIO_TYPE);
     //VpOdimIO_t* raveio = RAVE_OBJECT_NEW(&VpOdimIO_TYPE);
 
     //set the object to be saved
-    RaveIO_setObject(raveio, (RaveCoreObject*)vp);
+    RaveIO_setObject(raveio, object);
     
     //save the object
     int result;
@@ -2899,7 +3242,7 @@ void printImageInt(const SCANMETA* meta, const int* imageInt) {
 
 
 
-void printImageUChar(const SCANMETA* meta, const unsigned char* imageUChar) {
+void printImageFloat(const SCANMETA* meta, const float* imageFloat) {
 
     int nAzim;
     int iAzim;
@@ -2917,7 +3260,7 @@ void printImageUChar(const SCANMETA* meta, const unsigned char* imageUChar) {
         for (iRang = 0; iRang < nRang; iRang++) {
             
             iGlobal = iRang + iAzim * nRang;
-            imageInt[iGlobal] = (int) imageUChar[iGlobal];
+            imageInt[iGlobal] = (int) imageFloat[iGlobal];
             iGlobal += 1;
             
         }
@@ -2927,7 +3270,7 @@ void printImageUChar(const SCANMETA* meta, const unsigned char* imageUChar) {
     
     free(imageInt);
     
-} // printImageUChar
+} // printImageFloat
 
 
 
@@ -2943,7 +3286,7 @@ static int printMeta(const SCANMETA* meta, const char* varName) {
     fprintf(stderr,"%s->azimScale = %f\n",varName,meta->azimScale);
     fprintf(stderr,"%s->valueOffset = %f\n",varName,meta->valueOffset);
     fprintf(stderr,"%s->valueScale = %f\n",varName,meta->valueScale);
-    fprintf(stderr,"%s->missing = %d\n",varName,meta->missing);
+    fprintf(stderr,"%s->missing = %f\n",varName,meta->missing);
     
     return 0;
 
@@ -3018,7 +3361,7 @@ static int removeDroppedCells(CELLPROP *cellProp, const int nCells) {
     
     cellPropCopy = (CELLPROP*) malloc(sizeof(CELLPROP) * nCells);
     if (!cellPropCopy) {
-        fprintf(stderr,"Requested memory could not be allocated!\n");
+        fprintf(stderr,"Requested memory could not be allocated in removeDroppedCells!\n");
         return -1;
     }    
 
@@ -3758,9 +4101,97 @@ void printProfile(vol2bird_t* alldata) {
     
 } // printProfile()
 
+// reads a polar volume from file and returns it as a RAVE polar volume object
+// remember to release the polar volume object when done with it
+PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax){
+    
+    PolarVolume_t* volume = NULL;
+    
+    RaveIO_t* raveio = RaveIO_open(filename);
+
+    // check that a valid RaveIO_t pointer was returned
+    if (raveio != (RaveIO_t*) NULL){
+        // check that the Rave object is a polar volume
+        if (RaveIO_getObjectType(raveio) == Rave_ObjectType_PVOL) {
+
+            // the if statement above tests whether we are dealing with a 
+            // PVOL object, so we can safely cast the generic object to
+            // the PolarVolume_t type:
+            
+            volume = (PolarVolume_t*) RaveIO_getObject(raveio);
+        }
+    }
+    // not a rave complient file, attempt to read the file with the RSL library instead
+    #ifdef RSL
+    else{
+        Radar *radar;
+
+        // only read reflectivity, velocity, Rho_HV        
+        // select all scans
+        RSL_select_fields("dz","vr","rh", NULL);
+        RSL_read_these_sweeps("all",NULL);
+        
+        // read the file to a RSL radar object
+        
+        // according to documentation of RSL it is not required to parse a callid
+        // but in practice it is for WSR88D.
+        char callid[5];
+        strncpy(callid, filename,4);
+        callid[4] = 0; //null terminate destination
+        radar = RSL_anyformat_to_radar(filename,callid);
+ 
+        if (radar == NULL) {
+            fprintf(stderr, "critical error, cannot open file %s\n", filename);
+            return NULL;
+        }
+        
+        // convert RSL object to RAVE polar volume
+        
+        volume = PolarVolume_RSL2Rave(radar, rangeMax);
+        
+        RSL_free_radar(radar);
+    }
+    #endif
+    
+    RAVE_OBJECT_RELEASE(raveio);
+    
+    return volume;
+}
 
 
 
+RaveIO_t* vol2birdIO_open(const char* filename)
+{
+  RaveIO_t* result = NULL;
+
+  if (filename == NULL) {
+    goto done;
+  }
+
+  result = RAVE_OBJECT_NEW(&RaveIO_TYPE);
+  if (result == NULL) {
+    RAVE_CRITICAL0("Failed to create raveio instance");
+    goto done;
+  }
+
+  if (!RaveIO_setFilename(result, filename)) {
+    RAVE_CRITICAL0("Failed to set filename");
+    RAVE_OBJECT_RELEASE(result);
+    goto done;
+  }
+
+  if (!RaveIO_load(result)) {
+    RAVE_WARNING0("Failed to load file");
+    RAVE_OBJECT_RELEASE(result);
+    goto done;
+  }
+
+done:
+  return result;
+}
+
+
+// loads configuration data in the alldata struct
 int vol2birdLoadConfig(vol2bird_t* alldata) {
 
     alldata->misc.loadConfigSuccessful = FALSE;
@@ -3832,7 +4263,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     //                       some other variables                    //
     // ------------------------------------------------------------- //
 
-    alldata->misc.rCellMax = alldata->options.rangeMax + 5000.0f;
+    alldata->misc.rCellMax = alldata->options.rangeMax + RCELLMAX_OFFSET;
     alldata->misc.nDims = 2;
     alldata->misc.nParsFitted = 3;
     alldata->misc.dbzFactor = (pow(alldata->constants.refracIndex,2) * 1000 * pow(PI,5))/pow(alldata->options.radarWavelength,4);
@@ -3940,11 +4371,6 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         if(result == 0){
             fprintf(stderr,"Warning, failed to dealias radial velocities");
         }
-        
-        //uncomment to output the dealised polar volume
-        //RaveIO_setObject(raveio, (RaveCoreObject*)volume);
-        //result = RaveIO_save(raveio, "dealiased.h5");
-        //RAVE_OBJECT_RELEASE(raveio);
     }
  
     // ------------------------------------------------------------- //

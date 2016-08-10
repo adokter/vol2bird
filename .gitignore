@@ -22,3 +22,7 @@ pyvol2bird/_pyvol2bird.so
 /**/*.o
 /**/*dSYM
 
+# radar testing files
+src/*.h5
+src/*.gz
+src/options.conf

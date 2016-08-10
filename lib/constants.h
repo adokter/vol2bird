@@ -44,11 +44,41 @@
 #define REFRACTIVE_INDEX_OF_WATER 0.964
 // minimum standard deviation of the VVP fit
 #define STDEVCELL 5.0
+// range gates up to a distance of RANGE_MAX+RCELLMAX_OFFSET are read into memory
+// the extra offset allows for the raincell search to extend somewhat further
+// than the maximum range used in the profile generation (RANGE_MAX).
+#define RCELLMAX_OFFSET 5000.0f
 // after fitting the vrad data, throw out any vrad observations that are more that VDIFMAX away
 // from the fitted value, since these are likely outliers
 #define VDIFMAX 10.0
 // When analyzing cells, radial velocities lower than VRADMIN are treated as clutter
 #define VRADMIN 1.0
+
+
+//-------------------------------------------------------//
+//       hard-coded options for use RSL library          //
+//-------------------------------------------------------//
+
+#ifdef RSL
+// By how much the elevation angle of sweeps of different quantities
+// is allowed to differ for them to be included into the same scan object.
+// Applies to data read with the RSL library only
+#define ELEVTOL 0.3
+// Offsets and gains for encoding reflectivity, velocity
+// and correlation coefficient
+// Once encoded values should be positive for storage in RAVE objects
+// Used with data read by the RSL library only
+#define RSL_OFFSET_DBZ -100
+#define RSL_GAIN_DBZ 0.01
+#define RSL_OFFSET_VRAD -60
+#define RSL_GAIN_VRAD 0.01
+#define RSL_OFFSET_RHOHV -0.002
+#define RSL_GAIN_RHOHV 0.001
+// Encoded values reserved for nodata and undetects.
+// Should be positive integers larger than zero
+#define RSL_NODATA 1
+#define RSL_UNDETECT 2
+#endif
 
 //-------------------------------------------------------//
 //             other hard-coded options                  //
@@ -62,9 +92,9 @@
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
-#define VERSION "0.2.3"
+#define VERSION "0.3.0"
 // Date of latest version of the program
-#define VERSIONDATE "13-Jul-2016"
+#define VERSIONDATE "05-Aug-2016"
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //
