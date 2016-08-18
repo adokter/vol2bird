@@ -27,7 +27,9 @@ SRC_VOL2BIRD_DIR         = ./
 
 all : libvol2bird.so
 
-libvol2bird.so :
+LIBVOL2BIRD_DEPS = constants.h libsvdfit.h libvol2bird.h libsvdfit.c libvol2bird.c
+
+libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	# ------------------------------------
 	#        making libvol2bird.so        
 	# ------------------------------------

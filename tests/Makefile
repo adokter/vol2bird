@@ -19,6 +19,7 @@ print-% : ; @echo $* = $($*)
 
 PREFIX = /opt/baltrad
 
+.PHONY: test
 test : HLHDFLIB = $(PREFIX)/hlhdf/lib
 test : RAVELIB = $(PREFIX)/rave/lib
 test : PYTHONLIB = $(PREFIX)/third_party/lib

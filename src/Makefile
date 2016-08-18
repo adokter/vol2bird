@@ -30,7 +30,9 @@ all : vol2bird
 ../lib/libvol2bird.so :
 	make -C ../lib libvol2bird.so
 
-vol2bird : ../lib/libvol2bird.so
+VOL2BIRD_DEPS = vol2bird.c ../lib/libvol2bird.h ../lib/constants.h
+
+vol2bird : ../lib/libvol2bird.so $(VOL2BIRD_DEPS)
 	#
 	#
 	#
