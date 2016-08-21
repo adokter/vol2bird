@@ -96,9 +96,9 @@ int main(int argc, char** argv) {
         return -1;
     }
     
-    PolarVolume_t* volume = NULL;
     // read in data up to a distance of alldata.misc.rCellMax
     // we do not read in the full volume for speed/memory
+    PolarVolume_t* volume = NULL;
     volume = vol2birdGetVolume(fileVolIn, alldata.misc.rCellMax);
     
     if (volume != NULL) {

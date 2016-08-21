@@ -1080,7 +1080,8 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 			}
 			
 			// Set useScan to 0 if no Nyquist interval is available or if it is too low
-			if (nyquist < alldata->options.minNyquist){
+            // only check for nyquist interval when we are NOT dealiasing the velocities
+			if (!alldata->options.dealiasVrad && nyquist < alldata->options.minNyquist){
                 scanUse[iScan].useScan = 0;
                 fprintf(stderr,"Warning: Nyquist velocity (%.1f m/s) too low, dropping scan %i ...\n",nyquist,iScan);
             }
@@ -1915,7 +1916,7 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
         }
         
         // dealias the radial velocity parameter (stored as VRAD) of the scan
-        result = dealias_scan(scan);
+        result = dealias_scan_by_quantity(scan,"VRAD",90);
      
         // if dealiasing successful
         if (result == 1){
@@ -1929,15 +1930,14 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
             result = PolarScanParam_setQuantity (param_dealiased, "VRADDH");
         
             // add the dealised VRADHD parameter to the scan
-            result = PolarScan_addParameter(scan, param_dealiased);
-            
-            // release the dealiased parameter
-            //RAVE_OBJECT_RELEASE(param_dealiased);
+            result = PolarScan_addParameter(scan, param_dealiased);            
         }
-
-        // release objects
-        //RAVE_OBJECT_RELEASE(param);
-        //RAVE_OBJECT_RELEASE(scan);        
+        else{
+            // remove the unsuccessfully dealiased VRAD parameter
+            param_dealiased = PolarScan_removeParameter(scan, "VRAD");
+            // and release it
+            RAVE_OBJECT_RELEASE(param_dealiased);
+        }
     }
     fprintf(stderr," done.\n");
     return 1;
