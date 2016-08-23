@@ -21,7 +21,7 @@ CFLAGS  = -DRSL -fPIC -x c
 LDFLAGS = -shared -Wall
 
 # define where the vol2bird stuff is
-SRC_VOL2BIRD_DIR         = ./
+SRC_VOL2BIRD_DIR = .
 RSL_LIBRARY_FLAG = -I/opt/local/lib 
 RSL_INCLUDE_FLAG = -L/opt/local/include
 
@@ -32,8 +32,8 @@ libvol2bird.so :
 	#        making libvol2bird.so        
 	# ------------------------------------
 	$(CC) $(CFLAGS) \
-	-I. \
 	$(RAVE_MODULE_CFLAGS) \
+	-I. \
 	$(CONFUSE_INCLUDE_FLAG) \
 	$(RSL_INCLUDE_FLAG) \
 	$(RAVE_MODULE_LDFLAGS) \
