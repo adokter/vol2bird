@@ -5,7 +5,7 @@ dnl	installation to configure the system for the local environment.
 AC_INIT([vol2bird],[0.1])
 
 if test "${prefix}" = "NONE"; then
-	prefix=/opt/baltrad/vol2bird
+	prefix=/usr/local/vol2bird
 fi
 
 dnl Since I can not expand the localstatedir I do this instead
