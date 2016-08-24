@@ -22,8 +22,6 @@ LDFLAGS = -shared -Wall
 
 # define where the vol2bird stuff is
 SRC_VOL2BIRD_DIR = .
-RSL_LIBRARY_FLAG = -I/opt/local/lib 
-RSL_INCLUDE_FLAG = -L/opt/local/include
 
 all : libvol2bird.so
 
@@ -45,7 +43,7 @@ libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	$(SRC_VOL2BIRD_DIR)/libvol2bird.c \
 	$(SRC_VOL2BIRD_DIR)/libsvdfit.c \
 	$(LDFLAGS) \
-	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lrsl -lm
+	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse $(RSL_LIB) -lm
 
 .PHONY : install
 install : libvol2bird.so

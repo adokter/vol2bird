@@ -47,7 +47,8 @@ vol2bird : ../lib/libvol2bird.so $(VOL2BIRD_DEPS)
 	$(RAVE_MODULE_CFLAGS) \
 	$(RAVE_MODULE_LDFLAGS) \
 	$(PROJ_LIBRARY_FLAG) \
-	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm -o vol2bird $(LDFLAGS)
+	$(RSL_LIBRARY_FLAG) \
+	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) -o vol2bird $(LDFLAGS)
 	
 	#
 	# (You may still have to change your LD_LIBRARY_PATH)

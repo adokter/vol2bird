@@ -621,6 +621,7 @@ ac_includes_default="\
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 LD_PRINTOUT
+RSL_LIB
 RSL_CFLAG
 RSL_LIBRARY_FLAG
 RSL_INCLUDE_FLAG
@@ -672,6 +673,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -745,6 +747,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -997,6 +1000,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1134,7 +1146,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1287,6 +1299,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -3468,6 +3481,7 @@ CONFUSE_INCLUDE_FLAG=${CONFUSE_INCLUDE_DIR}
 RSL_INCLUDE_DIR=
 RSL_LIB_DIR=
 RSL_CFLAG=
+RSL_LIB=
 GOT_RSL_INC=no
 GOT_RSL_LIB=no
 RSL_SUPPRESSED=no
@@ -3493,9 +3507,9 @@ fi
 
 done
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for RSL_wsr88d_to_radar in -lrsl" >&5
-$as_echo_n "checking for RSL_wsr88d_to_radar in -lrsl... " >&6; }
-if ${ac_cv_lib_rsl_RSL_wsr88d_to_radar+:} false; then :
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for wsr88d_read_sweep in -lrsl" >&5
+$as_echo_n "checking for wsr88d_read_sweep in -lrsl... " >&6; }
+if ${ac_cv_lib_rsl_wsr88d_read_sweep+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -3509,34 +3523,34 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char RSL_wsr88d_to_radar ();
+char wsr88d_read_sweep ();
 int
 main ()
 {
-return RSL_wsr88d_to_radar ();
+return wsr88d_read_sweep ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_rsl_RSL_wsr88d_to_radar=yes
+  ac_cv_lib_rsl_wsr88d_read_sweep=yes
 else
-  ac_cv_lib_rsl_RSL_wsr88d_to_radar=no
+  ac_cv_lib_rsl_wsr88d_read_sweep=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_rsl_RSL_wsr88d_to_radar" >&5
-$as_echo "$ac_cv_lib_rsl_RSL_wsr88d_to_radar" >&6; }
-if test "x$ac_cv_lib_rsl_RSL_wsr88d_to_radar" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_rsl_wsr88d_read_sweep" >&5
+$as_echo "$ac_cv_lib_rsl_wsr88d_read_sweep" >&6; }
+if test "x$ac_cv_lib_rsl_wsr88d_read_sweep" = xyes; then :
   GOT_RSL_LIB=yes
 fi
 
 		;;
 	no)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for RSL lib" >&5
-$as_echo_n "checking for RSL lib... " >&6; }
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for RSL library" >&5
+$as_echo_n "checking for RSL library... " >&6; }
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: suppressed" >&5
 $as_echo "suppressed" >&6; }
 		RSL_SUPPRESSED=yes
@@ -3589,9 +3603,9 @@ done
       if [ "$rsl_lib" != "" ]; then
         saved_LDFLAGS="$LDFLAGS"
         LDFLAGS="$LDFLAGS -L$rsl_lib"
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for RSL_wsr88d_to_radar in -lrsl" >&5
-$as_echo_n "checking for RSL_wsr88d_to_radar in -lrsl... " >&6; }
-if ${ac_cv_lib_rsl_RSL_wsr88d_to_radar+:} false; then :
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for wsr88d_read_sweep in -lrsl" >&5
+$as_echo_n "checking for wsr88d_read_sweep in -lrsl... " >&6; }
+if ${ac_cv_lib_rsl_wsr88d_read_sweep+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -3605,27 +3619,27 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char RSL_wsr88d_to_radar ();
+char wsr88d_read_sweep ();
 int
 main ()
 {
-return RSL_wsr88d_to_radar ();
+return wsr88d_read_sweep ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_rsl_RSL_wsr88d_to_radar=yes
+  ac_cv_lib_rsl_wsr88d_read_sweep=yes
 else
-  ac_cv_lib_rsl_RSL_wsr88d_to_radar=no
+  ac_cv_lib_rsl_wsr88d_read_sweep=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_rsl_RSL_wsr88d_to_radar" >&5
-$as_echo "$ac_cv_lib_rsl_RSL_wsr88d_to_radar" >&6; }
-if test "x$ac_cv_lib_rsl_RSL_wsr88d_to_radar" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_rsl_wsr88d_read_sweep" >&5
+$as_echo "$ac_cv_lib_rsl_wsr88d_read_sweep" >&6; }
+if test "x$ac_cv_lib_rsl_wsr88d_read_sweep" = xyes; then :
   GOT_RSL_LIB=yes
 fi
 
@@ -3635,9 +3649,9 @@ fi
           LDFLAGS="$saved_LDFLAGS"
         fi
       else
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for RSL_wsr88d_to_radar in -lrsl" >&5
-$as_echo_n "checking for RSL_wsr88d_to_radar in -lrsl... " >&6; }
-if ${ac_cv_lib_rsl_RSL_wsr88d_to_radar+:} false; then :
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for wsr88d_read_sweep in -lrsl" >&5
+$as_echo_n "checking for wsr88d_read_sweep in -lrsl... " >&6; }
+if ${ac_cv_lib_rsl_wsr88d_read_sweep+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -3651,27 +3665,27 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char RSL_wsr88d_to_radar ();
+char wsr88d_read_sweep ();
 int
 main ()
 {
-return RSL_wsr88d_to_radar ();
+return wsr88d_read_sweep ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_rsl_RSL_wsr88d_to_radar=yes
+  ac_cv_lib_rsl_wsr88d_read_sweep=yes
 else
-  ac_cv_lib_rsl_RSL_wsr88d_to_radar=no
+  ac_cv_lib_rsl_wsr88d_read_sweep=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_rsl_RSL_wsr88d_to_radar" >&5
-$as_echo "$ac_cv_lib_rsl_RSL_wsr88d_to_radar" >&6; }
-if test "x$ac_cv_lib_rsl_RSL_wsr88d_to_radar" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_rsl_wsr88d_read_sweep" >&5
+$as_echo "$ac_cv_lib_rsl_wsr88d_read_sweep" >&6; }
+if test "x$ac_cv_lib_rsl_wsr88d_read_sweep" = xyes; then :
   GOT_RSL_LIB=yes
 fi
 
@@ -3682,22 +3696,23 @@ fi
     ;;
 esac
 
-if [ "x$RSL_SUPPRESSED" = "xno" ]; then
-	if [ "x$GOT_RSL_INC" = "xno" -o "x$GOT_RSL_LIB" = "xno" ]; then
-		as_fn_error $? "\"Could not successfully find the RSL library\"" "$LINENO" 5
-	fi
-fi
-
 RSL_LIBRARY_FLAG=${RSL_LIB_DIR}
 RSL_INCLUDE_FLAG=${RSL_INCLUDE_DIR}
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for RSL installation" >&5
+$as_echo_n "checking for RSL installation... " >&6; }
 if [ "$GOT_RSL_INC" = "yes" ]; then
    if [ "$GOT_RSL_LIB" = "yes" ]; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for RSL installation" >&5
-$as_echo_n "checking for RSL installation... " >&6; }
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
-$as_echo "found" >&6; }
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
       RSL_CFLAG=-DRSL
+      RSL_LIB=-lrsl
+   else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
    fi
+else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 fi
 
 RAVE_ROOT_DIR=
@@ -3909,6 +3924,7 @@ fi
 if [ "$HLHDF_SZLIB_LIB" != "" ]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$HLHDF_SZLIB_LIB" | sed -e"s/[ \t]*-L//"`
 fi
+
 
 
 
