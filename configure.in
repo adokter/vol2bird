@@ -91,6 +91,7 @@ dnl
 RSL_INCLUDE_DIR=
 RSL_LIB_DIR=
 RSL_CFLAG=
+RSL_LIB=
 GOT_RSL_INC=no
 GOT_RSL_LIB=no
 RSL_SUPPRESSED=no
@@ -99,10 +100,10 @@ AC_ARG_WITH(rsl,[  --with-rsl=DIR	  The RSL root installation directory],
 case $withval in
 	yes)
 		AC_CHECK_HEADERS(rsl.h,GOT_RSL_INC=yes)
-		AC_CHECK_LIB(rsl,RSL_wsr88d_to_radar,GOT_RSL_LIB=yes)
+		AC_CHECK_LIB(rsl,wsr88d_read_sweep,GOT_RSL_LIB=yes)
 		;;
 	no)
-		AC_MSG_CHECKING(for RSL lib)
+                AC_MSG_CHECKING(for RSL library)
 		AC_MSG_RESULT(suppressed)
 		RSL_SUPPRESSED=yes
 		;;
@@ -132,14 +133,14 @@ case $withval in
       if [[ "$rsl_lib" != "" ]]; then
         saved_LDFLAGS="$LDFLAGS"
         LDFLAGS="$LDFLAGS -L$rsl_lib"
-        AC_CHECK_LIB(rsl,RSL_wsr88d_to_radar,GOT_RSL_LIB=yes)
+        AC_CHECK_LIB(rsl,wsr88d_read_sweep,GOT_RSL_LIB=yes)
         if [[ "$GOT_RSL_LIB" = "yes" ]]; then
           RSL_LIB_DIR="-L$rsl_lib"
         else
           LDFLAGS="$saved_LDFLAGS"
         fi
       else
-        AC_CHECK_LIB(rsl,RSL_wsr88d_to_radar,GOT_RSL_LIB=yes)
+        AC_CHECK_LIB(rsl,wsr88d_read_sweep,GOT_RSL_LIB=yes)
       fi
     else
       AC_MSG_ERROR("Odd argument passed for rsl")
@@ -147,20 +148,19 @@ case $withval in
     ;;
 esac
 
-if [[ "x$RSL_SUPPRESSED" = "xno" ]]; then
-	if [[ "x$GOT_RSL_INC" = "xno" -o "x$GOT_RSL_LIB" = "xno" ]]; then
-		AC_MSG_ERROR("Could not successfully find the RSL library")
-	fi
-fi
-
 RSL_LIBRARY_FLAG=${RSL_LIB_DIR}
 RSL_INCLUDE_FLAG=${RSL_INCLUDE_DIR}
+AC_MSG_CHECKING(for RSL installation)
 if [[ "$GOT_RSL_INC" = "yes" ]]; then
    if [[ "$GOT_RSL_LIB" = "yes" ]]; then
-      AC_MSG_CHECKING(for RSL installation)
-      AC_MSG_RESULT(found)
+      AC_MSG_RESULT(yes)
       RSL_CFLAG=-DRSL
+      RSL_LIB=-lrsl
+   else
+      AC_MSG_RESULT(no)
    fi
+else
+   AC_MSG_RESULT(no)
 fi
 
 dnl First verify that we have a proper rave installation. We can not live without it
@@ -348,6 +348,7 @@ AC_SUBST(CONFUSE_LIBRARY_FLAG)
 AC_SUBST(RSL_INCLUDE_FLAG)
 AC_SUBST(RSL_LIBRARY_FLAG)
 AC_SUBST(RSL_CFLAG)
+AC_SUBST(RSL_LIB)
 AC_SUBST(LD_PRINTOUT)
 AC_SUBST(LD_PRINTOUT)
 

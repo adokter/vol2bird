@@ -18,9 +18,6 @@
 # ------------------------------------------------------------------------
 # 
 # Main build file
-# @file
-# @author Anders Henja (Swedish Meteorological and Hydrological Institute, SMHI)
-# @date 2011-11-10
 ###########################################################################
 
 .PHONY:all
