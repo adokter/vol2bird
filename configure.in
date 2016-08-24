@@ -1,11 +1,11 @@
 dnl	This file is an input file used by the GNU "autoconf" program to
-dnl	generate the file "configure", which is run during bRopo
+dnl	generate the file "configure", which is run during vol2bird 
 dnl	installation to configure the system for the local environment.
 
-AC_INIT([vol2bird],[0.1])
+AC_INIT([vol2bird],[0.3.0])
 
 if test "${prefix}" = "NONE"; then
-	prefix=/opt/baltrad/vol2bird
+	prefix=/opt/radar/vol2bird
 fi
 
 dnl Since I can not expand the localstatedir I do this instead
@@ -32,7 +32,7 @@ case $withval in
 		AC_CHECK_LIB(confuse,cfg_init,GOT_CONFUSE_LIB=yes)
 		;;
 	no)
-		AC_MSG_CHECKING(for confuse lib)
+                AC_MSG_CHECKING(for confuse lib)
 		AC_MSG_RESULT(suppressed)
 		CONFUSE_SUPPRESSED=yes
 		;;
@@ -41,7 +41,6 @@ case $withval in
       if [[ "`echo $withval | grep ','`" = "" ]]; then
         confuse_inc=$withval/include
         confuse_lib=$withval/lib
-        echo "confuse_inc=$confuse_inc"
       else
         confuse_inc="`echo $withval |cut -f1 -d,`"
         confuse_lib="`echo $withval |cut -f2 -d,`"
@@ -86,6 +85,83 @@ fi
 
 CONFUSE_LIBRARY_FLAG=${CONFUSE_LIB_DIR}
 CONFUSE_INCLUDE_FLAG=${CONFUSE_INCLUDE_DIR}
+
+dnl Check that we have librsl installed
+dnl
+RSL_INCLUDE_DIR=
+RSL_LIB_DIR=
+RSL_CFLAG=
+GOT_RSL_INC=no
+GOT_RSL_LIB=no
+RSL_SUPPRESSED=no
+AC_ARG_WITH(rsl,[  --with-rsl=DIR	  The RSL root installation directory],
+		,withval=yes)
+case $withval in
+	yes)
+		AC_CHECK_HEADERS(rsl.h,GOT_RSL_INC=yes)
+		AC_CHECK_LIB(rsl,RSL_wsr88d_to_radar,GOT_RSL_LIB=yes)
+		;;
+	no)
+		AC_MSG_CHECKING(for RSL lib)
+		AC_MSG_RESULT(suppressed)
+		RSL_SUPPRESSED=yes
+		;;
+	*)
+    if [[ "$withval" != "" ]]; then
+      if [[ "`echo $withval | grep ','`" = "" ]]; then
+        rsl_inc=$withval/include
+        rsl_lib=$withval/lib
+      else
+        rsl_inc="`echo $withval |cut -f1 -d,`"
+        rsl_lib="`echo $withval |cut -f2 -d,`"
+      fi
+      
+      if [[ "$rsl_inc" != "" ]]; then
+        saved_CPPFLAGS="$CPPFLAGS"
+        CPPFLAGS="$CPPFLAGS -I$rsl_inc"
+        AC_CHECK_HEADERS(rsl.h,GOT_RSL_INC=yes)
+        if [[ "$GOT_RSL_INC" = "yes" ]]; then
+          RSL_INCLUDE_DIR="-I$rsl_inc"
+        else
+          CPPFLAGS="$saved_CPPFLAGS"
+        fi
+      else
+        AC_CHECK_HEADERS(rsl.h,GOT_RSL_INC=yes)
+      fi
+
+      if [[ "$rsl_lib" != "" ]]; then
+        saved_LDFLAGS="$LDFLAGS"
+        LDFLAGS="$LDFLAGS -L$rsl_lib"
+        AC_CHECK_LIB(rsl,RSL_wsr88d_to_radar,GOT_RSL_LIB=yes)
+        if [[ "$GOT_RSL_LIB" = "yes" ]]; then
+          RSL_LIB_DIR="-L$rsl_lib"
+        else
+          LDFLAGS="$saved_LDFLAGS"
+        fi
+      else
+        AC_CHECK_LIB(rsl,RSL_wsr88d_to_radar,GOT_RSL_LIB=yes)
+      fi
+    else
+      AC_MSG_ERROR("Odd argument passed for rsl")
+    fi
+    ;;
+esac
+
+if [[ "x$RSL_SUPPRESSED" = "xno" ]]; then
+	if [[ "x$GOT_RSL_INC" = "xno" -o "x$GOT_RSL_LIB" = "xno" ]]; then
+		AC_MSG_ERROR("Could not successfully find the RSL library")
+	fi
+fi
+
+RSL_LIBRARY_FLAG=${RSL_LIB_DIR}
+RSL_INCLUDE_FLAG=${RSL_INCLUDE_DIR}
+if [[ "$GOT_RSL_INC" = "yes" ]]; then
+   if [[ "$GOT_RSL_LIB" = "yes" ]]; then
+      AC_MSG_CHECKING(for RSL installation)
+      AC_MSG_RESULT(found)
+      RSL_CFLAG=-DRSL
+   fi
+fi
 
 dnl First verify that we have a proper rave installation. We can not live without it
 dnl
@@ -269,6 +345,9 @@ AC_SUBST(HLHDF_LIBRARY_FLAG)
 AC_SUBST(HLHDFLDSHARED)
 AC_SUBST(CONFUSE_INCLUDE_FLAG)
 AC_SUBST(CONFUSE_LIBRARY_FLAG)
+AC_SUBST(RSL_INCLUDE_FLAG)
+AC_SUBST(RSL_LIBRARY_FLAG)
+AC_SUBST(RSL_CFLAG)
 AC_SUBST(LD_PRINTOUT)
 AC_SUBST(LD_PRINTOUT)
 
