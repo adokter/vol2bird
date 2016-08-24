@@ -17,7 +17,7 @@
  
 CC      = gcc
 #CFLAGS  = -fPIC -x c -DFPRINTFON
-CFLAGS  = -DRSL -fPIC -x c
+CFLAGS  = ${RSL_CFLAG} -fPIC -x c
 LDFLAGS = -shared -Wall
 
 # define where the vol2bird stuff is
@@ -67,5 +67,3 @@ clean :
 distclean:
 	@\rm -f libvol2bird.so
 	@\rm -f *~
-
-
