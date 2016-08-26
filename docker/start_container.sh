@@ -7,4 +7,4 @@ fi
 DATADIR=`readlink -f $1`
  
 # start docker container
-docker run -v $DATADIR:/data -d --name vol2bird vol2bird tail -f /dev/null
+docker run -v $DATADIR:/data -d --name vol2bird adokter/vol2bird tail -f /dev/null
