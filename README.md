@@ -1,5 +1,5 @@
 ## vol2bird algorithm
-Copyright 2015 Adriaan Dokter (University of Amsterdam) & Netherlands eScience Centre
+Copyright 2015 Adriaan Dokter (University of Amsterdam, Cornell lab of ornithology) & Netherlands eScience Centre
 
 If you are interested in using this software through collaboration, please contact me at a.m.dokter@uva.nl
 
@@ -12,9 +12,5 @@ DOI: [10.1098/rsif.2010.0116](https://doi.org/10.1098/rsif.2010.0116)
 
 * `lib` contains the main library 
 * `pyvol2bird` is a python wrapper for the library
-
-for compiling the code run `./configure --with-confuse=DIR`,
-with `DIR` the root directory of your libconfuse installation (containing subfolders `DIR/include` and `DIR/lib` with the
-libconfuse include and library files)
-
-for running the code on a baltrad node add the paths listed in `lib/ldlib.txt` to `LD_LIBRARY_PATH`
+* `data` contains two radar files for testing
+* `etc` contains the configuration file `options.conf`. Put a copy in your working directory to load it on runtime
