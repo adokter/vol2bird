@@ -1,4 +1,4 @@
-### docker container for vol2bird algorithm
+### Docker container for vol2bird algorithm
 Copyright 2016 Adriaan Dokter (University of Amsterdam)
 
 If you are interested in using this software through collaboration, please contact me at a.m.dokter@uva.nl
@@ -10,7 +10,7 @@ Dokter A.M., Liechti F., Stark H., Delobbe L., Tabary P., Holleman I.
 J. R. Soc. Interface, **8**, 30–43, 2011.
 DOI: [10.1098/rsif.2010.0116](https://doi.org/10.1098/rsif.2010.0116)
 
-This folder contains:
+This folder contains scripts for building and running vol2bird in a [Docker](https://www.docker.com/) container:
 * `Dockerfile`: Dockerfile to make a Docker image for vol2bird
 * `make_docker_image.sh`: Bash script to build and compact Docker image
 * `start_container.sh`: starts the Docker container
