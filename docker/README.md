@@ -12,4 +12,7 @@ DOI: [10.1098/rsif.2010.0116](https://doi.org/10.1098/rsif.2010.0116)
 
 This folder contains:
 * `Dockerfile`: Dockerfile to make a Docker image for vol2bird
-* `gen_docker_image.sh`: Bash script to build and compact Docker image
+* `make_docker_image.sh`: Bash script to build and compact Docker image
+* `start_container.sh`: starts the Docker container
+* `start_container.sh`: stops the Docker container
+* `run_vol2bird.sh`: runs vol2bird on a started Docker container
