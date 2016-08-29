@@ -17,11 +17,14 @@ This folder contains scripts for building and running vol2bird in a [Docker](htt
 * `stop_container.sh`: stops the Docker container
 * `run_vol2bird.sh`: runs vol2bird on a started Docker container
 
-To run vol2bird do, and process a radar file `yourfile` in directory `your\data\durectory`:
+To process a radar file `yourfile` in directory `your\data\durectory` using Docker:
 ```
+# automatically pull and start the vol2bird docker image from DockerHub:
 ./start_container.sh your\data\directory
+# goto your data directory
 cd \your\data\directory
+# process your file:
 run_vol2bird.sh yourfile
-# optionally, stop the container:
+# when done, stop the container:
 stop_container.sh
 ```
