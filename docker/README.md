@@ -17,7 +17,9 @@ This folder contains scripts for building and running vol2bird in a [Docker](htt
 * `stop_container.sh`: stops the Docker container
 * `run_vol2bird.sh`: runs vol2bird on a started Docker container
 
-To process a radar file `yourfile` in directory `your\data\durectory` using Docker:
+The vol2bird Docker image is stored on [Docker Hub](https://hub.docker.com/) in the `adokter/vol2bird` repository
+
+To process a radar file `yourfile` in directory `your\data\directory` using Docker:
 ```
 # automatically pull and start the vol2bird docker image from DockerHub:
 ./start_container.sh your/data/directory
