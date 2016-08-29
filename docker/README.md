@@ -20,9 +20,9 @@ This folder contains scripts for building and running vol2bird in a [Docker](htt
 To process a radar file `yourfile` in directory `your\data\durectory` using Docker:
 ```
 # automatically pull and start the vol2bird docker image from DockerHub:
-./start_container.sh your\data\directory
+./start_container.sh your/data/directory
 # goto your data directory
-cd \your\data\directory
+cd your/data/directory
 # process your file:
 run_vol2bird.sh yourfile
 # when done, stop the container:
