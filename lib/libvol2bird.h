@@ -73,6 +73,7 @@ struct scanmeta {
     float valueOffset;     // Offset value of quantity contained by scan.
     float valueScale;      // Scale of value of quantity contained by scan.
     float missing;         // Missing value of quantity contained by scan.
+	double nyquist;        // Nyquist velocity of the scan
 };
 
 typedef struct cellprop CELLPROP;
@@ -210,6 +211,8 @@ struct vol2birdPoints {
     int cellValueCol;
     // the psuedo-column in 'points' that holds the gate classification code
     int gateCodeCol;
+	// the psuedo-column in 'points' that holds the nyquist velocity
+	int nyquistCol;
     // the 'points' array itself
     float* points; // Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
     // for a given altitude layer in the profile, only part of the 'points'
@@ -303,6 +306,10 @@ struct vol2birdMisc {
     int vol2birdSuccessful;
     // number of scans used to calculate the profile
     int nScansUsed;
+	// lowest Nyquist velocity of used scans
+	double nyquistMin;
+	// highest Nyquist velocity of used scans
+	double nyquistMax;
     // whether configuration was loaded successfully
     int loadConfigSuccessful;
     // during calculation of iProfileType == 3, use this array to store the

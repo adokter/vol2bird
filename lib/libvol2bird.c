@@ -30,6 +30,7 @@
 #undef RAD2DEG // to suppress redefine warning, also defined in dealias.h
 #undef DEG2RAD // to suppress redefine warning, also defined in dealias.h
 #include "dealias.h"
+#include "libdealias.h"
 
 #ifdef RSL
 #include "rsl.h"
@@ -223,7 +224,7 @@ static int analyzeCells(const float *dbzImage, const float *vradImage,
             cellProp[iCell].drop = FALSE;
 
             // low radial velocities are treated as clutter, not included in calculation cell properties
-            if (fabs(vradValue) < alldata->constants.vradMin & vradImage[iGlobal] != vradMeta->missing){
+            if ((fabs(vradValue) < alldata->constants.vradMin) & (vradImage[iGlobal] != vradMeta->missing)){
 
                 cellProp[iCell].nGatesClutter += 1;
 
@@ -958,8 +959,10 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 	PolarScan_t *scan;
 	PolarScanParam_t *param;
 	int result, nScans, iScan, nScansUsed;
+	int noNyquist=0;
 	vol2birdScanUse_t *scanUse;
-	double nyquist;
+	double nyquist, nyquistMin = DBL_MAX, nyquistMax = 0;
+ 
 	
 	// Read number of scans
 	nScans = PolarVolume_getNumberOfScans(volume);
@@ -1047,6 +1050,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
         }
         
         // check that Nyquist velocity is not too low
+		// retrieve Nyquist velocity if not present at scan level
 		if (scanUse[iScan].useScan)
 		{
 			// Read Nyquist interval from scan how group
@@ -1056,7 +1060,10 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 
 			// Read Nyquist interval from top level how group
 			if (result == 0)
-			{
+			{	
+				// set flag that we found no nyquist interval at scan level
+				noNyquist = 1;
+				// proceed to top level how group
 				attr = PolarVolume_getAttribute(volume, "how/NI");
 				if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getDouble(attr, &nyquist);
 			}
@@ -1085,6 +1092,27 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
                 scanUse[iScan].useScan = 0;
                 fprintf(stderr,"Warning: Nyquist velocity (%.1f m/s) too low, dropping scan %i ...\n",nyquist,iScan);
             }
+			
+			// if Nyquist interval (NI) attribute was missing at scan level, add it now
+			if (noNyquist){
+				RaveAttribute_t* attr_NI = RaveAttributeHelp_createDouble("how/NI", (double) nyquist);
+				if (attr_NI == NULL && nyquist > 0){
+					fprintf(stderr, "warning: no valid Nyquist attribute could be added to scan\n");
+				}
+				else{    
+					PolarScan_addAttribute(scan, attr_NI);
+				}
+				RAVE_OBJECT_RELEASE(attr_NI);
+			}
+			
+			if (nyquist < nyquistMin){
+				nyquistMin=nyquist;
+			}
+			if (nyquist > nyquistMax){
+				nyquistMax=nyquist;
+			}
+
+			
 		}
 		
         if (scanUse[iScan].useScan){
@@ -1092,9 +1120,13 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
         }
 	}
 	    
+		
+	alldata->misc.nyquistMin = nyquistMin;
+	alldata->misc.nyquistMax = nyquistMax;
+	
     // FIXME: better to make scanUse a struct that contains both the array of vol2birdScanUse_t objects
     // and the number nScansUSed, which now is stored ad hoc under alldata->misc
-    alldata->misc.nScansUsed = nScansUsed;
+	alldata->misc.nScansUsed = nScansUsed;
     if(nScansUsed == 0){
         alldata->misc.vol2birdSuccessful = FALSE;
         return (vol2birdScanUse_t*) NULL;
@@ -1826,17 +1858,17 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradIma
             vradValue = vradValueScale * (float) vradImage[iGlobal] + vradValueOffset;
             dbzValue = dbzValueScale * (float) dbzImage[iGlobal] + dbzValueOffset;
 
-	    // in the points array, store missing reflectivity values as the lowest possible reflectivity
-	    // this is to treat undetects as absence of scatterers
-	    if (dbzImage[iGlobal] == dbzMissingValue){
-		dbzValue = NAN;
-	    }
+			// in the points array, store missing reflectivity values as the lowest possible reflectivity
+			// this is to treat undetects as absence of scatterers
+			if (dbzImage[iGlobal] == dbzMissingValue){
+			dbzValue = NAN;
+			}
 
-	    // in the points array, store missing vrad values as NAN
-	    // this is necessary because different scans may have different missing values
-	    if (vradImage[iGlobal] == vradMissingValue){
-		vradValue = NAN;
-	    }
+			// in the points array, store missing vrad values as NAN
+			// this is necessary because different scans may have different missing values
+			if (vradImage[iGlobal] == vradMissingValue){
+				vradValue = NAN;
+			}
 
             // store the location as an azimuth angle, elevation angle combination
             points_local[iRowPoints * nColsPoints_local + 0] = gateAzim;
@@ -1854,7 +1886,11 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradIma
             // set the gateCode to zero for now
             points_local[iRowPoints * nColsPoints_local + 5] = (float) 0;
 
-            // raise the row counter by 1
+			// store the corresponding observed nyquist velocity
+			points_local[iRowPoints * nColsPoints_local + 6] = vradMeta->nyquist;
+
+			
+			// raise the row counter by 1
             iRowPoints += 1;
             
             // raise number of points written by 1
@@ -2825,10 +2861,22 @@ static int mapDataFromRave(PolarScan_t* scan, SCANMETA* meta, float* values, cha
         meta->valueOffset = (float) PolarScanParam_getOffset(param);
         meta->valueScale = (float) PolarScanParam_getGain(param);
         meta->missing = (float) PolarScanParam_getNodata(param);
-        double value;
+		
+		// add nyquist interval to scan
+		RaveAttribute_t *attr = PolarScan_getAttribute(scan, "how/NI");
+		double nyquist;
+		int result = 0;
+		if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getDouble(attr, &nyquist);
+        if (result == 0){
+			meta->nyquist = 0;
+		}
+		else{
+			meta->nyquist = nyquist;
+		}
+		
+		double value;
         double* valuePtr = &value;
-        float valueFloat;
-        
+        float valueFloat;        
         
         for (iAzim = 0; iAzim < nAzim; iAzim++) {
             for (iRang = 0; iRang < nRang; iRang++) {
@@ -3632,7 +3680,9 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 float avar[] = {NAN,NAN,NAN};
                 
                 float* pointsSelection = malloc(sizeof(float) * nPointsLayer * alldata->misc.nDims);
-                float* yObs = malloc(sizeof(float) * nPointsLayer);
+                float* yNyquist = malloc(sizeof(float) * nPointsLayer);
+				float* yDealias = malloc(sizeof(float) * nPointsLayer);
+				float* yObs = malloc(sizeof(float) * nPointsLayer);
                 float* yFitted = malloc(sizeof(float) * nPointsLayer);
                 int* includedIndex = malloc(sizeof(int) * nPointsLayer);
                 
@@ -3651,7 +3701,9 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 
                     pointsSelection[iPointLayer * alldata->misc.nDims + 0] = 0.0f;
                     pointsSelection[iPointLayer * alldata->misc.nDims + 1] = 0.0f;
-                    
+
+					yNyquist[iPointLayer] = 0.0f;
+					yDealias[iPointLayer] = 0.0f;                    
                     yObs[iPointLayer] = 0.0f;
                     yFitted[iPointLayer] = 0.0f;
                     
@@ -3674,7 +3726,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = NODATA;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = NODATA;
 
-		//Calculate the average reflectivity Z of the layer
+		        //Calculate the average reflectivity Z of the layer
                 iPointIncludedZ = 0;
                 for (iPointLayer = iPointFrom; iPointLayer < iPointFrom + nPointsLayer; iPointLayer++) {
                     
@@ -3700,7 +3752,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 } // endfor (iPointLayer = 0; iPointLayer < nPointsLayer; iPointLayer++) {
                 nPointsIncludedZ = iPointIncludedZ;
  
-		// calculate bird densities from undbzSum
+				// calculate bird densities from undbzSum
                 if (nPointsIncludedZ > alldata->constants.nPointsIncludedMin) {   
                     // when there are enough valid points, convert undbzAvg back to dB-scale
                     undbzAvg = (float) (undbzSum/nPointsIncludedZ);
@@ -3725,7 +3777,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     birdDensity = UNDETECT;
                 }
                 
-		//Prepare the arguments of svdfit
+		        //Prepare the arguments of svdfit
                 iPointIncluded = 0;
                 for (iPointLayer = iPointFrom; iPointLayer < iPointFrom + nPointsLayer; iPointLayer++) {
                     
@@ -3737,6 +3789,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         pointsSelection[iPointIncluded * alldata->misc.nDims + 0] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.azimAngleCol];
                         // copy elevation angle from the 'points' array
                         pointsSelection[iPointIncluded * alldata->misc.nDims + 1] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.elevAngleCol];
+						// copy nyquist interval from the 'points' array
+                        yNyquist[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.nyquistCol];
                         // copy the observed vrad value at this [azimuth, elevation] 
                         yObs[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.vradValueCol];
                         // pre-allocate the fitted vrad value at this [azimuth,elevation]
@@ -3759,6 +3813,13 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 
                     if (hasGap==FALSE) {
                         
+                        // ------------------------------------------------------------- //
+                        //                  dealias radial velocities                    //
+                        // ------------------------------------------------------------- //
+						
+						int result = dealias_points(&pointsSelection[0], alldata->misc.nDims, &yNyquist[0],
+								alldata->misc.nyquistMin, &yObs[0], &yDealias[0], nPointsIncluded);
+						
                         // ------------------------------------------------------------- //
                         //                       do the svdfit                           //
                         // ------------------------------------------------------------- //
@@ -3837,6 +3898,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
  
                 free((void*) yObs);
                 free((void*) yFitted);
+				free((void*) yNyquist);
+				free((void*) yDealias);
                 free((void*) pointsSelection);
                 free((void*) includedIndex);
         
@@ -4440,7 +4503,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     //               information about the 'points' array            //
     // ------------------------------------------------------------- //
 
-    alldata->points.nColsPoints = 6;
+    alldata->points.nColsPoints = 7;
     alldata->points.nRowsPoints = detSvdfitArraySize(volume, scanUse, alldata);
 
     alldata->points.azimAngleCol = 0;
@@ -4449,6 +4512,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->points.vradValueCol = 3;
     alldata->points.cellValueCol = 4;
     alldata->points.gateCodeCol = 5;
+	alldata->points.nyquistCol = 6;
 
     // pre-allocate the 'points' array (note it has 'nColsPoints'
     // pseudo-columns)
