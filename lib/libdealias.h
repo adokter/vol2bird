@@ -10,8 +10,10 @@
 /*Definition of standard parameters.                                          */
 /******************************************************************************/
 
-#define DEG2RAD    DEG_TO_RAD      /* Degrees to radians. From PROJ.4 */
-#define RAD2DEG    RAD_TO_DEG      /* Radians to degrees. From PROJ.4 */
+#ifndef DEG2RAD
+#define DEG2RAD (0.017453293) // Degrees to radians.
+#define RAD2DEG (57.29578)    // Radians to degrees.
+#endif
 #define VMAX       48              /* Maximum velocity */
 #define VAF        4               /*   */
 #define NF         40              /*   */

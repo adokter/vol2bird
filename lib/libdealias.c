@@ -57,8 +57,8 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
         for (i=0; i<n; i++) {
 			for (j=0; j<m; j++) {
 				// calculate the radial velocities for the test wind fields, eq 4 in Haase et al. 2004 jaot
-				vm = *(uh+i*m+j) * sin(points[nDims*iPoint]) +
-					 *(vh+i*m+j) * cos(points[nDims*iPoint]);
+				vm = *(uh+i*m+j) * sin(points[nDims*iPoint]*DEG2RAD) +
+					 *(vh+i*m+j) * cos(points[nDims*iPoint]*DEG2RAD);
 				// Eq. 7 for the test radial wind:
 				*(xt+i*m+j+iPoint*m*n) = nyquist[iPoint]/M_PI * cos(vm*M_PI/nyquist[iPoint]);
 				// Eq. 6 for the test radial wind:
@@ -97,7 +97,7 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
 
 	// the radial velocity of the best fitting test velocity field:
 	for (int iPoint=0; iPoint<nPoints; iPoint++) {
-		*(vt1+iPoint) = u1*sin(points[nDims*iPoint]) + v1*cos(points[nDims*iPoint]);
+		*(vt1+iPoint) = u1*sin(points[nDims*iPoint]*DEG2RAD) + v1*cos(points[nDims*iPoint]*DEG2RAD);
 	}
 
 	// dealias the observed velocities using the best test velocity field
@@ -119,6 +119,15 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
             }
 		} // loop MVA
 	} // loop over points
+	
+	RAVE_FREE(x);
+	RAVE_FREE(y);
+	RAVE_FREE(uh);
+	RAVE_FREE(vh);
+	RAVE_FREE(e);
+	RAVE_FREE(xt);
+	RAVE_FREE(yt);
+	RAVE_FREE(vt1);
 	
 	return 1;
 }

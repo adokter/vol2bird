@@ -78,7 +78,7 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradIma
                                   const SCANMETA* dbzMeta, const float *dbzImage,
                                   const int *cellImage,
                                   const float altitudeMin, const float altitudeMax,
-                                  float* points_local, int iPoint, vol2bird_t* alldata);
+                                  float* points_local, int iPoint, int nColsPoints, vol2bird_t* alldata);
 
 static int hasAzimuthGap(const float *points_local, const int nPoints, vol2bird_t* alldata);
 
@@ -801,7 +801,7 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                         &dbzMeta, &dbzImage[0], 
                         &cellImage[0], 
                         altitudeMin, altitudeMax, 
-                        &(alldata->points.points[0]), iRowPoints, alldata);
+                        &(alldata->points.points[0]), iRowPoints, alldata->points.nColsPoints, alldata);
                         
                     alldata->points.nPointsWritten[iLayer] += n;
     
@@ -982,35 +982,26 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 		scan = PolarVolume_getScan(volume, iScan);
 
         // check that radial velocity parameter is present
-        // in the case of using dealiased radial velocities
-        if (alldata->options.dealiasVrad){
-            if (PolarScan_hasParameter(scan, "VRADDH")){
-                sprintf(scanUse[iScan].vradName,"VRADDH");	
-                scanUse[iScan].useScan = TRUE;
-            }
-        }
-        // in the case of not dealiased radial velocities
-        else{
-            if (PolarScan_hasParameter(scan, "VRAD")){
-                sprintf(scanUse[iScan].vradName,"VRAD");	
-                scanUse[iScan].useScan = TRUE;
-            }
-            else{
-                if (PolarScan_hasParameter(scan, "VRADH")){
-                    sprintf(scanUse[iScan].vradName,"VRADH");	
-                    scanUse[iScan].useScan = TRUE;
-                }
-                else{
-                    if (PolarScan_hasParameter(scan, "VRADV")){
-                        sprintf(scanUse[iScan].vradName,"VRADV");	
-                        scanUse[iScan].useScan = TRUE;
-                    }
-                }
-            }
-            if (scanUse[iScan].useScan == FALSE){
-                fprintf(stderr,"Warning: radial velocity missing, dropping scan %i ...\n",iScan);
-            }
-        }
+  
+		if (PolarScan_hasParameter(scan, "VRAD")){
+			sprintf(scanUse[iScan].vradName,"VRAD");	
+			scanUse[iScan].useScan = TRUE;
+		}
+		else{
+			if (PolarScan_hasParameter(scan, "VRADH")){
+				sprintf(scanUse[iScan].vradName,"VRADH");	
+				scanUse[iScan].useScan = TRUE;
+			}
+			else{
+				if (PolarScan_hasParameter(scan, "VRADV")){
+					sprintf(scanUse[iScan].vradName,"VRADV");	
+					scanUse[iScan].useScan = TRUE;
+				}
+			}
+		}
+		if (scanUse[iScan].useScan == FALSE){
+			fprintf(stderr,"Warning: radial velocity missing, dropping scan %i ...\n",iScan);
+		}
 
         // check that reflectivity parameter is present
         if (scanUse[iScan].useScan){
@@ -1778,7 +1769,7 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradIma
                            const SCANMETA* dbzMeta, const float *dbzImage,
                            const int *cellImage,
                            const float altitudeMin, const float altitudeMax,
-                           float* points_local, int iRowPoints, vol2bird_t* alldata) {
+                           float* points_local, int iRowPoints, int nColsPoints_local, vol2bird_t* alldata) {
 
     // ------------------------------------------------------------------- //
     // Write combinations of an azimuth angle, an elevation angle, an      // 
@@ -1792,7 +1783,6 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradIma
     int nRang;
     int nAzim;
     int nPointsWritten_local;
-    const int nColsPoints_local = 6;
 
     float gateHeight;
     float gateRange;
@@ -3630,27 +3620,37 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
     // calculate the profiles in reverse order, because you need the result 
     // of iProfileType == 3 in order to check whether chi < stdDevMinBird  
     // when calculating iProfileType == 1
-
-
-//vol2birdPrintPointsArray(alldata);
-
     for (iProfileType = alldata->profiles.nProfileTypes; iProfileType > 0; iProfileType--) {
 
         // ------------------------------------------------------------- //
         //                        prepare the profile                    //
+		//                                                               //
+		// iProfileType == 1: birds                                      //
+		// iProfileType == 2: non-birds                                  //
+		// iProfileType == 3: birds+non-birds                            //
         // ------------------------------------------------------------- //
 
+		// FIXME: we better get rid of ProfileType==2 altogether, instead of
+		// skipping it here.
+		if(iProfileType == 2) continue;
+		
         alldata->profiles.iProfileTypeLast = iProfileType;
 
         // if the user does not require fitting a model to the observed 
-        // vrad values, one pass is enough 
+        // vrad values, we don't need a second pass to remove dealiasing outliers
         if (alldata->options.fitVrad == TRUE) {
             nPasses = 2;
         } 
         else {
             nPasses = 1;
         }
-
+		
+		// if we dealias, we don't need a second pass to remove dealiasing outliers
+		// since they are removed already by the dealiasing routine
+		if (alldata->options.dealiasVrad == TRUE) {
+			nPasses = 1;
+		}
+		
         // reset the flagPositionVDifMax bit before calculating each profile
         for (iPoint = 0; iPoint < alldata->points.nRowsPoints; iPoint++) {
             unsigned int gateCode = (unsigned int) alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.gateCodeCol];
@@ -3686,7 +3686,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 float* yFitted = malloc(sizeof(float) * nPointsLayer);
                 int* includedIndex = malloc(sizeof(int) * nPointsLayer);
                 
-                float dbzValue = NAN;
+                float* yObsSvdFit = yObs;
+				float dbzValue = NAN;
                 float undbzValue = NAN;
                 double undbzSum = 0.0;
                 float undbzAvg = NAN;
@@ -3817,14 +3818,31 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         //                  dealias radial velocities                    //
                         // ------------------------------------------------------------- //
 						
-						int result = dealias_points(&pointsSelection[0], alldata->misc.nDims, &yNyquist[0],
-								alldata->misc.nyquistMin, &yObs[0], &yDealias[0], nPointsIncluded);
+						
+											
+						// dealias velocities if requested by user
+						// set pointer yObsSvdFit either to dealiased or not-dealiased velocity array
+						if(alldata->options.dealiasVrad){
+							fprintf(stderr,"dealiasing %i points for profile %i, layer %i, pass %i ...\n",nPointsIncluded,iProfileType,iLayer,iPass);
+							int result = dealias_points(&pointsSelection[0], alldata->misc.nDims, &yNyquist[0],
+											alldata->misc.nyquistMin, &yObs[0], &yDealias[0], nPointsIncluded);							
+							if(result == 0){
+								fprintf(stderr,"Warning, failed to dealias radial velocities");
+								yObsSvdFit = yObs;
+							}
+							else{
+								yObsSvdFit = yDealias;
+							}
+						}
+						else{
+							yObsSvdFit = yObs;
+						}
 						
                         // ------------------------------------------------------------- //
                         //                       do the svdfit                           //
                         // ------------------------------------------------------------- //
 
-                        chisq = svdfit(&pointsSelection[0], alldata->misc.nDims, &yObs[0], &yFitted[0], 
+                        chisq = svdfit(&pointsSelection[0], alldata->misc.nDims, &yObsSvdFit[0], &yFitted[0], 
                                 nPointsIncluded, &parameterVector[0], &avar[0], alldata->misc.nParsFitted);
 
                         if (chisq < alldata->constants.chisqMin) {
@@ -4103,7 +4121,7 @@ void vol2birdPrintPointsArray(vol2bird_t* alldata) {
 
     int iPoint;
     
-    fprintf(stderr, "iPoint  azim    elev    dbz         vrad        cell    gateCode  flags     \n");
+    fprintf(stderr, "iPoint  azim    elev    dbz         vrad        cell    gateCode  flags     nyquist\n");
     
     for (iPoint = 0; iPoint < alldata->points.nRowsPoints * alldata->points.nColsPoints; iPoint+=alldata->points.nColsPoints) {
         
@@ -4119,6 +4137,7 @@ void vol2birdPrintPointsArray(vol2bird_t* alldata) {
             fprintf(stderr, "  %6.0f",  alldata->points.points[iPoint + alldata->points.cellValueCol]);
             fprintf(stderr, "  %8.0f",  alldata->points.points[iPoint + alldata->points.gateCodeCol]);
             fprintf(stderr, "  %12s",   gateCodeStr);
+			fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.nyquistCol]);
             fprintf(stderr, "\n");
     }    
 } // vol2birdPrintPointsArray
@@ -4421,21 +4440,6 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         alldata->constants.vradMin
     );
     
-    
-    // ------------------------------------------------------------- //
-    //         Apply pre-processing filters from rave toolbox        //
-    //                     currently dealiasing only                 //
-    // ------------------------------------------------------------- //
-    
-    if(alldata->options.dealiasVrad){
-        int result;
-
-        result = PolarVolume_dealias(volume);
-        if(result == 0){
-            fprintf(stderr,"Warning, failed to dealias radial velocities");
-        }
-    }
- 
     // ------------------------------------------------------------- //
     //             lists of indices into the 'points' array:         //
     //          where each altitude layer's data starts and ends     //
