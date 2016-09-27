@@ -1035,11 +1035,24 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
             if (elev < alldata->options.elevMin || elev > alldata->options.elevMax)
             {
                 scanUse[iScan].useScan = FALSE;
-                    fprintf(stderr,"Warning: scan elevation (%.1f deg) outside valid elevation range (%.1f-%.1f deg), dropping scan %i ...\n",\
+                    fprintf(stderr,"Warning: elevation (%.1f deg) outside valid elevation range (%.1f-%.1f deg), dropping scan %i ...\n",\
                     elev,alldata->options.elevMin,alldata->options.elevMax,iScan);
             }
         }
         
+		// check that range bin size has correct units
+		if (scanUse[iScan].useScan)
+        {
+            // drop scans with range bin sizes below 1 meter
+            double rscale = PolarScan_getRscale(scan);
+            if (rscale < RSCALEMIN || rscale == 0)
+            {
+                scanUse[iScan].useScan = FALSE;
+                    fprintf(stderr,"Warning: range bin size (%.2f metre) too small, dropping scan %i ...\n",\
+                    rscale,iScan);
+            }
+        }
+		
         // check that Nyquist velocity is not too low
 		// retrieve Nyquist velocity if not present at scan level
 		if (scanUse[iScan].useScan)
@@ -2324,7 +2337,7 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax){
         Sweep* rslSweep;
         rslSweep = radar->v[iVol]->sweep[0];
         rslRay   = rslSweep->ray[0];
-        fprintf(stderr, "Scans to be read from RSL file:\n"
+        fprintf(stderr, "Scans to be read from RSL file:\n");
         if (rslSweep && rslRay) {
             for(int iScan=0; iScan<radar->v[iVol]->h.nsweeps; iScan++){
                 rslSweep = radar->v[iVol]->sweep[iScan];
@@ -3817,13 +3830,12 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         // ------------------------------------------------------------- //
                         //                  dealias radial velocities                    //
                         // ------------------------------------------------------------- //
-						
-						
+								
 											
 						// dealias velocities if requested by user
 						// set pointer yObsSvdFit either to dealiased or not-dealiased velocity array
 						if(alldata->options.dealiasVrad){
-							fprintf(stderr,"dealiasing %i points for profile %i, layer %i, pass %i ...\n",nPointsIncluded,iProfileType,iLayer,iPass);
+							//printf(stderr,"# dealiasing %i points for profile %i, layer %i, pass %i ...\n",nPointsIncluded,iProfileType,iLayer,iPass);
 							int result = dealias_points(&pointsSelection[0], alldata->misc.nDims, &yNyquist[0],
 											alldata->misc.nyquistMin, &yObs[0], &yDealias[0], nPointsIncluded);							
 							if(result == 0){
@@ -3836,6 +3848,10 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 						}
 						else{
 							yObsSvdFit = yObs;
+						}
+						
+						for(int i=0;i<nPointsIncluded;i++){
+								fprintf(stderr,"%i,%i,%i,%f,%f,%f,%f\n",iProfileType,iLayer,iPass,pointsSelection[i*alldata->misc.nDims],pointsSelection[i*alldata->misc.nDims+1],yObs[i],yDealias[i]);
 						}
 						
                         // ------------------------------------------------------------- //

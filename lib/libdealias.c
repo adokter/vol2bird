@@ -7,15 +7,17 @@
 #include "libdealias.h"
 
 int dealias_points(const float *points, const int nDims, const float nyquist[], 
-	const double NI, const float vo[], float vradDealias[], const int nPoints){
+	const double NI_MIN, const float vo[], float vradDealias[], const int nPoints){
   
 	int i, j, n, m, eind;
     double vm, min1, esum, u1, v1, min2, dmy;
   
 	// number of rows
-	m = floor (VAF/NI*VMAX);
+	m = floor (VAF*VMAX/NI_MIN);
 	// number of columns
 	n = NF;
+	// max number of folds of nyquist interval to test for
+	double MVA=2*ceil(VMAX/(2*NI_MIN));
 
 	// polarscan matrix, torus projected x coordinate, eq. 6 Haase et al. 2004 jaot
 	double *x = RAVE_CALLOC ((size_t)nPoints, sizeof(double));
@@ -37,7 +39,7 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
 	double *vt1 = RAVE_CALLOC ((size_t)nPoints, sizeof(double));
 	// ordered array of possible aliases
 
-	// map measured data to 3F
+	// map measured data to 3D
 	for (i=0; i<nPoints; i++) {
 		*(x+i) = nyquist[i]/M_PI * cos(*(vo+i)*M_PI/nyquist[i]);
 		*(y+i) = nyquist[i]/M_PI * sin(*(vo+i)*M_PI/nyquist[i]);
@@ -45,11 +47,11 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
 	  
 	// Setting up the u and v component of the test velocity fields:
 	// index n=NF gives number of azimuthal directions (default n=40, i.e. steps of 360/40=9 degrees)
-	// index m=VAF/NI*VMAX gives number of speeds (maximum speed is VMAX, steps of NI/VAF)
+	// index m=VAF/NI_MIN*VMAX gives number of speeds (maximum speed is VMAX, steps of NI_MIN/VAF)
 	for (i=0; i<n; i++) {
         for (j=0; j<m; j++) {
-			*(uh+i*m+j) = NI/VAF*(j+1) * sin(2*M_PI/NF*i);
-			*(vh+i*m+j) = NI/VAF*(j+1) * cos(2*M_PI/NF*i);
+			*(uh+i*m+j) = NI_MIN/VAF*(j+1) * sin(2*M_PI/NF*i);
+			*(vh+i*m+j) = NI_MIN/VAF*(j+1) * cos(2*M_PI/NF*i);
         }
 	}
 

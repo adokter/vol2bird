@@ -16,7 +16,7 @@
 -include ../def.mk 
  
 CC      = gcc
-#CFLAGS  = -fPIC -x c -DFPRINTFON
+#CFLAGS  = ${RSL_CFLAG} -fPIC -x c -DFPRINTFON
 CFLAGS  = ${RSL_CFLAG} -fPIC -x c
 LDFLAGS = -shared -Wall
 

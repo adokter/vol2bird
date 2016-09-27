@@ -48,6 +48,8 @@
 // the extra offset allows for the raincell search to extend somewhat further
 // than the maximum range used in the profile generation (RANGE_MAX).
 #define RCELLMAX_OFFSET 5000.0f
+// smallest range bin size to accept in metres
+#define RSCALEMIN 10
 // after fitting the vrad data, throw out any vrad observations that are more that VDIFMAX away
 // from the fitted value, since these are likely outliers
 #define VDIFMAX 10.0
