@@ -117,6 +117,7 @@ struct vol2birdOptions {
     char dbzType[10];               /* Preferred dBZ quantity to use */
     int requireVrad;                /* require range gates to have a valid radial velocity measurement */
     int dealiasVrad;                /* dealias radial velocities using torus mapping method by Haase et al. */
+	int dealiasRecycle;             /* whether we should dealias once, or separately for each profile type */
 };
 typedef struct vol2birdOptions vol2birdOptions_t;
 
@@ -213,6 +214,8 @@ struct vol2birdPoints {
     int gateCodeCol;
 	// the psuedo-column in 'points' that holds the nyquist velocity
 	int nyquistCol;
+    // the psuedo-column in 'points' that holds the dealiased vrad value
+	int vraddValueCol;
     // the 'points' array itself
     float* points; // Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
     // for a given altitude layer in the profile, only part of the 'points'

@@ -1892,7 +1892,9 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradIma
 			// store the corresponding observed nyquist velocity
 			points_local[iRowPoints * nColsPoints_local + 6] = vradMeta->nyquist;
 
-			
+			// store the corresponding observed vrad value for now (to be dealiased later)
+			points_local[iRowPoints * nColsPoints_local + 7] = vradValue;
+
 			// raise the row counter by 1
             iRowPoints += 1;
             
@@ -2818,7 +2820,8 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_FLOAT("DBZCELL",DBZCELL,CFGF_NONE),
         CFG_STR("DBZTYPE",DBZTYPE,CFGF_NONE),
         CFG_BOOL("REQUIRE_VRAD",REQUIRE_VRAD,CFGF_NONE),
-        CFG_BOOL("DEALIAS_VRAD",REQUIRE_VRAD,CFGF_NONE),
+        CFG_BOOL("DEALIAS_VRAD",DEALIAS_VRAD,CFGF_NONE),
+		CFG_BOOL("DEALIAS_RECYCLE",DEALIAS_RECYCLE,CFGF_NONE),
         CFG_BOOL("EXPORT_BIRD_PROFILE_AS_JSON",FALSE,CFGF_NONE),
         CFG_END()
     };
@@ -3657,19 +3660,25 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
         else {
             nPasses = 1;
         }
-		
-		// if we dealias, we don't need a second pass to remove dealiasing outliers
-		// since they are removed already by the dealiasing routine
-		if (alldata->options.dealiasVrad == TRUE) {
-			nPasses = 1;
+			
+		// set a flag that indicates if we want to keep earlier dealiased values
+		int recycleDealias = FALSE;
+		if(iProfileType<3 && alldata->options.dealiasRecycle){
+			recycleDealias = TRUE;
 		}
-		
+			
         // reset the flagPositionVDifMax bit before calculating each profile
         for (iPoint = 0; iPoint < alldata->points.nRowsPoints; iPoint++) {
             unsigned int gateCode = (unsigned int) alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.gateCodeCol];
             alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.gateCodeCol] = (float) (gateCode &= ~(1<<(alldata->flags.flagPositionVDifMax)));
         }
         
+		// reset the dealiased vrad value before calculating each profile
+		if(!recycleDealias){
+			for (iPoint = 0; iPoint < alldata->points.nRowsPoints; iPoint++) {
+				alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.vraddValueCol] = alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.vradValueCol];
+			}	
+		}
         
         for (iLayer = 0; iLayer < alldata->options.nLayers; iLayer++) {
 
@@ -3807,6 +3816,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         yNyquist[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.nyquistCol];
                         // copy the observed vrad value at this [azimuth, elevation] 
                         yObs[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.vradValueCol];
+						// copy the dealiased vrad value at this [azimuth, elevation] 
+                        yDealias[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.vraddValueCol];
                         // pre-allocate the fitted vrad value at this [azimuth,elevation]
                         yFitted[iPointIncluded] = 0.0f;
                         // keep a record of which index was just included
@@ -3831,33 +3842,32 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         //                  dealias radial velocities                    //
                         // ------------------------------------------------------------- //
 								
-											
 						// dealias velocities if requested by user
-						// set pointer yObsSvdFit either to dealiased or not-dealiased velocity array
-						if(alldata->options.dealiasVrad){
-							//printf(stderr,"# dealiasing %i points for profile %i, layer %i, pass %i ...\n",nPointsIncluded,iProfileType,iLayer,iPass);
+						// only dealias in first pass (later passes for removing dual-PRF dealiasing errors,
+						// which show smaller offsets than (2*nyquist velocity) and therefore are not
+						// removed by dealiasing routine)
+						if(alldata->options.dealiasVrad && iPass == 0 && !recycleDealias){
+							fprintf(stdout,"dealiasing %i points for profile %i, layer %i ...\n",nPointsIncluded,iProfileType,iLayer+1);
 							int result = dealias_points(&pointsSelection[0], alldata->misc.nDims, &yNyquist[0],
 											alldata->misc.nyquistMin, &yObs[0], &yDealias[0], nPointsIncluded);							
+							// store dealiased velocities in points array (for re-use when iPass>0)
+							for(int i=0; i<nPointsIncluded;i++){
+								alldata->points.points[includedIndex[i] * alldata->points.nColsPoints + alldata->points.vraddValueCol] = yDealias[i];	
+							}
+						
 							if(result == 0){
 								fprintf(stderr,"Warning, failed to dealias radial velocities");
-								yObsSvdFit = yObs;
-							}
-							else{
-								yObsSvdFit = yDealias;
 							}
 						}
-						else{
-							yObsSvdFit = yObs;
-						}
 						
-						for(int i=0;i<nPointsIncluded;i++){
-								fprintf(stderr,"%i,%i,%i,%f,%f,%f,%f\n",iProfileType,iLayer,iPass,pointsSelection[i*alldata->misc.nDims],pointsSelection[i*alldata->misc.nDims+1],yObs[i],yDealias[i]);
-						}
-						
+						// yDealias is initialized to yObs, so we can always run svdfit
+						// on yDealias, even when not running a dealiasing routine
+						yObsSvdFit = yDealias;
+											
                         // ------------------------------------------------------------- //
                         //                       do the svdfit                           //
                         // ------------------------------------------------------------- //
-
+						
                         chisq = svdfit(&pointsSelection[0], alldata->misc.nDims, &yObsSvdFit[0], &yFitted[0], 
                                 nPointsIncluded, &parameterVector[0], &avar[0], alldata->misc.nParsFitted);
 
@@ -3884,11 +3894,11 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                             // if the fitted vrad value is more than 'absVDifMax' away from the corresponding
                             // observed vrad value, set the gate's flagPositionVDifMax bit flag to 1, excluding the 
                             // gate in the second svdfit iteration
-                            updateFlagFieldsInPointsArray(&yObs[0], &yFitted[0], &includedIndex[0], nPointsIncluded,
+                            updateFlagFieldsInPointsArray(&yObsSvdFit[0], &yFitted[0], &includedIndex[0], nPointsIncluded,
                                                   &(alldata->points.points[0]), alldata);
 
                         }
-                        
+						
                     } // endif (hasGap == FALSE)
                     
                 }; // endif (fitVrad == TRUE)
@@ -3929,7 +3939,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
                 }
- 
+  
                 free((void*) yObs);
                 free((void*) yFitted);
 				free((void*) yNyquist);
@@ -4137,7 +4147,7 @@ void vol2birdPrintPointsArray(vol2bird_t* alldata) {
 
     int iPoint;
     
-    fprintf(stderr, "iPoint  azim    elev    dbz         vrad        cell    gateCode  flags     nyquist\n");
+    fprintf(stderr, "iPoint  azim    elev    dbz         vrad        cell    gateCode  flags     nyquist vradd\n");
     
     for (iPoint = 0; iPoint < alldata->points.nRowsPoints * alldata->points.nColsPoints; iPoint+=alldata->points.nColsPoints) {
         
@@ -4154,6 +4164,7 @@ void vol2birdPrintPointsArray(vol2bird_t* alldata) {
             fprintf(stderr, "  %8.0f",  alldata->points.points[iPoint + alldata->points.gateCodeCol]);
             fprintf(stderr, "  %12s",   gateCodeStr);
 			fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.nyquistCol]);
+			fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.vraddValueCol]);
             fprintf(stderr, "\n");
     }    
 } // vol2birdPrintPointsArray
@@ -4334,6 +4345,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     strcpy(alldata->options.dbzType,cfg_getstr(*cfg,"DBZTYPE"));
     alldata->options.requireVrad = cfg_getbool(*cfg,"REQUIRE_VRAD");
     alldata->options.dealiasVrad = cfg_getbool(*cfg,"DEALIAS_VRAD");
+	alldata->options.dealiasRecycle = cfg_getbool(*cfg,"DEALIAS_RECYCLE");
 
     // ------------------------------------------------------------- //
     //              vol2bird options from constants.h                //
@@ -4523,7 +4535,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     //               information about the 'points' array            //
     // ------------------------------------------------------------- //
 
-    alldata->points.nColsPoints = 7;
+    alldata->points.nColsPoints = 8;
     alldata->points.nRowsPoints = detSvdfitArraySize(volume, scanUse, alldata);
 
     alldata->points.azimAngleCol = 0;
@@ -4533,6 +4545,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->points.cellValueCol = 4;
     alldata->points.gateCodeCol = 5;
 	alldata->points.nyquistCol = 6;
+	alldata->points.vraddValueCol = 7;
 
     // pre-allocate the 'points' array (note it has 'nColsPoints'
     // pseudo-columns)

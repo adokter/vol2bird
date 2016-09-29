@@ -5,6 +5,7 @@
  */
 
 #include "libdealias.h"
+#include <stdio.h>
 
 int dealias_points(const float *points, const int nDims, const float nyquist[], 
 	const double NI_MIN, const float vo[], float vradDealias[], const int nPoints){
@@ -96,7 +97,9 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
 		u1 = *(uh+eind);
 		v1 = *(vh+eind);
 	}
-
+	#ifdef FPRINTFON
+	fprintf(stdout,"Using test velocity field (U,V)=%f,%f for dealiasing ...\n",u1,v1);
+	#endif
 	// the radial velocity of the best fitting test velocity field:
 	for (int iPoint=0; iPoint<nPoints; iPoint++) {
 		*(vt1+iPoint) = u1*sin(points[nDims*iPoint]*DEG2RAD) + v1*cos(points[nDims*iPoint]*DEG2RAD);

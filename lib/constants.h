@@ -94,9 +94,9 @@
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
-#define VERSION "0.3.1"
+#define VERSION "0.3.2"
 // Date of latest version of the program
-#define VERSIONDATE "26-Aug-2016"
+#define VERSIONDATE "29-Sep-2016"
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //
@@ -160,5 +160,9 @@
 #define DBZTYPE "DBZH"
 // for a range gate to contribute it should have a valid radial velocity
 #define REQUIRE_VRAD 0
+// whether we should dealias the radial velocities
+#define DEALIAS_VRAD 0
+// whether we should dealias all data once (default), or dealias for each profile individually
+#define DEALIAS_RECYCLE 1
 // whether you want to export the vertical bird profile as JSON
 #define EXPORT_BIRD_PROFILE_AS_JSON 0

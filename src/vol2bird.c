@@ -134,11 +134,11 @@ int main(int argc, char** argv) {
 
                 int nRowsProfile = vol2birdGetNRowsProfile(&alldata);
                 int nColsProfile = vol2birdGetNColsProfile(&alldata);
-
+				
                 fprintf(stdout, "# vol2bird Vertical Profile of Birds (VPB)\n");
                 fprintf(stdout, "# source: %s\n",source);
                 fprintf(stdout, "# ODIM HDF5 input: %s\n",fileVolIn);
-                printf("# Date   Time Heig    U      V       W   Speed Direc StdDev SDev2 Gap dBZ     eta DensBird dBZAll   n   ndBZ  nAll nAlldBZ\n");
+                printf("# Date   Time Heig    U      V       W   Speed Direc StdDev Gap dBZ     eta DensBird dBZAll   n   ndBZ  nAll nAlldBZ\n");
                
                 float *profileBio;
                 float *profileAll;
@@ -152,11 +152,11 @@ int main(int argc, char** argv) {
                 for (iRowProfile = 0; iRowProfile < nRowsProfile; iRowProfile++) {
                     iCopied=iRowProfile*nColsProfile;
                     printf("%8s %.4s ",date,time);
-                    printf("%4.f %6.2f %6.2f %7.2f %5.2f %5.1f %6.2f %6.2f %1c %6.2f %6.1f %6.2f %6.2f %5.f %5.f %5.f %5.f\n",
+                    printf("%4.f %6.2f %6.2f %7.2f %5.2f %5.1f %6.2f %1c %6.2f %6.1f %6.2f %6.2f %5.f %5.f %5.f %5.f\n",
                     profileBio[0+iCopied],
                     nanify(profileBio[2+iCopied]),nanify(profileBio[3+iCopied]),
                     nanify(profileBio[4+iCopied]),nanify(profileBio[5+iCopied]),
-                    nanify(profileBio[6+iCopied]),nanify(profileAll[7+iCopied]),nanify(profileBio[7+iCopied]),
+                    nanify(profileBio[6+iCopied]),nanify(profileAll[7+iCopied]),
                     profileBio[8+iCopied] == TRUE ? 'T' : 'F',
                     nanify(profileBio[9+iCopied]),nanify(profileBio[11+iCopied]),
                     nanify(profileBio[12+iCopied]),nanify(profileAll[9+iCopied]),
