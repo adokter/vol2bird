@@ -166,3 +166,7 @@
 #define DEALIAS_RECYCLE 1
 // whether you want to export the vertical bird profile as JSON
 #define EXPORT_BIRD_PROFILE_AS_JSON 0
+// whether to use dual-pol moments for filtering meteorological echoes
+#define DUALPOL 0
+// correlation coefficients higher than this threshold will be classified as precipitation
+#define RHOHVMIN 0.9

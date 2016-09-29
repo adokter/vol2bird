@@ -118,6 +118,9 @@ struct vol2birdOptions {
     int requireVrad;                /* require range gates to have a valid radial velocity measurement */
     int dealiasVrad;                /* dealias radial velocities using torus mapping method by Haase et al. */
 	int dealiasRecycle;             /* whether we should dealias once, or separately for each profile type */
+    int dualPol;                    /* whether to use dual-polarization moments for filtering meteorological echoes */
+    float dbzThresMin;              /* reflectivities above this threshold will be checked as potential precipitation */
+    float rhohvThresMin;            /* correlation coefficients above this threshold will be removed as precipitation */
 };
 typedef struct vol2birdOptions vol2birdOptions_t;
 
@@ -332,6 +335,8 @@ struct vol2birdScanUse {
     char dbzName[10];
     // the radial velocity quantity used for this scan
     char vradName[10];
+    // the correlation coefficient quantity used for this scan
+    char rhohvName[10];
 };
 typedef struct vol2birdScanUse vol2birdScanUse_t;
 
