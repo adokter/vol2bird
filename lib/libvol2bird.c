@@ -689,6 +689,7 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 // free previously malloc'ed arrays
                 free((void*) dbzImage);
                 free((void*) vradImage);
+                free((void*) rhohvImage);
                 free((void*) texImage);
                 free((void*) cellImage);
                 free((void*) clutterImage);
@@ -903,6 +904,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
             }
             else{
                 fprintf(stderr,"Warning: correlation coefficient missing, dropping scan %i ...\n",iScan);
+                scanUse[iScan].useScan = FALSE;
             }
         }
         

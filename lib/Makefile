@@ -17,7 +17,7 @@
  
 CC      = gcc
 #CFLAGS  = ${RSL_CFLAG} -fPIC -x c -DFPRINTFON
-CFLAGS  = ${RSL_CFLAG} -fPIC -x c
+CFLAGS  = ${RSL_CFLAG} -fPIC -g -x c
 LDFLAGS = -shared -Wall
 
 # define where the vol2bird stuff is
