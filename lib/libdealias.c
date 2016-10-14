@@ -7,16 +7,49 @@
 #include "libdealias.h"
 #include <stdio.h>
 
+void printDealias(const float *points, const int nDims, const float nyquist[], 
+    const float vradObs[], float vradDealias[], const int nPoints, const int iProfileType, const int iLayer, const int iPass){
+    fprintf(stderr,"#iProfile iLayer iPass azim elev nyquist vrad vradd\n");
+    for(int i=0; i<nPoints;i++){
+        fprintf(stderr,"%i %i %i %3.1f %3.1f %3.1f %3.1f %3.1f\n",
+        iProfileType,iLayer,iPass,points[i*nDims],points[i*nDims+1],nyquist[i],vradObs[i],vradDealias[i]);
+    }
+}
+
+double test_field(const float *points, const float *pointsTrigon, const int nPoints, const int nDims, float u, float v, double x[], double y[], const float nyquist[]){
+    double xt, yt, e, vm;
+    double esum = 0;
+    for (int iPoint=0; iPoint<nPoints; iPoint++) {
+        // calculate the radial velocities for the test wind fields, eq 4 in Haase et al. 2004 jaot
+        vm = (u*pointsTrigon[3*iPoint] + v*pointsTrigon[3*iPoint+1])*pointsTrigon[3*iPoint+2];
+        // Eq. 7 for the test radial wind:
+        xt = nyquist[iPoint]/M_PI * cos(vm*M_PI/nyquist[iPoint]);
+        // Eq. 6 for the test radial wind:
+        yt = nyquist[iPoint]/M_PI * sin(vm*M_PI/nyquist[iPoint]);
+        
+        // summed absolute differences between observed velocity field and test fields
+        e = fabs(xt-x[iPoint]) + fabs(yt-y[iPoint]);
+//        fprintf(stderr,"test_field: i=%i,u=%f,v=%f,vm=%f,xt=%f,yt=%f,e=%f,sin=%f,cos=%f,cos=%f\n",iPoint,u,v,vm,xt,yt,e,pointsTrigon[3*iPoint],pointsTrigon[3*iPoint+1],pointsTrigon[3*iPoint+2]);
+        if (!isnan(e)) {
+            esum = esum + e;
+        }
+    }
+    return esum;
+}
+
+
+
 int dealias_points(const float *points, const int nDims, const float nyquist[], 
     const double NI_MIN, const float vo[], float vradDealias[], const int nPoints){
   
     int i, j, n, m, eind;
-    double vm, min1, esum, u1, v1, min2, dmy;
-  
+    double min1, esum, u1, v1, min2, dmy;
+    
     // number of rows
     m = floor (VAF*VMAX/NI_MIN);
     // number of columns
     n = NF;
+    
     // max number of folds of nyquist interval to test for
     double MVA=2*ceil(VMAX/(2*NI_MIN));
 
@@ -24,26 +57,26 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
     double *x = RAVE_CALLOC ((size_t)nPoints, sizeof(double));
     // polarscan matrix, torus projected y coordinate, eq. 7 Haase et al. 2004 jaot
     double *y = RAVE_CALLOC ((size_t)nPoints, sizeof(double));
-    // the observed, possibly aliased, radial velocity 
-    //float *vo = RAVE_CALLOC ((size_t)nPoints, sizeof(float));
     // U-components of test velocity fields
     double *uh = RAVE_CALLOC ((size_t)(m*n), sizeof(double));
     // V-components of test velocity fields
     double *vh = RAVE_CALLOC ((size_t)(m*n), sizeof(double));
-    // summed absolute differences between observed velocity field and test fields
-    double *e = RAVE_CALLOC ((size_t)(m*n*nPoints), sizeof(double));
-    // see Eq. 7 Haase et al. 2004 jaot
-    double *xt = RAVE_CALLOC ((size_t)(m*n*nPoints), sizeof(double));
-    // see Eq. 6 Haase et al. 2004 jaot
-    double *yt = RAVE_CALLOC ((size_t)(m*n*nPoints), sizeof(double));
     // radial velocities of the best fitting test field
     double *vt1 = RAVE_CALLOC ((size_t)nPoints, sizeof(double));
-    // ordered array of possible aliases
-
+    // array with trigonometric conversions of the points array
+    float *pointsTrigon = RAVE_CALLOC ((size_t)(3*nPoints), sizeof(double));
+    
     // map measured data to 3D
     for (i=0; i<nPoints; i++) {
-        *(x+i) = nyquist[i]/M_PI * cos(*(vo+i)*M_PI/nyquist[i]);
-        *(y+i) = nyquist[i]/M_PI * sin(*(vo+i)*M_PI/nyquist[i]);
+        x[i] = nyquist[i]/M_PI * cos(vo[i]*M_PI/nyquist[i]);
+        y[i] = nyquist[i]/M_PI * sin(vo[i]*M_PI/nyquist[i]);
+    }
+
+    // trigonometric conversion points array (compute once to speed up code)
+    for (int iPoint=0; iPoint<nPoints; iPoint++) {
+        pointsTrigon[3*iPoint+0] = sin(points[nDims*iPoint]*DEG2RAD);
+        pointsTrigon[3*iPoint+1] = cos(points[nDims*iPoint]*DEG2RAD);
+        pointsTrigon[3*iPoint+2] = cos(points[nDims*iPoint+1]*DEG2RAD);
     }
 
     // Setting up the u and v component of the test velocity fields:
@@ -56,40 +89,17 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
         }
     }
 
-    for (int iPoint=0; iPoint<nPoints; iPoint++) {
-        for (i=0; i<n; i++) {
-            for (j=0; j<m; j++) {
-                // calculate the radial velocities for the test wind fields, eq 4 in Haase et al. 2004 jaot
-                vm = *(uh+i*m+j) * sin(points[nDims*iPoint]*DEG2RAD) +
-                *(vh+i*m+j) * cos(points[nDims*iPoint]*DEG2RAD);
-                // Eq. 7 for the test radial wind:
-                *(xt+i*m+j+iPoint*m*n) = nyquist[iPoint]/M_PI * cos(vm*M_PI/nyquist[iPoint]);
-                // Eq. 6 for the test radial wind:
-                *(yt+i*m+j+iPoint*m*n) = nyquist[iPoint]/M_PI * sin(vm*M_PI/nyquist[iPoint]);
-            }
-        }
-    }  
-
-    for (int iPoint=0; iPoint<nPoints; iPoint++) {
-        for (i=0; i<m*n; i++) {
-            // difference between the radial velocity of the test wind field, and the observed radial velocity, for a given range bin.
-            *(e+i+iPoint*m*n) = fabs(*(xt+i+iPoint*m*n)-*(x+iPoint)) +
-                            fabs(*(yt+i+iPoint*m*n)-*(y+iPoint));
-        }
-    }
-
     min1 = 1e32;
     eind = 0;
     u1 = 0;
     v1 = 0;
+
     // select the test wind with the best fit
+    fprintf(stderr,"dealisiasing ...");
     for (i=0; i<m*n; i++) {
-        esum = 0;
-        for (int iPoint=0; iPoint<nPoints; iPoint++) {
-            if (!isnan(*(e+i+iPoint*m*n))) {
-                esum = esum + *(e+i+iPoint*m*n);
-            }
-        }
+        
+        esum = test_field(points, pointsTrigon, nPoints, nDims, *(uh+i), *(vh+i), x, y, nyquist);
+        
         if (esum<min1) {
             min1 = esum;
             eind = i;
@@ -100,9 +110,11 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
     #ifdef FPRINTFON
     fprintf(stdout,"Using test velocity field (U,V)=%f,%f for dealiasing ...\n",u1,v1);
     #endif
+    
     // the radial velocity of the best fitting test velocity field:
     for (int iPoint=0; iPoint<nPoints; iPoint++) {
-        *(vt1+iPoint) = u1*sin(points[nDims*iPoint]*DEG2RAD) + v1*cos(points[nDims*iPoint]*DEG2RAD);
+        *(vt1+iPoint) = (u1*sin(points[nDims*iPoint]*DEG2RAD) + v1*cos(points[nDims*iPoint]*DEG2RAD))
+                        *cos(points[nDims*iPoint+1]*DEG2RAD);
     }
 
     // dealias the observed velocities using the best test velocity field
@@ -129,10 +141,7 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
     RAVE_FREE(y);
     RAVE_FREE(uh);
     RAVE_FREE(vh);
-    RAVE_FREE(e);
-    RAVE_FREE(xt);
-    RAVE_FREE(yt);
     RAVE_FREE(vt1);
-
+    fprintf(stderr,"done\n");
     return 1;
 }

@@ -2820,6 +2820,7 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_BOOL("USE_STATIC_CLUTTER_DATA",USE_STATIC_CLUTTER_DATA,CFGF_NONE),
         CFG_BOOL("VERBOSE_OUTPUT_REQUIRED",VERBOSE_OUTPUT_REQUIRED,CFGF_NONE),
         CFG_BOOL("PRINT_DBZ",PRINT_DBZ,CFGF_NONE),
+        CFG_BOOL("PRINT_DEALIAS",PRINT_DEALIAS,CFGF_NONE),
         CFG_BOOL("PRINT_VRAD",PRINT_VRAD,CFGF_NONE),
         CFG_BOOL("PRINT_CELL",PRINT_CELL,CFGF_NONE),
         CFG_BOOL("PRINT_CELL_PROP",PRINT_CELL_PROP,CFGF_NONE),
@@ -3979,7 +3980,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         // which show smaller offsets than (2*nyquist velocity) and therefore are not
                         // removed by dealiasing routine)
                         if(alldata->options.dealiasVrad && iPass == 0 && !recycleDealias){
-                            fprintf(stdout,"dealiasing %i points for profile %i, layer %i ...\n",nPointsIncluded,iProfileType,iLayer+1);
+                            fprintf(stdout,"# dealiasing %i points for profile %i, layer %i ...\n",nPointsIncluded,iProfileType,iLayer+1);
                             int result = dealias_points(&pointsSelection[0], alldata->misc.nDims, &yNyquist[0],
                                             alldata->misc.nyquistMin, &yObs[0], &yDealias[0], nPointsIncluded);							
                             // store dealiased velocities in points array (for re-use when iPass>0)
@@ -3991,15 +3992,22 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                                 fprintf(stderr,"Warning, failed to dealias radial velocities");
                             }
                         }
+
+                        //print the dealiased values to stderr
+                        if(alldata->options.printDealias == TRUE){
+                            printDealias(&pointsSelection[0], alldata->misc.nDims, &yNyquist[0],
+                                            &yObs[0], &yDealias[0], nPointsIncluded, iProfileType, iLayer, iPass);
+                        }
+
                         
                         // yDealias is initialized to yObs, so we can always run svdfit
                         // on yDealias, even when not running a dealiasing routine
                         yObsSvdFit = yDealias;
-											
+                        
                         // ------------------------------------------------------------- //
                         //                       do the svdfit                           //
                         // ------------------------------------------------------------- //
-						
+                                                
                         chisq = svdfit(&pointsSelection[0], alldata->misc.nDims, &yObsSvdFit[0], &yFitted[0], 
                                 nPointsIncluded, &parameterVector[0], &avar[0], alldata->misc.nParsFitted);
 
@@ -4361,6 +4369,9 @@ PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax){
             
             volume = (PolarVolume_t*) RaveIO_getObject(raveio);
         }
+        else{
+            fprintf(stderr,"Error: ODIM HDF5 file is not a polar volume\n");
+        }
     }
     // not a rave complient file, attempt to read the file with the RSL library instead
     #ifdef RSL
@@ -4459,6 +4470,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.radarWavelength = cfg_getfloat(*cfg, "RADAR_WAVELENGTH_CM");
     alldata->options.useStaticClutterData = cfg_getbool(*cfg,"USE_STATIC_CLUTTER_DATA");
     alldata->options.printDbz = cfg_getbool(*cfg,"PRINT_DBZ");
+    alldata->options.printDealias = cfg_getbool(*cfg,"PRINT_DEALIAS");
     alldata->options.printVrad = cfg_getbool(*cfg,"PRINT_VRAD");
     alldata->options.printTex = cfg_getbool(*cfg,"PRINT_TEXTURE");
     alldata->options.printCell = cfg_getbool(*cfg,"PRINT_CELL");

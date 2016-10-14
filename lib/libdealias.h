@@ -18,5 +18,8 @@
 #define VAF        4          /* Test field velocities increase in steps NI/VAF   */
 #define NF         40         /* Test field directions increase by 360/NF degrees */
 
+void printDealias(const float *points, const int nDims, const float nyquist[], 
+	const float vradObs[], float vradDealias[], const int nPoints, const int iProfileType, const int iLayer, const int iPass);
+
 int dealias_points(const float *points, const int nDims, const float nyquist[], 
 	const double NI_MIN, const float vo[], float vradDealias[], const int nPoints);

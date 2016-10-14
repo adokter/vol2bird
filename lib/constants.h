@@ -128,6 +128,8 @@
 #define VERBOSE_OUTPUT_REQUIRED 0
 // print dbz to stderr
 #define PRINT_DBZ 0
+// print aliased and dealiased vrad pairs to stderr
+#define PRINT_DEALIAS 0
 // print vrad to stderr
 #define PRINT_VRAD 0
 // print cell to stderr

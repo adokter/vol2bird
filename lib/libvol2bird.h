@@ -100,6 +100,7 @@ struct vol2birdOptions {
     int useStaticClutterData; /* whether a static clutter map is used */
     int printOptions;         /* print options to stderr */
     int printDbz;             /* print dbz to stderr */
+    int printDealias;         /* print aliased and dealiased vrad pairs to stderr */
     int printVrad;            /* print vrad to stderr */
     int printCell;            /* print cell to stderr */
     int printCellProp;        /* print cell properties to stderr */
