@@ -29,7 +29,7 @@
 #include "constants.h"
 #undef RAD2DEG // to suppress redefine warning, also defined in dealias.h
 #undef DEG2RAD // to suppress redefine warning, also defined in dealias.h
-#include "dealias.h"
+//#include "dealias.h"
 #include "libdealias.h"
 
 #ifdef RSL
@@ -1601,8 +1601,8 @@ static void fringeCells(int *cellImage, int nRang, int nAzim, float aScale, floa
                     continue; // with the next iGlobal
                 }
 
-                if (cellImage[iLocal] <= 1) {
-                    isEdge = TRUE;
+                if (cellImage[iLocal] < 1) { //FIXME: Strictly this should be <=1, but then much slower
+                    isEdge = TRUE;           //Now only pixels without any bordering fringe are 'fringed', giving very similar result (but improvement welcome)
                 }
 
             }
@@ -1926,6 +1926,7 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradIma
 
 } // getListOfSelectedGates
 
+/*
 int PolarVolume_dealias(PolarVolume_t* pvol){
     
     fprintf(stderr,"Dealiasing scans: ");
@@ -1999,7 +2000,7 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
     fprintf(stderr," done.\n");
     return 1;
 }
-
+*/
 
 long datetime2long(char* date, char* time){
 
@@ -3980,7 +3981,9 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         // which show smaller offsets than (2*nyquist velocity) and therefore are not
                         // removed by dealiasing routine)
                         if(alldata->options.dealiasVrad && iPass == 0 && !recycleDealias){
-                            fprintf(stdout,"# dealiasing %i points for profile %i, layer %i ...\n",nPointsIncluded,iProfileType,iLayer+1);
+                            #ifdef FPRINTFON
+                            fprintf(stderr,"dealiasing %i points for profile %i, layer %i ...\n",nPointsIncluded,iProfileType,iLayer+1);
+                            #endif
                             int result = dealias_points(&pointsSelection[0], alldata->misc.nDims, &yNyquist[0],
                                             alldata->misc.nyquistMin, &yObs[0], &yDealias[0], nPointsIncluded);							
                             // store dealiased velocities in points array (for re-use when iPass>0)

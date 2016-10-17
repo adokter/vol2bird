@@ -56,15 +56,84 @@ double test_field_gsl(const gsl_vector *uv, void* params){
  
 }
 
+int fit_field_gsl(gsl_vector *uv, void *params){
+    gsl_vector *ss;
+    
+    // define which minimizer to use
+    const gsl_multimin_fminimizer_type *T = gsl_multimin_fminimizer_nmsimplex2;
+    gsl_multimin_fminimizer *s = NULL;
+    
+    int iter = 0;
+    int status;
+    double size;
+    double u1 = 0;
+    double v1 = 0;
+    
+    // Set initial step sizes to 1
+    ss = gsl_vector_alloc(2);
+    gsl_vector_set_all(ss, 1);
+
+    // Initialize method
+    gsl_multimin_function minex_func;
+    minex_func.n = 2;
+    minex_func.f = &test_field_gsl;
+    minex_func.params = params;
+    s = gsl_multimin_fminimizer_alloc (T, 2);
+    gsl_multimin_fminimizer_set (s, &minex_func, uv, ss);
+    
+    // minimize by iteration
+    do
+    {
+        iter++;
+        status = gsl_multimin_fminimizer_iterate(s);
+        
+        if (status) 
+        break;
+
+        size = gsl_multimin_fminimizer_size (s);
+        status = gsl_multimin_test_size (size, 1e-2);
+        
+        if (status == GSL_SUCCESS)
+        {
+            #ifdef FPRINTFON 
+            printf ("converged to minimum on iteration ");
+            printf ("%d at %10.3e %10.3e f() = %7.3f size = %.3f\n", 
+                iter,
+                gsl_vector_get (s->x, 0), 
+                gsl_vector_get (s->x, 1), 
+                s->fval, size);
+            #endif
+
+            u1=gsl_vector_get(s->x, 0);
+            v1=gsl_vector_get(s->x, 1);
+            
+            gsl_vector_set(uv, 0, u1);
+            gsl_vector_set(uv, 1, v1);
+        }
+    }
+    while (status == GSL_CONTINUE && iter < 100);
+
+    #ifdef FPRINTFON
+    fprintf(stdout,"Finished dealias at (x,y)=%f,%f at f()=%f ...\n",u1,v1,s->fval);
+    #endif
+
+    // clean up
+    gsl_vector_free(ss);
+    gsl_multimin_fminimizer_free (s);
+    
+    if (status != GSL_SUCCESS) return 0;
+    return 1;
+}
+
 
 int dealias_points(const float *points, const int nDims, const float nyquist[], 
     const double NI_MIN, const float vo[], float vradDealias[], const int nPoints){
   
-    int i, j, n, m, eind;
+    int i, j, n, m, eind, fitOk;
     double min1, esum, u1, v1, min2, dmy;
     
     // number of rows
-    m = floor (VAF*VMAX/NI_MIN);
+    m = VAF;
     // number of columns
     n = NF;
     
@@ -102,8 +171,8 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
     // index m=VAF/NI_MIN*VMAX gives number of speeds (maximum speed is VMAX, steps of NI_MIN/VAF)
     for (i=0; i<n; i++) {
         for (j=0; j<m; j++) {
-            *(uh+i*m+j) = NI_MIN/VAF*(j+1) * sin(2*M_PI/NF*i);
-            *(vh+i*m+j) = NI_MIN/VAF*(j+1) * cos(2*M_PI/NF*i);
+            *(uh+i*m+j) = VMAX/VAF*(j+1) * sin(2*M_PI/NF*i);
+            *(vh+i*m+j) = VMAX/VAF*(j+1) * cos(2*M_PI/NF*i);
         }
     }
 
@@ -111,21 +180,13 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
     eind = 0;
     u1 = 0;
     v1 = 0;
-    
-    void *params[7] = {(void *) points, (void *) pointsTrigon, (void *) &nPoints, (void *) &nDims, (void *) x, (void *) y, (void *) nyquist};
-    
-    gsl_vector *uv, *ss;
-        
-    const gsl_multimin_fminimizer_type *T = gsl_multimin_fminimizer_nmsimplex2;
-    gsl_multimin_fminimizer *s = NULL;
-    
-    int iter = 0;
-    int status;
-    double size;
-    
+
+    gsl_vector *uv;
     uv = gsl_vector_alloc(2);
     
-    // select the test wind with the best fit
+    void *params[7] = {(void *) points, (void *) pointsTrigon, (void *) &nPoints, (void *) &nDims, (void *) x, (void *) y, (void *) nyquist};     
+   
+    // try several test velocity fields for use as starting point in GSL fit
 
     for (i=0; i<m*n; i++) {
         
@@ -140,58 +201,17 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
         u1 = *(uh+eind);
         v1 = *(vh+eind);
     }
+    gsl_vector_set(uv, 0, u1);
+    gsl_vector_set(uv, 1, v1);
 
-    // define starting point
-    gsl_vector_set(uv, 0, -10);
-    gsl_vector_set(uv, 1, 0);    
-
-    /* Set initial step sizes to 1 */
-    ss = gsl_vector_alloc(2);
-    gsl_vector_set_all(ss, 0.1);
-
-    /* Initialize method and iterate */
-    gsl_multimin_function minex_func;
-    minex_func.n = 2;
-    minex_func.f = &test_field_gsl;
-    minex_func.params = params;
-
-    s = gsl_multimin_fminimizer_alloc (T, 2);
-    gsl_multimin_fminimizer_set (s, &minex_func, uv, ss);
-
-    do
-    {
-        iter++;
-        status = gsl_multimin_fminimizer_iterate(s);
-        
-        if (status) 
-        break;
-
-        size = gsl_multimin_fminimizer_size (s);
-        status = gsl_multimin_test_size (size, 1e-2);
-        
-//        #ifdef FPRINTFON 
-        if (status == GSL_SUCCESS)
-        {
-            printf ("converged to minimum on iteration ");
-            printf ("%d at %10.3e %10.3e f() = %7.3f size = %.3f\n", 
-                iter,
-                gsl_vector_get (s->x, 0), 
-                gsl_vector_get (s->x, 1), 
-                s->fval, size);
-        }
-//        #endif
-    }
-    while (status == GSL_CONTINUE && iter < 100);
-        
-    fprintf(stdout,"test (U,V)=%f,%f at %f\n",u1,v1,esum);
-    fprintf(stdout," GSL (U,V)=%f,%f at %f\n",gsl_vector_get(s->x, 0),gsl_vector_get(s->x, 1),s->fval);
+    
     #ifdef FPRINTFON
-    fprintf(stdout,"Using test velocity field (U,V)=%f,%f for dealiasing ...\n",u1,v1);
+    fprintf(stdout,"Start dealiasing at (x,y)=%f,%f at f()=%f ...\n",u1,v1,esum);
     #endif
     
-    u1=gsl_vector_get(s->x, 0);
-    v1=gsl_vector_get(s->x, 1);
-    
+    fitOk = fit_field_gsl(uv, &params);
+    if(!fitOk) goto cleanup;
+        
     // the radial velocity of the best fitting test velocity field:
     for (int iPoint=0; iPoint<nPoints; iPoint++) {
         *(vt1+iPoint) = (u1*sin(points[nDims*iPoint]*DEG2RAD) + v1*cos(points[nDims*iPoint]*DEG2RAD))
@@ -218,14 +238,14 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
         } // loop MVA
     } // loop over points
 
-    RAVE_FREE(x);
-    RAVE_FREE(y);
-    RAVE_FREE(uh);
-    RAVE_FREE(vh);
-    RAVE_FREE(vt1);
-    gsl_vector_free(uv);
-    gsl_vector_free(ss);
-    gsl_multimin_fminimizer_free (s);
-
-    return 1;
+    cleanup:
+        RAVE_FREE(x);
+        RAVE_FREE(y);
+        RAVE_FREE(uh);
+        RAVE_FREE(vh);
+        RAVE_FREE(vt1);
+        gsl_vector_free(uv);
+        
+        if(fitOk) return 1;
+        else return 0;
 }
