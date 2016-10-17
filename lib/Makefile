@@ -44,7 +44,7 @@ libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	$(SRC_VOL2BIRD_DIR)/libsvdfit.c \
 	$(SRC_VOL2BIRD_DIR)/libdealias.c \
 	$(LDFLAGS) \
-	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse $(RSL_LIB) -lm
+	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse $(RSL_LIB) -lgsl -lgslcblas -lm
 
 .PHONY : install
 install : libvol2bird.so

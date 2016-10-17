@@ -109,7 +109,9 @@ int main(int argc, char** argv) {
     else {
 
         // initialize volbird library
+        fprintf(stderr,"setting up vol2bird ...");
         int initSuccessful = vol2birdSetUp(volume, &alldata) == 0;
+        fprintf(stderr,"done\n");
         
         // output (optionally de-aliased) volume
         if (fileVolOut != NULL){

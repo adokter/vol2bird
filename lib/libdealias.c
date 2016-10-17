@@ -6,6 +6,8 @@
 
 #include "libdealias.h"
 #include <stdio.h>
+#include <gsl/gsl_multimin.h>
+#include <gsl/gsl_vector.h>
 
 void printDealias(const float *points, const int nDims, const float nyquist[], 
     const float vradObs[], float vradDealias[], const int nPoints, const int iProfileType, const int iLayer, const int iPass){
@@ -16,7 +18,7 @@ void printDealias(const float *points, const int nDims, const float nyquist[],
     }
 }
 
-double test_field(const float *points, const float *pointsTrigon, const int nPoints, const int nDims, float u, float v, double x[], double y[], const float nyquist[]){
+double test_field(float u, float v,const float *points, const float *pointsTrigon, const int nPoints, const int nDims, double x[], double y[], const float nyquist[]){
     double xt, yt, e, vm;
     double esum = 0;
     for (int iPoint=0; iPoint<nPoints; iPoint++) {
@@ -37,6 +39,22 @@ double test_field(const float *points, const float *pointsTrigon, const int nPoi
     return esum;
 }
 
+double test_field_gsl(const gsl_vector *uv, void* params){
+    double u,v;
+    float *points = ((void **) params)[0];
+    float *pointsTrigon = ((void **) params)[1];
+    int nPoints = *(int *) ((void **) params)[2];
+    int nDims = *(int *) ((void **) params)[3];
+    double *x = ((void **) params)[4];
+    double *y = ((void **) params)[5];
+    float *nyquist = ((void **) params)[6];
+
+    u = gsl_vector_get(uv, 0);
+    v = gsl_vector_get(uv, 1);
+ 
+    return test_field(u, v, points, pointsTrigon, nPoints, nDims, x, y, nyquist);
+ 
+}
 
 
 int dealias_points(const float *points, const int nDims, const float nyquist[], 
@@ -93,13 +111,28 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
     eind = 0;
     u1 = 0;
     v1 = 0;
-
+    
+    void *params[7] = {(void *) points, (void *) pointsTrigon, (void *) &nPoints, (void *) &nDims, (void *) x, (void *) y, (void *) nyquist};
+    
+    gsl_vector *uv, *ss;
+        
+    const gsl_multimin_fminimizer_type *T = gsl_multimin_fminimizer_nmsimplex2;
+    gsl_multimin_fminimizer *s = NULL;
+    
+    int iter = 0;
+    int status;
+    double size;
+    
+    uv = gsl_vector_alloc(2);
+    
     // select the test wind with the best fit
-    fprintf(stderr,"dealisiasing ...");
+
     for (i=0; i<m*n; i++) {
         
-        esum = test_field(points, pointsTrigon, nPoints, nDims, *(uh+i), *(vh+i), x, y, nyquist);
-        
+        gsl_vector_set(uv, 0, *(uh+i));
+        gsl_vector_set(uv, 1, *(vh+i));
+        esum = test_field_gsl(uv, &params);
+                
         if (esum<min1) {
             min1 = esum;
             eind = i;
@@ -107,9 +140,57 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
         u1 = *(uh+eind);
         v1 = *(vh+eind);
     }
+
+    // define starting point
+    gsl_vector_set(uv, 0, -10);
+    gsl_vector_set(uv, 1, 0);    
+
+    /* Set initial step sizes to 1 */
+    ss = gsl_vector_alloc(2);
+    gsl_vector_set_all(ss, 0.1);
+
+    /* Initialize method and iterate */
+    gsl_multimin_function minex_func;
+    minex_func.n = 2;
+    minex_func.f = &test_field_gsl;
+    minex_func.params = params;
+
+    s = gsl_multimin_fminimizer_alloc (T, 2);
+    gsl_multimin_fminimizer_set (s, &minex_func, uv, ss);
+
+    do
+    {
+        iter++;
+        status = gsl_multimin_fminimizer_iterate(s);
+        
+        if (status) 
+        break;
+
+        size = gsl_multimin_fminimizer_size (s);
+        status = gsl_multimin_test_size (size, 1e-2);
+        
+//        #ifdef FPRINTFON 
+        if (status == GSL_SUCCESS)
+        {
+            printf ("converged to minimum on iteration ");
+            printf ("%d at %10.3e %10.3e f() = %7.3f size = %.3f\n", 
+                iter,
+                gsl_vector_get (s->x, 0), 
+                gsl_vector_get (s->x, 1), 
+                s->fval, size);
+        }
+//        #endif
+    }
+    while (status == GSL_CONTINUE && iter < 100);
+        
+    fprintf(stdout,"test (U,V)=%f,%f at %f\n",u1,v1,esum);
+    fprintf(stdout," GSL (U,V)=%f,%f at %f\n",gsl_vector_get(s->x, 0),gsl_vector_get(s->x, 1),s->fval);
     #ifdef FPRINTFON
     fprintf(stdout,"Using test velocity field (U,V)=%f,%f for dealiasing ...\n",u1,v1);
     #endif
+    
+    u1=gsl_vector_get(s->x, 0);
+    v1=gsl_vector_get(s->x, 1);
     
     // the radial velocity of the best fitting test velocity field:
     for (int iPoint=0; iPoint<nPoints; iPoint++) {
@@ -142,6 +223,9 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
     RAVE_FREE(uh);
     RAVE_FREE(vh);
     RAVE_FREE(vt1);
-    fprintf(stderr,"done\n");
+    gsl_vector_free(uv);
+    gsl_vector_free(ss);
+    gsl_multimin_fminimizer_free (s);
+
     return 1;
 }
