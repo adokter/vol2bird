@@ -37,7 +37,7 @@ RUN git clone https://github.com/adokter/rsl.git && cd rsl \
 # get a copy of vol2bird
 # configure vol2bird
 RUN git clone https://github.com/adokter/vol2bird.git \
-    && cd vol2bird && ./configure --prefix=/opt/radar/vol2bird --with-rave=/opt/radar/rave --with-rsl=/opt/radar/rsl \
+    && cd vol2bird && ./configure --prefix=/opt/radar/vol2bird --with-rave=/opt/radar/rave --with-rsl=/opt/radar/rsl --with-gsl=/usr \
     && make && make install && cd .. && rm -rf vol2bird
 
 # clean up
