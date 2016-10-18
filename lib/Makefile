@@ -16,8 +16,8 @@
 -include ../def.mk 
  
 CC      = gcc
-#CFLAGS  = -fPIC -x c -DFPRINTFON
-CFLAGS  = ${RSL_CFLAG} -fPIC -x c
+#CFLAGS  = ${RSL_CFLAG} -fPIC -x c -DFPRINTFON
+CFLAGS  = ${RSL_CFLAG} -fPIC -g -x c
 LDFLAGS = -shared -Wall
 
 # define where the vol2bird stuff is
@@ -25,7 +25,7 @@ SRC_VOL2BIRD_DIR = .
 
 all : libvol2bird.so
 
-LIBVOL2BIRD_DEPS = constants.h libsvdfit.h libvol2bird.h libsvdfit.c libvol2bird.c
+LIBVOL2BIRD_DEPS = constants.h libsvdfit.h libdealias.h libvol2bird.h libsvdfit.c libdealias.c libvol2bird.c
 
 libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	# ------------------------------------
@@ -35,15 +35,18 @@ libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	$(RAVE_MODULE_CFLAGS) \
 	-I. \
 	$(CONFUSE_INCLUDE_FLAG) \
+	$(GSL_INCLUDE_FLAG) \
 	$(RSL_INCLUDE_FLAG) \
 	$(RAVE_MODULE_LDFLAGS) \
 	$(PROJ_LIBRARY_FLAG) \
 	$(CONFUSE_LIBRARY_FLAG) \
+	$(GSL_LIBRARY_FLAG) \
 	$(RSL_LIBRARY_FLAG) \
 	$(SRC_VOL2BIRD_DIR)/libvol2bird.c \
 	$(SRC_VOL2BIRD_DIR)/libsvdfit.c \
+	$(SRC_VOL2BIRD_DIR)/libdealias.c \
 	$(LDFLAGS) \
-	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse $(RSL_LIB) -lm
+	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lgsl -lgslcblas $(RSL_LIB) -lm
 
 .PHONY : install
 install : libvol2bird.so

@@ -19,7 +19,7 @@ This folder contains scripts for building and running vol2bird in a [Docker](htt
 
 The vol2bird Docker image is stored on [Docker Hub](https://hub.docker.com/) in the `adokter/vol2bird` repository
 
-To process a radar file `yourfile` in directory `your\data\directory` using Docker:
+To process a radar file `yourfile` in directory `your/data/directory` using Docker:
 ```
 # automatically pull and start the vol2bird docker image from DockerHub:
 ./start_container.sh your/data/directory

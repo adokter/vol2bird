@@ -48,6 +48,8 @@
 // the extra offset allows for the raincell search to extend somewhat further
 // than the maximum range used in the profile generation (RANGE_MAX).
 #define RCELLMAX_OFFSET 5000.0f
+// smallest range bin size to accept in metres
+#define RSCALEMIN 10
 // after fitting the vrad data, throw out any vrad observations that are more that VDIFMAX away
 // from the fitted value, since these are likely outliers
 #define VDIFMAX 10.0
@@ -92,9 +94,9 @@
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
-#define VERSION "0.3.1"
+#define VERSION "0.3.3"
 // Date of latest version of the program
-#define VERSIONDATE "26-Aug-2016"
+#define VERSIONDATE "17-Oct-2016"
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //
@@ -126,6 +128,8 @@
 #define VERBOSE_OUTPUT_REQUIRED 0
 // print dbz to stderr
 #define PRINT_DBZ 0
+// print aliased and dealiased vrad pairs to stderr
+#define PRINT_DEALIAS 0
 // print vrad to stderr
 #define PRINT_VRAD 0
 // print cell to stderr
@@ -158,5 +162,13 @@
 #define DBZTYPE "DBZH"
 // for a range gate to contribute it should have a valid radial velocity
 #define REQUIRE_VRAD 0
+// whether we should dealias the radial velocities
+#define DEALIAS_VRAD 0
+// whether we should dealias all data once (default), or dealias for each profile individually
+#define DEALIAS_RECYCLE 1
 // whether you want to export the vertical bird profile as JSON
 #define EXPORT_BIRD_PROFILE_AS_JSON 0
+// whether to use dual-pol moments for filtering meteorological echoes
+#define DUALPOL 0
+// correlation coefficients higher than this threshold will be classified as precipitation
+#define RHOHVMIN 0.9

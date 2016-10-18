@@ -13,7 +13,7 @@ MAINTAINER Adriaan Dokter
 # * flex, otherwise configure script of RSL library does not function properly
 RUN apt-get update && apt-get install --no-install-recommends -y libconfuse-dev \
     libhdf5-dev gcc make zlib1g-dev python-dev python-numpy libproj-dev flex file \
-    && apt-get install -y git
+    && apt-get install -y git && apt-get install -y libgsl2
 
 # get a copy of hlhdf:
 # configure and build hlhdf

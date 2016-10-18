@@ -93,6 +93,7 @@ int main(int argc, char** argv) {
     int configSuccessful = vol2birdLoadConfig(&alldata) == 0;
 
     if (configSuccessful == FALSE) {
+        fprintf(stderr,"Error: failed to load configuration\n");
         return -1;
     }
     
@@ -101,7 +102,11 @@ int main(int argc, char** argv) {
     PolarVolume_t* volume = NULL;
     volume = vol2birdGetVolume(fileVolIn, alldata.misc.rCellMax);
     
-    if (volume != NULL) {
+    if (volume == NULL) {
+        fprintf(stderr,"Error: failed to read radar volume\n");
+        return -1;
+    }
+    else {
 
         // initialize volbird library
         int initSuccessful = vol2birdSetUp(volume, &alldata) == 0;
@@ -112,6 +117,7 @@ int main(int argc, char** argv) {
         }
         
         if (initSuccessful == FALSE) {
+            fprintf(stderr,"Error: failed to initialize vol2bird\n");
             return -1;
         }
 
@@ -134,7 +140,7 @@ int main(int argc, char** argv) {
 
                 int nRowsProfile = vol2birdGetNRowsProfile(&alldata);
                 int nColsProfile = vol2birdGetNColsProfile(&alldata);
-
+				
                 fprintf(stdout, "# vol2bird Vertical Profile of Birds (VPB)\n");
                 fprintf(stdout, "# source: %s\n",source);
                 fprintf(stdout, "# ODIM HDF5 input: %s\n",fileVolIn);
