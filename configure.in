@@ -17,6 +17,7 @@ AC_PROG_CC
 
 LIBS=-lm
 
+
 dnl Check that we have libconfuse installed
 dnl
 CONFUSE_INCLUDE_DIR=
@@ -85,6 +86,84 @@ fi
 
 CONFUSE_LIBRARY_FLAG=${CONFUSE_LIB_DIR}
 CONFUSE_INCLUDE_FLAG=${CONFUSE_INCLUDE_DIR}
+
+
+dnl Check that we have libgsl installed
+dnl
+GSL_INCLUDE_DIR=
+GSL_LIB_DIR=
+GOT_GSL_INC=no
+GOT_GSL_LIB=no
+GSL_SUPPRESSED=no
+AC_ARG_WITH(gsl,[  --with-gsl=DIR|INC,LIB  The GSL (GNU Scientific Library) installation directory],,withval=yes)
+case $withval in
+	yes)
+		AC_CHECK_HEADERS([gsl_multimin.h gsl_vector.h] ,GOT_GSL_INC=yes)
+                AC_CHECK_LIB([m],[cos])
+                AC_CHECK_LIB([gslcblas],[cblas_dgemm])
+                AC_CHECK_LIB([gsl],[gsl_blas_dgemm], GOT_GSL_LIB=yes)
+ 
+		;;
+	no)
+                AC_MSG_CHECKING(for gsl lib)
+		AC_MSG_RESULT(suppressed)
+		GSL_SUPPRESSED=yes
+		;;
+	*)
+   if [[ "$withval" != "" ]]; then
+      if [[ "`echo $withval | grep ','`" = "" ]]; then
+        gsl_inc=$withval/include/gsl
+        gsl_lib=$withval/lib
+      else
+        gsl_inc="`echo $withval |cut -f1 -d,`"
+        gsl_lib="`echo $withval |cut -f2 -d,`"
+      fi
+      
+      if [[ "$gsl_inc" != "" ]]; then
+        saved_CPPFLAGS="$CPPFLAGS"
+        CPPFLAGS="$CPPFLAGS -I$gsl_inc"
+        AC_CHECK_HEADERS(gsl_multimin.h,GOT_GSL_INC=yes)
+        if [[ "$GOT_GSL_INC" = "yes" ]]; then
+          GSL_INCLUDE_DIR="-I$gsl_inc"
+        else
+          CPPFLAGS="$saved_CPPFLAGS"
+        fi
+      else
+        AC_CHECK_HEADERS(gsl_multimin.h,GOT_GSL_INC=yes)
+      fi
+
+      if [[ "$gsl_lib" != "" ]]; then
+        saved_LDFLAGS="$LDFLAGS"
+        LDFLAGS="$LDFLAGS -L$gsl_lib"
+        AC_CHECK_LIB([m],[cos])
+        AC_CHECK_LIB([gslcblas],[cblas_dgemm])
+        AC_CHECK_LIB([gsl],[gsl_blas_dgemm], GOT_GSL_LIB=yes)
+        if [[ "$GOT_GSL_LIB" = "yes" ]]; then
+          GSL_LIB_DIR="-L$gsl_lib"
+        else
+          LDFLAGS="$saved_LDFLAGS"
+        fi
+      else
+        AC_CHECK_LIB([m],[cos])
+        AC_CHECK_LIB([gslcblas],[cblas_dgemm])
+        AC_CHECK_LIB([gsl],[gsl_blas_dgemm], GOT_GSL_LIB=yes)
+      fi
+    else
+      AC_MSG_ERROR("Odd argument passed for GSL")
+    fi
+    ;;
+esac
+
+if [[ "x$GSL_SUPPRESSED" = "xno" ]]; then
+	if [[ "x$GOT_GSL_INC" = "xno" -o "x$GOT_GSL_LIB" = "xno" ]]; then
+		AC_MSG_ERROR("Could not successfully find GSL the GNU scientific library")
+	fi
+fi
+
+GSL_LIBRARY_FLAG=${GSL_LIB_DIR}
+GSL_INCLUDE_FLAG=${GSL_INCLUDE_DIR}
+
+
 
 dnl Check that we have librsl installed
 dnl
@@ -345,6 +424,8 @@ AC_SUBST(HLHDF_LIBRARY_FLAG)
 AC_SUBST(HLHDFLDSHARED)
 AC_SUBST(CONFUSE_INCLUDE_FLAG)
 AC_SUBST(CONFUSE_LIBRARY_FLAG)
+AC_SUBST(GSL_INCLUDE_FLAG)
+AC_SUBST(GSL_LIBRARY_FLAG)
 AC_SUBST(RSL_INCLUDE_FLAG)
 AC_SUBST(RSL_LIBRARY_FLAG)
 AC_SUBST(RSL_CFLAG)

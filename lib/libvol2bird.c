@@ -29,7 +29,8 @@
 #include "constants.h"
 #undef RAD2DEG // to suppress redefine warning, also defined in dealias.h
 #undef DEG2RAD // to suppress redefine warning, also defined in dealias.h
-#include "dealias.h"
+//#include "dealias.h"
+#include "libdealias.h"
 
 #ifdef RSL
 #include "rsl.h"
@@ -66,18 +67,24 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 
 static void exportBirdProfileAsJSON(vol2bird_t* alldata);
 
-static int findWeatherCells(const float *dbzImage, int *cellImage, const SCANMETA *dbzMeta, vol2bird_t* alldata);
+static int findWeatherCells(const float *dbzImage, int *cellImage, const SCANMETA *dbzMeta,
+                            float quantityThreshold, int selectAboveThreshold, vol2bird_t* alldata);
 
 static int findNearbyGateIndex(const int nAzimParent, const int nRangParent, const int iParent,
                                const int nAzimChild,  const int nRangChild,  const int iChild);
 
 static void fringeCells(int *cellImage,int nRang, int nAzim, float aScale, float rScale, vol2bird_t* alldata);
 
+CELLPROP* getCellProperties(const float *dbzImage, const float *vradImage,
+                            const float *texImage, const float *clutterImage, int *cellImage,
+                            const SCANMETA *dbzMeta, const SCANMETA *vradMeta, const SCANMETA *texMeta,
+                            const SCANMETA *clutterMeta, const int nCells, vol2bird_t* alldata);
+
 static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradImage,
                                   const SCANMETA* dbzMeta, const float *dbzImage,
                                   const int *cellImage,
                                   const float altitudeMin, const float altitudeMax,
-                                  float* points_local, int iPoint, vol2bird_t* alldata);
+                                  float* points_local, int iPoint, int nColsPoints, vol2bird_t* alldata);
 
 static int hasAzimuthGap(const float *points_local, const int nPoints, vol2bird_t* alldata);
 
@@ -114,6 +121,8 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax);
 int rslCopy2Rave(Sweep *rslSweep,PolarScanParam_t* scanparam);
 #endif
 
+static void printCellProp(CELLPROP* cellProp, const SCANMETA *meta, int nCells, int nCellsValid, vol2bird_t *alldata);
+
 static void printGateCode(char* flags, const unsigned int gateCode);
 
 static void printImageInt(const SCANMETA* meta, const int* imageInt);
@@ -126,11 +135,21 @@ static void printProfile(vol2bird_t* alldata);
 
 static int removeDroppedCells(CELLPROP *cellProp, const int nCells);
 
+static int selectCellsToDrop(CELLPROP *cellProp, int nCells, vol2bird_t* alldata);
+
+static int selectCellsToDrop_singlePol(CELLPROP *cellProp, int nCells, vol2bird_t* alldata);
+
+static int selectCellsToDrop_dualPol(CELLPROP *cellProp, int nCells, vol2bird_t* alldata);
+
 static void sortCellsByArea(CELLPROP *cellProp, const int nCells);
 
 static void updateFlagFieldsInPointsArray(const float* yObs, const float* yFitted, const int* includedIndex, 
                                           const int nPointsIncluded, float* points_local, vol2bird_t* alldata);
 static int updateMap(int *cellImage, const int nGlobal, CELLPROP *cellProp, const int nCells, vol2bird_t* alldata);
+
+
+
+
 
 // non-public function declarations (local to this file/translation unit)
 
@@ -146,30 +165,23 @@ static int analyzeCells(const float *dbzImage, const float *vradImage,
     // ----------------------------------------------------------------------------------- //
 
     CELLPROP *cellProp;
-    int iCell;
     int iGlobal;
     int nGlobal;
-    int iRang;
-    int iAzim;
     int nCellsValid;
     int nAzim;
     int nRang;
-    float nGatesValid;
-    float dbzValue;
-    float texValue;
-    float vradValue;
-    float clutterValue;
 
     nCellsValid = nCells;
     nRang = dbzMeta->nRang;
     nAzim = dbzMeta->nAzim;
     nGlobal = nAzim*nRang;
     nCellsValid = 0;
-
+    
+    // first deal with the case that no weather cells were detected by findWeatherCells
     if (nCells == 0) {
         iGlobal = 0;
-        for (iAzim = 0; iAzim < nAzim; iAzim++) {
-            for (iRang = 0; iRang < nRang; iRang++) {
+        for (int iAzim = 0; iAzim < nAzim; iAzim++) {
+            for (int iRang = 0; iRang < nRang; iRang++) {
                 cellImage[iGlobal] = -1;
                 iGlobal++;
             }
@@ -177,190 +189,26 @@ static int analyzeCells(const float *dbzImage, const float *vradImage,
         return nCellsValid;
     }
     
-    // Allocating and initializing memory for cell properties.
-    cellProp = (CELLPROP *)malloc(nCells*sizeof(CELLPROP));
-    if (!cellProp) {
-        fprintf(stderr,"Requested memory could not be allocated in analyzeCells!\n");
-        return -10;
-    }
-    for (iCell = 0; iCell < nCells; iCell++) {
-        cellProp[iCell].iRangOfMax = -1;
-        cellProp[iCell].iAzimOfMax = -1;
-        cellProp[iCell].nGates = 0;
-        cellProp[iCell].nGatesClutter = 0;
-        cellProp[iCell].dbzAvg = NAN;
-        cellProp[iCell].texAvg = NAN;
-        cellProp[iCell].dbzMax = NAN;
-        cellProp[iCell].index = iCell;
-        cellProp[iCell].drop = TRUE;
-        cellProp[iCell].cv = NAN;
-    }
-
-    // Calculation of cell properties.
-    for (iAzim = 0; iAzim < nAzim; iAzim++) {
-        for (iRang = 0; iRang < nRang; iRang++) {
-
-            iGlobal = iRang + iAzim * nRang;
-
-            dbzValue = dbzMeta->valueScale * (float) dbzImage[iGlobal] + dbzMeta->valueOffset;
-            vradValue = vradMeta->valueScale * (float) vradImage[iGlobal] + vradMeta->valueOffset;
-            clutterValue = clutterMeta->valueScale * (float) clutterImage[iGlobal] + clutterMeta->valueOffset;
-            texValue = texMeta->valueScale * (float) texImage[iGlobal] + texMeta->valueOffset;
-	    
-            iCell = cellImage[iGlobal];
-
-	    // Note: this also throws out all nodata/undetect values for dbzValue
-            if (iCell<0) {
-                continue;
-            }
-
-            #ifdef FPRINTFON
-            fprintf(stderr,"dbzValue = %f; vradValue = %f; clutterValue = %f; texValue = %f\n",dbzValue,vradValue,clutterValue,texValue);
-            fprintf(stderr,"iGlobal = %d, iCell = %d\n",iGlobal,iCell);
-            #endif
-
-            cellProp[iCell].nGates += 1;
-            cellProp[iCell].drop = FALSE;
-
-            // low radial velocities are treated as clutter, not included in calculation cell properties
-            if (fabs(vradValue) < alldata->constants.vradMin & vradImage[iGlobal] != vradMeta->missing){
-
-                cellProp[iCell].nGatesClutter += 1;
-
-                #ifdef FPRINTFON
-                fprintf(stderr,"iGlobal = %d: vrad too low...treating as clutter\n",iGlobal);
-                #endif
-
-                continue;
-            }
-
-            // pixels in clutter map not included in calculation cell properties
-            if (alldata->options.useStaticClutterData == TRUE){
-                if (clutterValue > alldata->constants.clutterValueMin){
-                    cellProp[iCell].nGatesClutter += 1;
-                    continue;
-                }
-            }
-
-            if (isnan(cellProp[iCell].dbzMax) || dbzValue > cellProp[iCell].dbzMax) {
+    cellProp = getCellProperties(dbzImage, vradImage, texImage, 
+                    clutterImage, cellImage, dbzMeta, vradMeta, texMeta, 
+                    clutterMeta, nCells, alldata);
 
 
-                #ifdef FPRINTFON
-                fprintf(stderr,"%d: new dbzMax value of %f found for this cell (%d).\n",iGlobal,dbzValue,iCell);
-                #endif
-
-                cellProp[iCell].dbzMax = dbzValue;
-                cellProp[iCell].iRangOfMax = iGlobal%nRang;
-                cellProp[iCell].iAzimOfMax = iGlobal/nRang;
-            }
-
-            if (isnan(cellProp[iCell].dbzAvg)) {
-                cellProp[iCell].dbzAvg = dbzValue;
-            } 
-            else {
-                cellProp[iCell].dbzAvg += dbzValue;
-            }
-            
-            if (isnan(cellProp[iCell].texAvg)) {
-                cellProp[iCell].texAvg = texValue;
-            } 
-            else {
-                cellProp[iCell].texAvg += texValue;
-            }
-            
-        } // for (iRang = 0; iRang < nRang; iRang++)
-    } // for (iAzim = 0; iAzim < nAzim; iAzim++)
-
-
-    for (iCell = 0; iCell < nCells; iCell++) {
-        nGatesValid = cellProp[iCell].nGates - cellProp[iCell].nGatesClutter;
-        if (nGatesValid > 0){
-            cellProp[iCell].dbzAvg /= nGatesValid;
-            cellProp[iCell].texAvg /= nGatesValid;
-            cellProp[iCell].cv = cellProp[iCell].texAvg / cellProp[iCell].dbzAvg;
-        }
-    }
-
-    // determine which blobs to drop from map based on low mean dBZ / high stdev /
-    // small area / high percentage clutter
-    for (iCell = 0; iCell < nCells; iCell++) {
-        int notEnoughGates = cellProp[iCell].nGates < alldata->constants.nGatesCellMin;
-        int dbzTooLow = cellProp[iCell].dbzAvg < alldata->options.cellDbzMin;
-        int texTooHigh = cellProp[iCell].texAvg > alldata->constants.cellStdDevMax;
-        int tooMuchClutter = ((float) cellProp[iCell].nGatesClutter / cellProp[iCell].nGates) > alldata->constants.cellClutterFractionMax;
-        
-        if (notEnoughGates) {
-            
-            // this blob is too small too be a weather cell, more likely 
-            // that these are birds. So, drop the blob from the record of 
-            // weather cells 
-
-            cellProp[iCell].drop = TRUE;
-            
-            continue;
-        }
-
-        if (dbzTooLow && texTooHigh) {
-
-            // apparently, we are dealing a blob that is fairly large (it
-            // passes the 'notEnoughGates' condition above, but it has both 
-            // a low dbz and a high vrad texture. In contrast, weather cells
-            // have high dbz and low vrad texture. It is therefore unlikely
-            // that the blob is a weather cell.
-            
-            if (tooMuchClutter) {
-                // pass
-            }
-            else {
-                
-                // So at this point we have established that we are 
-                // dealing with a blob that is:
-                //     1. fairly large
-                //     2. has too low dbz to be precipitation
-                //     3. has too high vrad texture to be precipitation
-                //     4. has too little clutter to be attributed to clutter
-                // Therefore we drop it from the record of known weather cells
-                
-                cellProp[iCell].drop = TRUE;
-                
-            }
-        }
-    }
-
+    selectCellsToDrop(cellProp, nCells, alldata);
+    
+    
     // sorting cell properties according to cell area. Drop small cells from map
     nCellsValid = updateMap(cellImage,nGlobal,cellProp,nCells, alldata);
 
     // printing of cell properties to stderr
     if (alldata->options.printCellProp == TRUE) {
-        fprintf(stderr,"#Cell analysis for elevation %f:\n",dbzMeta->elev);
-        fprintf(stderr,"#Minimum cell area in pixels   : %i\n",alldata->constants.nGatesCellMin);
-        fprintf(stderr,"#Threshold for mean dBZ cell   : %g dBZ\n",alldata->options.cellDbzMin);
-        fprintf(stderr,"#Threshold for mean stdev cell : %g dBZ\n",alldata->constants.cellStdDevMax);
-        fprintf(stderr,"#Valid cells                   : %i/%i\n#\n",nCellsValid,nCells);
-        fprintf(stderr,"cellProp: .index .nGates .nGatesClutter .dbzAvg .texAvg .cv   .dbzMax .iRangOfMax .iAzimOfMax .drop\n");
-        for (iCell = 0; iCell < nCells; iCell++) {
-            if (cellProp[iCell].drop == TRUE) {
-                continue;
-            }
-            fprintf(stderr,"cellProp: %6d %7d %14d %7.2f %7.2f %5.2f %7.2f %11d %11d %5c\n",
-                    cellProp[iCell].index,
-                    cellProp[iCell].nGates,
-                    cellProp[iCell].nGatesClutter,
-                    cellProp[iCell].dbzAvg,
-                    cellProp[iCell].texAvg,
-                    cellProp[iCell].cv,
-                    cellProp[iCell].dbzMax,
-                    cellProp[iCell].iRangOfMax,
-                    cellProp[iCell].iAzimOfMax,
-                    cellProp[iCell].drop == TRUE ? 'T' : 'F');
-        }
+        printCellProp(cellProp, dbzMeta, nCells, nCellsValid, alldata);
     } // endif (printCellProp == TRUE)
 
     free(cellProp);
 
     return nCellsValid;
 } // analyzeCells
-
 
 
 
@@ -681,6 +529,11 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 constructorFloat(&dbzMeta, &dbzImage[0], scan, nGlobal, NAN);
                 
                 // pre-allocate the vrad variables
+                float* rhohvImage = malloc(sizeof(float) * nGlobal);
+                SCANMETA rhohvMeta;
+                constructorFloat(&rhohvMeta, &rhohvImage[0], scan, nGlobal, NAN);
+
+                // pre-allocate the vrad variables
                 float* vradImage = malloc(sizeof(float) * nGlobal);
                 SCANMETA vradMeta;
                 constructorFloat(&vradMeta, &vradImage[0], scan, nGlobal, NAN);
@@ -713,6 +566,15 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 if (rcVrad != 0) {
                     fprintf(stderr, "Something went wrong while mapping VRAD data from RAVE to LIBVOL2BIRD.\n");
                 }
+                
+                // populate the rhohvMeta and rhohvImage variables with data from  
+                // the Rave scan object:
+                if (alldata->options.dualPol){
+                    int rcRhohv = mapDataFromRave(scan, &rhohvMeta, &rhohvImage[0],scanUse[iScan].rhohvName);
+                    if (rcRhohv != 0) {
+                        fprintf(stderr, "Something went wrong while mapping RHOHV data from RAVE to LIBVOL2BIRD.\n");
+                    }
+                }
     
     
                 // ------------------------------------------------------------- //
@@ -727,8 +589,16 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 //        find (weather) cells in the reflectivity image         //
                 // ------------------------------------------------------------- //
                 
-                int nCells = findWeatherCells(&dbzImage[0], &cellImage[0], 
-                                       &dbzMeta, alldata);
+                int nCells = -1;
+                if (alldata->options.dualPol){
+                    nCells = findWeatherCells(&rhohvImage[0], &cellImage[0], 
+                                       &rhohvMeta,alldata->options.rhohvThresMin,TRUE,alldata);
+                }
+                else{
+                    nCells = findWeatherCells(&dbzImage[0], &cellImage[0], 
+                                       &dbzMeta,alldata->options.dbzThresMin,TRUE,alldata);
+                }
+                
                 if (nCells<0){
                     fprintf(stderr,"Error: findWeatherCells exited with errors\n");
                     return;
@@ -800,7 +670,7 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                         &dbzMeta, &dbzImage[0], 
                         &cellImage[0], 
                         altitudeMin, altitudeMax, 
-                        &(alldata->points.points[0]), iRowPoints, alldata);
+                        &(alldata->points.points[0]), iRowPoints, alldata->points.nColsPoints, alldata);
                         
                     alldata->points.nPointsWritten[iLayer] += n;
     
@@ -819,6 +689,7 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 // free previously malloc'ed arrays
                 free((void*) dbzImage);
                 free((void*) vradImage);
+                free((void*) rhohvImage);
                 free((void*) texImage);
                 free((void*) cellImage);
                 free((void*) clutterImage);
@@ -958,8 +829,10 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 	PolarScan_t *scan;
 	PolarScanParam_t *param;
 	int result, nScans, iScan, nScansUsed;
+	int noNyquist=0;
 	vol2birdScanUse_t *scanUse;
-	double nyquist;
+	double nyquist, nyquistMin = DBL_MAX, nyquistMax = 0;
+ 
 	
 	// Read number of scans
 	nScans = PolarVolume_getNumberOfScans(volume);
@@ -979,35 +852,25 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 		scan = PolarVolume_getScan(volume, iScan);
 
         // check that radial velocity parameter is present
-        // in the case of using dealiased radial velocities
-        if (alldata->options.dealiasVrad){
-            if (PolarScan_hasParameter(scan, "VRADDH")){
-                sprintf(scanUse[iScan].vradName,"VRADDH");	
-                scanUse[iScan].useScan = TRUE;
-            }
-        }
-        // in the case of not dealiased radial velocities
-        else{
-            if (PolarScan_hasParameter(scan, "VRAD")){
-                sprintf(scanUse[iScan].vradName,"VRAD");	
-                scanUse[iScan].useScan = TRUE;
-            }
-            else{
-                if (PolarScan_hasParameter(scan, "VRADH")){
-                    sprintf(scanUse[iScan].vradName,"VRADH");	
-                    scanUse[iScan].useScan = TRUE;
-                }
-                else{
-                    if (PolarScan_hasParameter(scan, "VRADV")){
-                        sprintf(scanUse[iScan].vradName,"VRADV");	
-                        scanUse[iScan].useScan = TRUE;
-                    }
-                }
-            }
-            if (scanUse[iScan].useScan == FALSE){
-                fprintf(stderr,"Warning: radial velocity missing, dropping scan %i ...\n",iScan);
-            }
-        }
+		if (PolarScan_hasParameter(scan, "VRAD")){
+			sprintf(scanUse[iScan].vradName,"VRAD");	
+			scanUse[iScan].useScan = TRUE;
+		}
+		else{
+			if (PolarScan_hasParameter(scan, "VRADH")){
+				sprintf(scanUse[iScan].vradName,"VRADH");	
+				scanUse[iScan].useScan = TRUE;
+			}
+			else{
+				if (PolarScan_hasParameter(scan, "VRADV")){
+					sprintf(scanUse[iScan].vradName,"VRADV");	
+					scanUse[iScan].useScan = TRUE;
+				}
+			}
+		}
+		if (scanUse[iScan].useScan == FALSE){
+			fprintf(stderr,"Warning: radial velocity missing, dropping scan %i ...\n",iScan);
+		}
 
         // check that reflectivity parameter is present
         if (scanUse[iScan].useScan){
@@ -1033,6 +896,18 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
             }
         }
         
+        // check that correlation coefficient is present
+        if (alldata->options.dualPol){
+            if (PolarScan_hasParameter(scan, "RHOHV")){
+                sprintf(scanUse[iScan].rhohvName,"RHOHV");	
+                scanUse[iScan].useScan = TRUE;
+            }
+            else{
+                fprintf(stderr,"Warning: correlation coefficient missing, dropping scan %i ...\n",iScan);
+                scanUse[iScan].useScan = FALSE;
+            }
+        }
+        
         // check that elevation is not too high or too low
         if (scanUse[iScan].useScan)
         {
@@ -1041,12 +916,26 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
             if (elev < alldata->options.elevMin || elev > alldata->options.elevMax)
             {
                 scanUse[iScan].useScan = FALSE;
-                    fprintf(stderr,"Warning: scan elevation (%.1f deg) outside valid elevation range (%.1f-%.1f deg), dropping scan %i ...\n",\
+                    fprintf(stderr,"Warning: elevation (%.1f deg) outside valid elevation range (%.1f-%.1f deg), dropping scan %i ...\n",\
                     elev,alldata->options.elevMin,alldata->options.elevMax,iScan);
             }
         }
         
+		// check that range bin size has correct units
+		if (scanUse[iScan].useScan)
+        {
+            // drop scans with range bin sizes below 1 meter
+            double rscale = PolarScan_getRscale(scan);
+            if (rscale < RSCALEMIN || rscale == 0)
+            {
+                scanUse[iScan].useScan = FALSE;
+                    fprintf(stderr,"Warning: range bin size (%.2f metre) too small, dropping scan %i ...\n",\
+                    rscale,iScan);
+            }
+        }
+		
         // check that Nyquist velocity is not too low
+		// retrieve Nyquist velocity if not present at scan level
 		if (scanUse[iScan].useScan)
 		{
 			// Read Nyquist interval from scan how group
@@ -1056,7 +945,10 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 
 			// Read Nyquist interval from top level how group
 			if (result == 0)
-			{
+			{	
+				// set flag that we found no nyquist interval at scan level
+				noNyquist = 1;
+				// proceed to top level how group
 				attr = PolarVolume_getAttribute(volume, "how/NI");
 				if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getDouble(attr, &nyquist);
 			}
@@ -1085,6 +977,27 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
                 scanUse[iScan].useScan = 0;
                 fprintf(stderr,"Warning: Nyquist velocity (%.1f m/s) too low, dropping scan %i ...\n",nyquist,iScan);
             }
+			
+			// if Nyquist interval (NI) attribute was missing at scan level, add it now
+			if (noNyquist){
+				RaveAttribute_t* attr_NI = RaveAttributeHelp_createDouble("how/NI", (double) nyquist);
+				if (attr_NI == NULL && nyquist > 0){
+					fprintf(stderr, "warning: no valid Nyquist attribute could be added to scan\n");
+				}
+				else{    
+					PolarScan_addAttribute(scan, attr_NI);
+				}
+				RAVE_OBJECT_RELEASE(attr_NI);
+			}
+			
+			if (nyquist < nyquistMin){
+				nyquistMin=nyquist;
+			}
+			if (nyquist > nyquistMax){
+				nyquistMax=nyquist;
+			}
+
+			
 		}
 		
         if (scanUse[iScan].useScan){
@@ -1092,9 +1005,13 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
         }
 	}
 	    
+		
+	alldata->misc.nyquistMin = nyquistMin;
+	alldata->misc.nyquistMax = nyquistMax;
+	
     // FIXME: better to make scanUse a struct that contains both the array of vol2birdScanUse_t objects
     // and the number nScansUSed, which now is stored ad hoc under alldata->misc
-    alldata->misc.nScansUsed = nScansUsed;
+	alldata->misc.nScansUsed = nScansUsed;
     if(nScansUsed == 0){
         alldata->misc.vol2birdSuccessful = FALSE;
         return (vol2birdScanUse_t*) NULL;
@@ -1302,11 +1219,12 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
 
 
 
-static int findWeatherCells(const float *dbzImage, int *cellImage,
-        const SCANMETA *dbzMeta, vol2bird_t* alldata) {
+static int findWeatherCells(const float *quantityImage, int *cellImage,
+        const SCANMETA *quantityMeta, float quantityThreshold,
+        int selectAboveThreshold, vol2bird_t* alldata) {
 
     //  ----------------------------------------------------------------------------- //
-    //  This function detects the cells in 'dbzImage' using a threshold value of      //
+    //  This function detects the cells in 'quantityImage' using a threshold value of      //
     //  'dbzThresMin' and a non-recursive algorithm which looks for neighboring       //
     //  pixels above that threshold. On return the marked cells are contained by      //
     //  'cellImage'. The number of detected cells/highest index value is returned.    //
@@ -1324,19 +1242,19 @@ static int findWeatherCells(const float *dbzImage, int *cellImage,
     int count;
     int cellImageInitialValue;
 
-    float dbzThres;
+    float quantityThres;
 
     int iGlobal;
     int iGlobalOther;
     int nGlobal;
     int iLocal;
 
-    float dbzMissing;
-    int dbznAzim;
-    int dbznRang;
-    float dbzValueOffset;
-    float dbzValueScale;
-    float dbzRangeScale;
+    float quantityMissing;
+    int quantitynAzim;
+    int quantitynRang;
+    float quantityValueOffset;
+    float quantityValueScale;
+    float quantityRangeScale;
 
 
     // These next two local variables 'nAzimNeighborhood' and 
@@ -1361,20 +1279,20 @@ static int findWeatherCells(const float *dbzImage, int *cellImage,
     int dbg = 0;
     #endif
 
-    if (dbzImage==NULL) {
-        fprintf(stderr,"Input argument dbzImage is NULL.\n");
+    if (quantityImage==NULL) {
+        fprintf(stderr,"Input argument quantityImage is NULL.\n");
         return -1;
     }
 
-    dbzMissing = dbzMeta->missing;
-    dbznAzim = dbzMeta->nAzim;
-    dbznRang = dbzMeta->nRang;
-    dbzValueOffset = dbzMeta->valueOffset;
-    dbzValueScale = dbzMeta->valueScale;
-    dbzRangeScale = dbzMeta->rangeScale;
+    quantityMissing = quantityMeta->missing;
+    quantitynAzim = quantityMeta->nAzim;
+    quantitynRang = quantityMeta->nRang;
+    quantityValueOffset = quantityMeta->valueOffset;
+    quantityValueScale = quantityMeta->valueScale;
+    quantityRangeScale = quantityMeta->rangeScale;
 
-    nAzim = dbznAzim;
-    nRang = dbznRang;
+    nAzim = quantitynAzim;
+    nRang = quantitynRang;
 
     nGlobal = nAzim * nRang;
     
@@ -1389,8 +1307,8 @@ static int findWeatherCells(const float *dbzImage, int *cellImage,
     nHalfNeighborhood = (nNeighborhood - 1)/2;
 
 
-    if (dbzImage != NULL) {
-        dbzThres = (float) ROUND((alldata->constants.dbzThresMin - dbzValueOffset) / dbzValueScale);
+    if (quantityImage != NULL) {
+        quantityThres = (float) ROUND((quantityThreshold - quantityValueOffset) / quantityValueScale);
     }
 
     cellImageInitialValue = -1;
@@ -1398,10 +1316,9 @@ static int findWeatherCells(const float *dbzImage, int *cellImage,
         cellImage[iGlobal] = cellImageInitialValue;
     }
 
-    // If threshold value is equal to missing value, return. FIXME: makes non-general assumption on dbzMissing
-    if (dbzThres == dbzMissing) {
-        fprintf(stderr,"Error: dbzThres equals dbzMissing\n");
-        return -1;
+    // If threshold value is equal to missing value, produce a warning
+    if (quantityThres == quantityMissing) {
+        fprintf(stderr,"Warning: in function findWeatherCells, quantityThres equals quantityMissing\n");
     }
 
     // ----------------------------------------------------------------------- //
@@ -1419,19 +1336,19 @@ static int findWeatherCells(const float *dbzImage, int *cellImage,
 
             iGlobal = iRang + iAzim * nRang;
 
-            if ((float)(iRang + 1) * dbzRangeScale > alldata->misc.rCellMax) {
+            if ((float)(iRang + 1) * quantityRangeScale > alldata->misc.rCellMax) {
                 continue;
             }
             else {
                 #ifdef FPRINTFON
                 fprintf(stderr, "iGlobal = %d\niRang + 1 = %d\n"
-                "dbzRangeScale = %f\n"
+                "quantityRangeScale = %f\n"
                 "rCellMax = %f\n"
-                "(iRang + 1) * dbzRangeScale = %f\n"
-                "((iRang + 1) * dbzRangeScale > rCellMax) = %d\n"
-                "dbg=%d\n",iGlobal,iRang + 1,dbzRangeScale,alldata->misc.rCellMax,
-                (iRang + 1) * dbzRangeScale,
-                ((iRang + 1) * dbzRangeScale > alldata->misc.rCellMax),dbg);
+                "(iRang + 1) * quantityRangeScale = %f\n"
+                "((iRang + 1) * quantityRangeScale > rCellMax) = %d\n"
+                "dbg=%d\n",iGlobal,iRang + 1,quantityRangeScale,alldata->misc.rCellMax,
+                (iRang + 1) * quantityRangeScale,
+                ((iRang + 1) * quantityRangeScale > alldata->misc.rCellMax),dbg);
                 
                 dbg++;
                 #endif
@@ -1441,16 +1358,16 @@ static int findWeatherCells(const float *dbzImage, int *cellImage,
             fprintf(stderr,"iGlobal = %d\n",iGlobal);
             #endif
 
-            if (dbzImage[iGlobal] == (float) dbzMissing) {
+            if (quantityImage[iGlobal] == (float) quantityMissing) {
 
                 #ifdef FPRINTFON
-                fprintf(stderr,"dbzImage[%d] == dbzMissing\n",iGlobal);
+                fprintf(stderr,"quantityImage[%d] == quantityMissing\n",iGlobal);
                 #endif
 
                 continue;
             }
 
-            if (dbzImage[iGlobal] < (float) dbzThres) {
+            if (quantityImage[iGlobal] < (float) quantityThres) {
                 continue;
             }
 
@@ -1464,7 +1381,7 @@ static int findWeatherCells(const float *dbzImage, int *cellImage,
                     // iLocal below zero are error codes
                     continue;
                 }
-                if (dbzImage[iLocal] > dbzThres) {
+                if (quantityImage[iLocal] > quantityThres) {
                     count++;
                 }
 
@@ -1684,8 +1601,8 @@ static void fringeCells(int *cellImage, int nRang, int nAzim, float aScale, floa
                     continue; // with the next iGlobal
                 }
 
-                if (cellImage[iLocal] <= 1) {
-                    isEdge = TRUE;
+                if (cellImage[iLocal] < 1) { //FIXME: Strictly this should be <=1, but then much slower
+                    isEdge = TRUE;           //Now only pixels without any bordering fringe are 'fringed', giving very similar result (but improvement welcome)
                 }
 
             }
@@ -1742,11 +1659,146 @@ static void fringeCells(int *cellImage, int nRang, int nAzim, float aScale, floa
 
 
 
+CELLPROP* getCellProperties(const float *dbzImage, const float *vradImage,
+    const float *texImage, const float *clutterImage, int *cellImage,
+    const SCANMETA *dbzMeta, const SCANMETA *vradMeta, const SCANMETA *texMeta, const SCANMETA *clutterMeta,
+    const int nCells, vol2bird_t* alldata){
+    
+    int iCell;
+    int iGlobal;
+    int nGlobal;
+    int iRang;
+    int iAzim;
+    int nAzim;
+    int nRang;
+    float nGatesValid;
+    float dbzValue;
+    float texValue;
+    float vradValue;
+    float clutterValue;
+
+    nRang = dbzMeta->nRang;
+    nAzim = dbzMeta->nAzim;
+    nGlobal = nAzim*nRang;
+    
+    // Allocating and initializing memory for cell properties.
+    CELLPROP* cellProp;
+    cellProp = (CELLPROP *)malloc(nCells*sizeof(CELLPROP));
+    
+    if (!cellProp) {
+        fprintf(stderr,"Requested memory could not be allocated in getCellProperties!\n");
+        return cellProp;
+    }
+    
+    for (iCell = 0; iCell < nCells; iCell++) {
+        cellProp[iCell].iRangOfMax = -1;
+        cellProp[iCell].iAzimOfMax = -1;
+        cellProp[iCell].nGates = 0;
+        cellProp[iCell].nGatesClutter = 0;
+        cellProp[iCell].dbzAvg = NAN;
+        cellProp[iCell].texAvg = NAN;
+        cellProp[iCell].dbzMax = NAN;
+        cellProp[iCell].index = iCell;
+        cellProp[iCell].drop = TRUE;
+        cellProp[iCell].cv = NAN;
+    }
+
+    // Calculation of cell properties.
+    for (iAzim = 0; iAzim < nAzim; iAzim++) {
+        for (iRang = 0; iRang < nRang; iRang++) {
+
+            iGlobal = iRang + iAzim * nRang;
+
+            dbzValue = dbzMeta->valueScale * (float) dbzImage[iGlobal] + dbzMeta->valueOffset;
+            vradValue = vradMeta->valueScale * (float) vradImage[iGlobal] + vradMeta->valueOffset;
+            clutterValue = clutterMeta->valueScale * (float) clutterImage[iGlobal] + clutterMeta->valueOffset;
+            texValue = texMeta->valueScale * (float) texImage[iGlobal] + texMeta->valueOffset;
+	    
+            iCell = cellImage[iGlobal];
+
+            // Note: this also throws out all nodata/undetect values for dbzValue
+            if (iCell<0) {
+                continue;
+            }
+
+            #ifdef FPRINTFON
+            fprintf(stderr,"dbzValue = %f; vradValue = %f; clutterValue = %f; texValue = %f\n",dbzValue,vradValue,clutterValue,texValue);
+            fprintf(stderr,"iGlobal = %d, iCell = %d\n",iGlobal,iCell);
+            #endif
+
+            cellProp[iCell].nGates += 1;
+            cellProp[iCell].drop = FALSE;
+
+            // low radial velocities are treated as clutter, not included in calculation cell properties
+            if ((fabs(vradValue) < alldata->constants.vradMin) & (vradImage[iGlobal] != vradMeta->missing)){
+
+                cellProp[iCell].nGatesClutter += 1;
+
+                #ifdef FPRINTFON
+                fprintf(stderr,"iGlobal = %d: vrad too low...treating as clutter\n",iGlobal);
+                #endif
+
+                continue;
+            }
+
+            // pixels in clutter map not included in calculation cell properties
+            if (alldata->options.useStaticClutterData == TRUE){
+                if (clutterValue > alldata->constants.clutterValueMin){
+                    cellProp[iCell].nGatesClutter += 1;
+                    continue;
+                }
+            }
+
+            if (isnan(cellProp[iCell].dbzMax) || dbzValue > cellProp[iCell].dbzMax) {
+
+
+                #ifdef FPRINTFON
+                fprintf(stderr,"%d: new dbzMax value of %f found for this cell (%d).\n",iGlobal,dbzValue,iCell);
+                #endif
+
+                cellProp[iCell].dbzMax = dbzValue;
+                cellProp[iCell].iRangOfMax = iGlobal%nRang;
+                cellProp[iCell].iAzimOfMax = iGlobal/nRang;
+            }
+
+            if (isnan(cellProp[iCell].dbzAvg)) {
+                cellProp[iCell].dbzAvg = dbzValue;
+            } 
+            else {
+                cellProp[iCell].dbzAvg += dbzValue;
+            }
+            
+            if (isnan(cellProp[iCell].texAvg)) {
+                cellProp[iCell].texAvg = texValue;
+            } 
+            else {
+                cellProp[iCell].texAvg += texValue;
+            }
+            
+        } // for (iRang = 0; iRang < nRang; iRang++)
+    } // for (iAzim = 0; iAzim < nAzim; iAzim++)
+
+
+    for (iCell = 0; iCell < nCells; iCell++) {
+        nGatesValid = cellProp[iCell].nGates - cellProp[iCell].nGatesClutter;
+        if (nGatesValid > 0){
+            cellProp[iCell].dbzAvg /= nGatesValid;
+            cellProp[iCell].texAvg /= nGatesValid;
+            cellProp[iCell].cv = cellProp[iCell].texAvg / cellProp[iCell].dbzAvg;
+        }
+    }
+    
+    return cellProp;
+} // getCellProperties
+
+
+
+
 static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradImage, 
                            const SCANMETA* dbzMeta, const float *dbzImage,
                            const int *cellImage,
                            const float altitudeMin, const float altitudeMax,
-                           float* points_local, int iRowPoints, vol2bird_t* alldata) {
+                           float* points_local, int iRowPoints, int nColsPoints_local, vol2bird_t* alldata) {
 
     // ------------------------------------------------------------------- //
     // Write combinations of an azimuth angle, an elevation angle, an      // 
@@ -1760,7 +1812,6 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradIma
     int nRang;
     int nAzim;
     int nPointsWritten_local;
-    const int nColsPoints_local = 6;
 
     float gateHeight;
     float gateRange;
@@ -1826,17 +1877,17 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradIma
             vradValue = vradValueScale * (float) vradImage[iGlobal] + vradValueOffset;
             dbzValue = dbzValueScale * (float) dbzImage[iGlobal] + dbzValueOffset;
 
-	    // in the points array, store missing reflectivity values as the lowest possible reflectivity
-	    // this is to treat undetects as absence of scatterers
-	    if (dbzImage[iGlobal] == dbzMissingValue){
-		dbzValue = NAN;
-	    }
+			// in the points array, store missing reflectivity values as the lowest possible reflectivity
+			// this is to treat undetects as absence of scatterers
+			if (dbzImage[iGlobal] == dbzMissingValue){
+			dbzValue = NAN;
+			}
 
-	    // in the points array, store missing vrad values as NAN
-	    // this is necessary because different scans may have different missing values
-	    if (vradImage[iGlobal] == vradMissingValue){
-		vradValue = NAN;
-	    }
+			// in the points array, store missing vrad values as NAN
+			// this is necessary because different scans may have different missing values
+			if (vradImage[iGlobal] == vradMissingValue){
+				vradValue = NAN;
+			}
 
             // store the location as an azimuth angle, elevation angle combination
             points_local[iRowPoints * nColsPoints_local + 0] = gateAzim;
@@ -1854,7 +1905,13 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradIma
             // set the gateCode to zero for now
             points_local[iRowPoints * nColsPoints_local + 5] = (float) 0;
 
-            // raise the row counter by 1
+			// store the corresponding observed nyquist velocity
+			points_local[iRowPoints * nColsPoints_local + 6] = vradMeta->nyquist;
+
+			// store the corresponding observed vrad value for now (to be dealiased later)
+			points_local[iRowPoints * nColsPoints_local + 7] = vradValue;
+
+			// raise the row counter by 1
             iRowPoints += 1;
             
             // raise number of points written by 1
@@ -1869,6 +1926,7 @@ static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradIma
 
 } // getListOfSelectedGates
 
+/*
 int PolarVolume_dealias(PolarVolume_t* pvol){
     
     fprintf(stderr,"Dealiasing scans: ");
@@ -1942,7 +2000,7 @@ int PolarVolume_dealias(PolarVolume_t* pvol){
     fprintf(stderr," done.\n");
     return 1;
 }
-
+*/
 
 long datetime2long(char* date, char* time){
 
@@ -2298,7 +2356,7 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax){
         Sweep* rslSweep;
         rslSweep = radar->v[iVol]->sweep[0];
         rslRay   = rslSweep->ray[0];
-        fprintf(stderr, "Scans to be read from RSL file:\n"
+        fprintf(stderr, "Scans to be read from RSL file:\n");
         if (rslSweep && rslRay) {
             for(int iScan=0; iScan<radar->v[iVol]->h.nsweeps; iScan++){
                 rslSweep = radar->v[iVol]->sweep[iScan];
@@ -2763,6 +2821,7 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_BOOL("USE_STATIC_CLUTTER_DATA",USE_STATIC_CLUTTER_DATA,CFGF_NONE),
         CFG_BOOL("VERBOSE_OUTPUT_REQUIRED",VERBOSE_OUTPUT_REQUIRED,CFGF_NONE),
         CFG_BOOL("PRINT_DBZ",PRINT_DBZ,CFGF_NONE),
+        CFG_BOOL("PRINT_DEALIAS",PRINT_DEALIAS,CFGF_NONE),
         CFG_BOOL("PRINT_VRAD",PRINT_VRAD,CFGF_NONE),
         CFG_BOOL("PRINT_CELL",PRINT_CELL,CFGF_NONE),
         CFG_BOOL("PRINT_CELL_PROP",PRINT_CELL_PROP,CFGF_NONE),
@@ -2779,8 +2838,12 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_FLOAT("DBZCELL",DBZCELL,CFGF_NONE),
         CFG_STR("DBZTYPE",DBZTYPE,CFGF_NONE),
         CFG_BOOL("REQUIRE_VRAD",REQUIRE_VRAD,CFGF_NONE),
-        CFG_BOOL("DEALIAS_VRAD",REQUIRE_VRAD,CFGF_NONE),
+        CFG_BOOL("DEALIAS_VRAD",DEALIAS_VRAD,CFGF_NONE),
+		CFG_BOOL("DEALIAS_RECYCLE",DEALIAS_RECYCLE,CFGF_NONE),
         CFG_BOOL("EXPORT_BIRD_PROFILE_AS_JSON",FALSE,CFGF_NONE),
+        CFG_BOOL("DUALPOL",DUALPOL,CFGF_NONE),
+        CFG_FLOAT("DBZMIN",DBZMIN,CFGF_NONE),
+        CFG_FLOAT("RHOHVMIN",RHOHVMIN,CFGF_NONE),
         CFG_END()
     };
     
@@ -2825,10 +2888,22 @@ static int mapDataFromRave(PolarScan_t* scan, SCANMETA* meta, float* values, cha
         meta->valueOffset = (float) PolarScanParam_getOffset(param);
         meta->valueScale = (float) PolarScanParam_getGain(param);
         meta->missing = (float) PolarScanParam_getNodata(param);
-        double value;
+		
+		// add nyquist interval to scan
+		RaveAttribute_t *attr = PolarScan_getAttribute(scan, "how/NI");
+		double nyquist;
+		int result = 0;
+		if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getDouble(attr, &nyquist);
+        if (result == 0){
+			meta->nyquist = 0;
+		}
+		else{
+			meta->nyquist = nyquist;
+		}
+		
+		double value;
         double* valuePtr = &value;
-        float valueFloat;
-        
+        float valueFloat;        
         
         for (iAzim = 0; iAzim < nAzim; iAzim++) {
             for (iRang = 0; iRang < nRang; iRang++) {
@@ -3106,6 +3181,37 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
 }
 
 
+static void printCellProp(CELLPROP* cellProp, const SCANMETA *meta, int nCells, int nCellsValid, vol2bird_t *alldata){
+    
+    // ---------------------------------------------------------- //
+    // this function prints the cell properties struct to stderr  //
+    // ---------------------------------------------------------- //
+    
+    fprintf(stderr,"#Cell analysis for elevation %f:\n",meta->elev);
+    fprintf(stderr,"#Minimum cell area in pixels   : %i\n",alldata->constants.nGatesCellMin);
+    fprintf(stderr,"#Threshold for mean dBZ cell   : %g dBZ\n",alldata->options.cellDbzMin);
+    fprintf(stderr,"#Threshold for mean stdev cell : %g dBZ\n",alldata->constants.cellStdDevMax);
+    fprintf(stderr,"#Valid cells                   : %i/%i\n#\n",nCellsValid,nCells);
+    fprintf(stderr,"cellProp: .index .nGates .nGatesClutter .dbzAvg .texAvg .cv   .dbzMax .iRangOfMax .iAzimOfMax .drop\n");
+    for (int iCell = 0; iCell < nCells; iCell++) {
+        if (cellProp[iCell].drop == TRUE) {
+            continue;
+        }
+        fprintf(stderr,"cellProp: %6d %7d %14d %7.2f %7.2f %5.2f %7.2f %11d %11d %5c\n",
+            cellProp[iCell].index,
+            cellProp[iCell].nGates,
+            cellProp[iCell].nGatesClutter,
+            cellProp[iCell].dbzAvg,
+            cellProp[iCell].texAvg,
+            cellProp[iCell].cv,
+            cellProp[iCell].dbzMax,
+            cellProp[iCell].iRangOfMax,
+            cellProp[iCell].iAzimOfMax,
+            cellProp[iCell].drop == TRUE ? 'T' : 'F');
+    }
+}
+
+
 static void printGateCode(char* flags, const unsigned int gateCode) {
     
     // --------------------------------------------------- //
@@ -3294,6 +3400,88 @@ static int printMeta(const SCANMETA* meta, const char* varName) {
 
 
 
+
+static int selectCellsToDrop(CELLPROP *cellProp, int nCells, vol2bird_t* alldata){
+    int output = 0;
+    if(alldata->options.dualPol){
+        output = selectCellsToDrop_dualPol(cellProp, nCells, alldata);
+    }
+    else{
+        output = selectCellsToDrop_singlePol(cellProp, nCells, alldata);
+    }
+    return output;
+}
+
+
+
+static int selectCellsToDrop_singlePol(CELLPROP *cellProp, int nCells, vol2bird_t* alldata){
+    // determine which blobs to drop from map based on low mean dBZ / high stdev /
+    // small area / high percentage clutter
+    for (int iCell = 0; iCell < nCells; iCell++) {
+        int notEnoughGates = cellProp[iCell].nGates < alldata->constants.nGatesCellMin;
+        int dbzTooLow = cellProp[iCell].dbzAvg < alldata->options.cellDbzMin;
+        int texTooHigh = cellProp[iCell].texAvg > alldata->constants.cellStdDevMax;
+        int tooMuchClutter = ((float) cellProp[iCell].nGatesClutter / cellProp[iCell].nGates) > alldata->constants.cellClutterFractionMax;
+        
+        if (notEnoughGates) {
+            
+            // this blob is too small too be a weather cell, more likely 
+            // that these are birds. So, drop the blob from the record of 
+            // weather cells 
+
+            cellProp[iCell].drop = TRUE;
+            
+            continue;
+        }
+
+        if (dbzTooLow && texTooHigh) {
+
+            // apparently, we are dealing a blob that is fairly large (it
+            // passes the 'notEnoughGates' condition above, but it has both 
+            // a low dbz and a high vrad texture. In contrast, weather cells
+            // have high dbz and low vrad texture. It is therefore unlikely
+            // that the blob is a weather cell.
+            
+            if (tooMuchClutter) {
+                // pass
+            }
+            else {
+                
+                // So at this point we have established that we are 
+                // dealing with a blob that is:
+                //     1. fairly large
+                //     2. has too low dbz to be precipitation
+                //     3. has too high vrad texture to be precipitation
+                //     4. has too little clutter to be attributed to clutter
+                // Therefore we drop it from the record of known weather cells
+                
+                cellProp[iCell].drop = TRUE;
+                
+            }
+        }
+    }
+    return 1;
+}
+
+
+static int selectCellsToDrop_dualPol(CELLPROP *cellProp, int nCells, vol2bird_t* alldata){
+    // determine which blobs to drop from map based on small area
+    for (int iCell = 0; iCell < nCells; iCell++) {
+        int notEnoughGates = cellProp[iCell].nGates < alldata->constants.nGatesCellMin;
+        
+        if (notEnoughGates) {
+            
+            // this blob is too small too be a weather cell, more likely 
+            // that these are birds. So, drop the blob from the record of 
+            // weather cells 
+
+            cellProp[iCell].drop = TRUE;
+            
+            continue;
+        }
+    }
+    return 1;
+}
 
 
 static void sortCellsByArea(CELLPROP *cellProp, const int nCells) {
@@ -3582,33 +3770,49 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
     // calculate the profiles in reverse order, because you need the result 
     // of iProfileType == 3 in order to check whether chi < stdDevMinBird  
     // when calculating iProfileType == 1
-
-
-//vol2birdPrintPointsArray(alldata);
-
     for (iProfileType = alldata->profiles.nProfileTypes; iProfileType > 0; iProfileType--) {
 
         // ------------------------------------------------------------- //
         //                        prepare the profile                    //
+		//                                                               //
+		// iProfileType == 1: birds                                      //
+		// iProfileType == 2: non-birds                                  //
+		// iProfileType == 3: birds+non-birds                            //
         // ------------------------------------------------------------- //
 
+        // FIXME: we better get rid of ProfileType==2 altogether, instead of
+        // skipping it here.
+        if(iProfileType == 2) continue;
+		
         alldata->profiles.iProfileTypeLast = iProfileType;
 
         // if the user does not require fitting a model to the observed 
-        // vrad values, one pass is enough 
+        // vrad values, we don't need a second pass to remove dealiasing outliers
         if (alldata->options.fitVrad == TRUE) {
             nPasses = 2;
         } 
         else {
             nPasses = 1;
         }
-
+			
+		// set a flag that indicates if we want to keep earlier dealiased values
+		int recycleDealias = FALSE;
+		if(iProfileType<3 && alldata->options.dealiasRecycle){
+			recycleDealias = TRUE;
+		}
+			
         // reset the flagPositionVDifMax bit before calculating each profile
         for (iPoint = 0; iPoint < alldata->points.nRowsPoints; iPoint++) {
             unsigned int gateCode = (unsigned int) alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.gateCodeCol];
             alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.gateCodeCol] = (float) (gateCode &= ~(1<<(alldata->flags.flagPositionVDifMax)));
         }
         
+		// reset the dealiased vrad value before calculating each profile
+		if(!recycleDealias){
+			for (iPoint = 0; iPoint < alldata->points.nRowsPoints; iPoint++) {
+				alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.vraddValueCol] = alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.vradValueCol];
+			}	
+		}
         
         for (iLayer = 0; iLayer < alldata->options.nLayers; iLayer++) {
 
@@ -3632,11 +3836,14 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 float avar[] = {NAN,NAN,NAN};
                 
                 float* pointsSelection = malloc(sizeof(float) * nPointsLayer * alldata->misc.nDims);
-                float* yObs = malloc(sizeof(float) * nPointsLayer);
+                float* yNyquist = malloc(sizeof(float) * nPointsLayer);
+				float* yDealias = malloc(sizeof(float) * nPointsLayer);
+				float* yObs = malloc(sizeof(float) * nPointsLayer);
                 float* yFitted = malloc(sizeof(float) * nPointsLayer);
                 int* includedIndex = malloc(sizeof(int) * nPointsLayer);
                 
-                float dbzValue = NAN;
+                float* yObsSvdFit = yObs;
+				float dbzValue = NAN;
                 float undbzValue = NAN;
                 double undbzSum = 0.0;
                 float undbzAvg = NAN;
@@ -3651,7 +3858,9 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 
                     pointsSelection[iPointLayer * alldata->misc.nDims + 0] = 0.0f;
                     pointsSelection[iPointLayer * alldata->misc.nDims + 1] = 0.0f;
-                    
+
+					yNyquist[iPointLayer] = 0.0f;
+					yDealias[iPointLayer] = 0.0f;                    
                     yObs[iPointLayer] = 0.0f;
                     yFitted[iPointLayer] = 0.0f;
                     
@@ -3674,7 +3883,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = NODATA;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = NODATA;
 
-		//Calculate the average reflectivity Z of the layer
+		        //Calculate the average reflectivity Z of the layer
                 iPointIncludedZ = 0;
                 for (iPointLayer = iPointFrom; iPointLayer < iPointFrom + nPointsLayer; iPointLayer++) {
                     
@@ -3700,7 +3909,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 } // endfor (iPointLayer = 0; iPointLayer < nPointsLayer; iPointLayer++) {
                 nPointsIncludedZ = iPointIncludedZ;
  
-		// calculate bird densities from undbzSum
+				// calculate bird densities from undbzSum
                 if (nPointsIncludedZ > alldata->constants.nPointsIncludedMin) {   
                     // when there are enough valid points, convert undbzAvg back to dB-scale
                     undbzAvg = (float) (undbzSum/nPointsIncludedZ);
@@ -3725,7 +3934,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     birdDensity = UNDETECT;
                 }
                 
-		//Prepare the arguments of svdfit
+		        //Prepare the arguments of svdfit
                 iPointIncluded = 0;
                 for (iPointLayer = iPointFrom; iPointLayer < iPointFrom + nPointsLayer; iPointLayer++) {
                     
@@ -3737,8 +3946,12 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         pointsSelection[iPointIncluded * alldata->misc.nDims + 0] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.azimAngleCol];
                         // copy elevation angle from the 'points' array
                         pointsSelection[iPointIncluded * alldata->misc.nDims + 1] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.elevAngleCol];
+						// copy nyquist interval from the 'points' array
+                        yNyquist[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.nyquistCol];
                         // copy the observed vrad value at this [azimuth, elevation] 
                         yObs[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.vradValueCol];
+						// copy the dealiased vrad value at this [azimuth, elevation] 
+                        yDealias[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.vraddValueCol];
                         // pre-allocate the fitted vrad value at this [azimuth,elevation]
                         yFitted[iPointIncluded] = 0.0f;
                         // keep a record of which index was just included
@@ -3760,10 +3973,45 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     if (hasGap==FALSE) {
                         
                         // ------------------------------------------------------------- //
+                        //                  dealias radial velocities                    //
+                        // ------------------------------------------------------------- //
+                                
+                        // dealias velocities if requested by user
+                        // only dealias in first pass (later passes for removing dual-PRF dealiasing errors,
+                        // which show smaller offsets than (2*nyquist velocity) and therefore are not
+                        // removed by dealiasing routine)
+                        if(alldata->options.dealiasVrad && iPass == 0 && !recycleDealias){
+                            #ifdef FPRINTFON
+                            fprintf(stderr,"dealiasing %i points for profile %i, layer %i ...\n",nPointsIncluded,iProfileType,iLayer+1);
+                            #endif
+                            int result = dealias_points(&pointsSelection[0], alldata->misc.nDims, &yNyquist[0],
+                                            alldata->misc.nyquistMin, &yObs[0], &yDealias[0], nPointsIncluded);							
+                            // store dealiased velocities in points array (for re-use when iPass>0)
+                            for(int i=0; i<nPointsIncluded;i++){
+                                alldata->points.points[includedIndex[i] * alldata->points.nColsPoints + alldata->points.vraddValueCol] = yDealias[i];	
+                            }
+                        
+                            if(result == 0){
+                                fprintf(stderr,"Warning, failed to dealias radial velocities");
+                            }
+                        }
+
+                        //print the dealiased values to stderr
+                        if(alldata->options.printDealias == TRUE){
+                            printDealias(&pointsSelection[0], alldata->misc.nDims, &yNyquist[0],
+                                            &yObs[0], &yDealias[0], nPointsIncluded, iProfileType, iLayer, iPass);
+                        }
+
+                        
+                        // yDealias is initialized to yObs, so we can always run svdfit
+                        // on yDealias, even when not running a dealiasing routine
+                        yObsSvdFit = yDealias;
+                        
+                        // ------------------------------------------------------------- //
                         //                       do the svdfit                           //
                         // ------------------------------------------------------------- //
-
-                        chisq = svdfit(&pointsSelection[0], alldata->misc.nDims, &yObs[0], &yFitted[0], 
+                                                
+                        chisq = svdfit(&pointsSelection[0], alldata->misc.nDims, &yObsSvdFit[0], &yFitted[0], 
                                 nPointsIncluded, &parameterVector[0], &avar[0], alldata->misc.nParsFitted);
 
                         if (chisq < alldata->constants.chisqMin) {
@@ -3789,11 +4037,11 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                             // if the fitted vrad value is more than 'absVDifMax' away from the corresponding
                             // observed vrad value, set the gate's flagPositionVDifMax bit flag to 1, excluding the 
                             // gate in the second svdfit iteration
-                            updateFlagFieldsInPointsArray(&yObs[0], &yFitted[0], &includedIndex[0], nPointsIncluded,
+                            updateFlagFieldsInPointsArray(&yObsSvdFit[0], &yFitted[0], &includedIndex[0], nPointsIncluded,
                                                   &(alldata->points.points[0]), alldata);
 
                         }
-                        
+						
                     } // endif (hasGap == FALSE)
                     
                 }; // endif (fitVrad == TRUE)
@@ -3834,9 +4082,11 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
                 }
- 
+  
                 free((void*) yObs);
                 free((void*) yFitted);
+				free((void*) yNyquist);
+				free((void*) yDealias);
                 free((void*) pointsSelection);
                 free((void*) includedIndex);
         
@@ -3993,7 +4243,7 @@ void vol2birdPrintOptions(vol2bird_t* alldata) {
     fprintf(stderr,"%-25s = %f\n","clutterValueMin",alldata->constants.clutterValueMin);
     fprintf(stderr,"%-25s = %f\n","dbzFactor",alldata->misc.dbzFactor);
     fprintf(stderr,"%-25s = %f\n","dbzMax",alldata->options.dbzMax);
-    fprintf(stderr,"%-25s = %f\n","dbzThresMin",alldata->constants.dbzThresMin);
+    fprintf(stderr,"%-25s = %f\n","dbzThresMin",alldata->options.dbzThresMin);
     fprintf(stderr,"%-25s = %s\n","dbzType",alldata->options.dbzType);
     fprintf(stderr,"%-25s = %f\n","elevMax",alldata->options.elevMax);
     fprintf(stderr,"%-25s = %f\n","elevMin",alldata->options.elevMin);
@@ -4040,7 +4290,7 @@ void vol2birdPrintPointsArray(vol2bird_t* alldata) {
 
     int iPoint;
     
-    fprintf(stderr, "iPoint  azim    elev    dbz         vrad        cell    gateCode  flags     \n");
+    fprintf(stderr, "iPoint  azim    elev    dbz         vrad        cell    gateCode  flags     nyquist vradd\n");
     
     for (iPoint = 0; iPoint < alldata->points.nRowsPoints * alldata->points.nColsPoints; iPoint+=alldata->points.nColsPoints) {
         
@@ -4056,6 +4306,8 @@ void vol2birdPrintPointsArray(vol2bird_t* alldata) {
             fprintf(stderr, "  %6.0f",  alldata->points.points[iPoint + alldata->points.cellValueCol]);
             fprintf(stderr, "  %8.0f",  alldata->points.points[iPoint + alldata->points.gateCodeCol]);
             fprintf(stderr, "  %12s",   gateCodeStr);
+			fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.nyquistCol]);
+			fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.vraddValueCol]);
             fprintf(stderr, "\n");
     }    
 } // vol2birdPrintPointsArray
@@ -4119,6 +4371,9 @@ PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax){
             // the PolarVolume_t type:
             
             volume = (PolarVolume_t*) RaveIO_getObject(raveio);
+        }
+        else{
+            fprintf(stderr,"Error: ODIM HDF5 file is not a polar volume\n");
         }
     }
     // not a rave complient file, attempt to read the file with the RSL library instead
@@ -4218,6 +4473,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.radarWavelength = cfg_getfloat(*cfg, "RADAR_WAVELENGTH_CM");
     alldata->options.useStaticClutterData = cfg_getbool(*cfg,"USE_STATIC_CLUTTER_DATA");
     alldata->options.printDbz = cfg_getbool(*cfg,"PRINT_DBZ");
+    alldata->options.printDealias = cfg_getbool(*cfg,"PRINT_DEALIAS");
     alldata->options.printVrad = cfg_getbool(*cfg,"PRINT_VRAD");
     alldata->options.printTex = cfg_getbool(*cfg,"PRINT_TEXTURE");
     alldata->options.printCell = cfg_getbool(*cfg,"PRINT_CELL");
@@ -4236,6 +4492,10 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     strcpy(alldata->options.dbzType,cfg_getstr(*cfg,"DBZTYPE"));
     alldata->options.requireVrad = cfg_getbool(*cfg,"REQUIRE_VRAD");
     alldata->options.dealiasVrad = cfg_getbool(*cfg,"DEALIAS_VRAD");
+	alldata->options.dealiasRecycle = cfg_getbool(*cfg,"DEALIAS_RECYCLE");
+    alldata->options.dualPol = cfg_getbool(*cfg,"DUALPOL");
+    alldata->options.dbzThresMin = cfg_getfloat(*cfg,"DBZMIN");
+    alldata->options.rhohvThresMin = cfg_getfloat(*cfg,"RHOHVMIN");
 
     // ------------------------------------------------------------- //
     //              vol2bird options from constants.h                //
@@ -4245,7 +4505,6 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->constants.cellClutterFractionMax = CLUTPERCCELL;
     alldata->constants.chisqMin = CHISQMIN;
     alldata->constants.clutterValueMin = DBZCLUTTER;
-    alldata->constants.dbzThresMin = DBZMIN;
     alldata->constants.fringeDist = FRINGEDIST;
     alldata->constants.nBinsGap = NBINSGAP;
     alldata->constants.nPointsIncludedMin = NDBZMIN;
@@ -4312,6 +4571,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         "useStaticClutterData=%i,fitVrad=%i,exportBirdProfileAsJSONVar=%i,"
         "minNyquist=%f,birdRadarCrossSection=%f,stdDevMinBird=%f,"
         "cellDbzMin=%f,dbzMax=%f,dbzType=%s,requireVrad=%i,"
+        "dealiasVrad=%i,dealiasRecycle=%i,dualPol=%i,rhohvThresMin=%f,"
     
         "nGatesCellMin=%i,cellClutterFractionMax=%f,"
         "chisqMin=%f,clutterValueMin=%f,dbzThresMin=%f,"
@@ -4338,12 +4598,16 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         alldata->options.dbzMax,
         alldata->options.dbzType,
         alldata->options.requireVrad,
+        alldata->options.dealiasVrad,
+        alldata->options.dealiasRecycle,
+        alldata->options.dualPol,
+        alldata->options.rhohvThresMin,
 
         alldata->constants.nGatesCellMin,
         alldata->constants.cellClutterFractionMax,
         alldata->constants.chisqMin,
         alldata->constants.clutterValueMin,
-        alldata->constants.dbzThresMin,
+        alldata->options.dbzThresMin,
         alldata->constants.fringeDist,
         alldata->constants.nBinsGap,
         alldata->constants.nPointsIncludedMin,
@@ -4358,21 +4622,6 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         alldata->constants.vradMin
     );
     
-    
-    // ------------------------------------------------------------- //
-    //         Apply pre-processing filters from rave toolbox        //
-    //                     currently dealiasing only                 //
-    // ------------------------------------------------------------- //
-    
-    if(alldata->options.dealiasVrad){
-        int result;
-
-        result = PolarVolume_dealias(volume);
-        if(result == 0){
-            fprintf(stderr,"Warning, failed to dealias radial velocities");
-        }
-    }
- 
     // ------------------------------------------------------------- //
     //             lists of indices into the 'points' array:         //
     //          where each altitude layer's data starts and ends     //
@@ -4440,7 +4689,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     //               information about the 'points' array            //
     // ------------------------------------------------------------- //
 
-    alldata->points.nColsPoints = 6;
+    alldata->points.nColsPoints = 8;
     alldata->points.nRowsPoints = detSvdfitArraySize(volume, scanUse, alldata);
 
     alldata->points.azimAngleCol = 0;
@@ -4449,6 +4698,8 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->points.vradValueCol = 3;
     alldata->points.cellValueCol = 4;
     alldata->points.gateCodeCol = 5;
+	alldata->points.nyquistCol = 6;
+	alldata->points.vraddValueCol = 7;
 
     // pre-allocate the 'points' array (note it has 'nColsPoints'
     // pseudo-columns)

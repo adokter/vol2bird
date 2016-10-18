@@ -17,7 +17,9 @@
 // ****************************************************************************
 // Functions for linear fitting using Singular Value Decomposition:
 // ****************************************************************************
-
+//
+// Authors: Iwan Holleman, KNMI, adapted for vol2bird by Adriaan Dokter
+//
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

@@ -625,6 +625,8 @@ RSL_LIB
 RSL_CFLAG
 RSL_LIBRARY_FLAG
 RSL_INCLUDE_FLAG
+GSL_LIBRARY_FLAG
+GSL_INCLUDE_FLAG
 CONFUSE_LIBRARY_FLAG
 CONFUSE_INCLUDE_FLAG
 HLHDFLDSHARED
@@ -697,6 +699,7 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 with_confuse
+with_gsl
 with_rsl
 with_rave
 '
@@ -1329,6 +1332,7 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-confuse=DIR	  The confuse root installation directory
+  --with-gsl=DIR|INC,LIB  The GSL (GNU Scientific Library) installation directory
   --with-rsl=DIR	  The RSL root installation directory
   --with-rave=ROOT	  The RAVE root installation directory
 
@@ -2855,6 +2859,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 LIBS=-lm
 
+
 CONFUSE_INCLUDE_DIR=
 CONFUSE_LIB_DIR=
 GOT_CONFUSE_INC=no
@@ -3478,6 +3483,506 @@ fi
 CONFUSE_LIBRARY_FLAG=${CONFUSE_LIB_DIR}
 CONFUSE_INCLUDE_FLAG=${CONFUSE_INCLUDE_DIR}
 
+
+GSL_INCLUDE_DIR=
+GSL_LIB_DIR=
+GOT_GSL_INC=no
+GOT_GSL_LIB=no
+GSL_SUPPRESSED=no
+
+# Check whether --with-gsl was given.
+if test "${with_gsl+set}" = set; then :
+  withval=$with_gsl;
+else
+  withval=yes
+fi
+
+case $withval in
+	yes)
+		for ac_header in gsl_multimin.h gsl_vector.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+ GOT_GSL_INC=yes
+fi
+
+done
+
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cos in -lm" >&5
+$as_echo_n "checking for cos in -lm... " >&6; }
+if ${ac_cv_lib_m_cos+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lm  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cos ();
+int
+main ()
+{
+return cos ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_m_cos=yes
+else
+  ac_cv_lib_m_cos=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m_cos" >&5
+$as_echo "$ac_cv_lib_m_cos" >&6; }
+if test "x$ac_cv_lib_m_cos" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBM 1
+_ACEOF
+
+  LIBS="-lm $LIBS"
+
+fi
+
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cblas_dgemm in -lgslcblas" >&5
+$as_echo_n "checking for cblas_dgemm in -lgslcblas... " >&6; }
+if ${ac_cv_lib_gslcblas_cblas_dgemm+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgslcblas  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cblas_dgemm ();
+int
+main ()
+{
+return cblas_dgemm ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gslcblas_cblas_dgemm=yes
+else
+  ac_cv_lib_gslcblas_cblas_dgemm=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gslcblas_cblas_dgemm" >&5
+$as_echo "$ac_cv_lib_gslcblas_cblas_dgemm" >&6; }
+if test "x$ac_cv_lib_gslcblas_cblas_dgemm" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBGSLCBLAS 1
+_ACEOF
+
+  LIBS="-lgslcblas $LIBS"
+
+fi
+
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gsl_blas_dgemm in -lgsl" >&5
+$as_echo_n "checking for gsl_blas_dgemm in -lgsl... " >&6; }
+if ${ac_cv_lib_gsl_gsl_blas_dgemm+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgsl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gsl_blas_dgemm ();
+int
+main ()
+{
+return gsl_blas_dgemm ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gsl_gsl_blas_dgemm=yes
+else
+  ac_cv_lib_gsl_gsl_blas_dgemm=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gsl_gsl_blas_dgemm" >&5
+$as_echo "$ac_cv_lib_gsl_gsl_blas_dgemm" >&6; }
+if test "x$ac_cv_lib_gsl_gsl_blas_dgemm" = xyes; then :
+  GOT_GSL_LIB=yes
+fi
+
+
+		;;
+	no)
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gsl lib" >&5
+$as_echo_n "checking for gsl lib... " >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: suppressed" >&5
+$as_echo "suppressed" >&6; }
+		GSL_SUPPRESSED=yes
+		;;
+	*)
+   if [ "$withval" != "" ]; then
+      if [ "`echo $withval | grep ','`" = "" ]; then
+        gsl_inc=$withval/include/gsl
+        gsl_lib=$withval/lib
+      else
+        gsl_inc="`echo $withval |cut -f1 -d,`"
+        gsl_lib="`echo $withval |cut -f2 -d,`"
+      fi
+
+      if [ "$gsl_inc" != "" ]; then
+        saved_CPPFLAGS="$CPPFLAGS"
+        CPPFLAGS="$CPPFLAGS -I$gsl_inc"
+        for ac_header in gsl_multimin.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "gsl_multimin.h" "ac_cv_header_gsl_multimin_h" "$ac_includes_default"
+if test "x$ac_cv_header_gsl_multimin_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GSL_MULTIMIN_H 1
+_ACEOF
+ GOT_GSL_INC=yes
+fi
+
+done
+
+        if [ "$GOT_GSL_INC" = "yes" ]; then
+          GSL_INCLUDE_DIR="-I$gsl_inc"
+        else
+          CPPFLAGS="$saved_CPPFLAGS"
+        fi
+      else
+        for ac_header in gsl_multimin.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "gsl_multimin.h" "ac_cv_header_gsl_multimin_h" "$ac_includes_default"
+if test "x$ac_cv_header_gsl_multimin_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GSL_MULTIMIN_H 1
+_ACEOF
+ GOT_GSL_INC=yes
+fi
+
+done
+
+      fi
+
+      if [ "$gsl_lib" != "" ]; then
+        saved_LDFLAGS="$LDFLAGS"
+        LDFLAGS="$LDFLAGS -L$gsl_lib"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cos in -lm" >&5
+$as_echo_n "checking for cos in -lm... " >&6; }
+if ${ac_cv_lib_m_cos+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lm  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cos ();
+int
+main ()
+{
+return cos ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_m_cos=yes
+else
+  ac_cv_lib_m_cos=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m_cos" >&5
+$as_echo "$ac_cv_lib_m_cos" >&6; }
+if test "x$ac_cv_lib_m_cos" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBM 1
+_ACEOF
+
+  LIBS="-lm $LIBS"
+
+fi
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cblas_dgemm in -lgslcblas" >&5
+$as_echo_n "checking for cblas_dgemm in -lgslcblas... " >&6; }
+if ${ac_cv_lib_gslcblas_cblas_dgemm+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgslcblas  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cblas_dgemm ();
+int
+main ()
+{
+return cblas_dgemm ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gslcblas_cblas_dgemm=yes
+else
+  ac_cv_lib_gslcblas_cblas_dgemm=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gslcblas_cblas_dgemm" >&5
+$as_echo "$ac_cv_lib_gslcblas_cblas_dgemm" >&6; }
+if test "x$ac_cv_lib_gslcblas_cblas_dgemm" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBGSLCBLAS 1
+_ACEOF
+
+  LIBS="-lgslcblas $LIBS"
+
+fi
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gsl_blas_dgemm in -lgsl" >&5
+$as_echo_n "checking for gsl_blas_dgemm in -lgsl... " >&6; }
+if ${ac_cv_lib_gsl_gsl_blas_dgemm+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgsl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gsl_blas_dgemm ();
+int
+main ()
+{
+return gsl_blas_dgemm ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gsl_gsl_blas_dgemm=yes
+else
+  ac_cv_lib_gsl_gsl_blas_dgemm=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gsl_gsl_blas_dgemm" >&5
+$as_echo "$ac_cv_lib_gsl_gsl_blas_dgemm" >&6; }
+if test "x$ac_cv_lib_gsl_gsl_blas_dgemm" = xyes; then :
+  GOT_GSL_LIB=yes
+fi
+
+        if [ "$GOT_GSL_LIB" = "yes" ]; then
+          GSL_LIB_DIR="-L$gsl_lib"
+        else
+          LDFLAGS="$saved_LDFLAGS"
+        fi
+      else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cos in -lm" >&5
+$as_echo_n "checking for cos in -lm... " >&6; }
+if ${ac_cv_lib_m_cos+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lm  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cos ();
+int
+main ()
+{
+return cos ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_m_cos=yes
+else
+  ac_cv_lib_m_cos=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m_cos" >&5
+$as_echo "$ac_cv_lib_m_cos" >&6; }
+if test "x$ac_cv_lib_m_cos" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBM 1
+_ACEOF
+
+  LIBS="-lm $LIBS"
+
+fi
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cblas_dgemm in -lgslcblas" >&5
+$as_echo_n "checking for cblas_dgemm in -lgslcblas... " >&6; }
+if ${ac_cv_lib_gslcblas_cblas_dgemm+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgslcblas  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cblas_dgemm ();
+int
+main ()
+{
+return cblas_dgemm ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gslcblas_cblas_dgemm=yes
+else
+  ac_cv_lib_gslcblas_cblas_dgemm=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gslcblas_cblas_dgemm" >&5
+$as_echo "$ac_cv_lib_gslcblas_cblas_dgemm" >&6; }
+if test "x$ac_cv_lib_gslcblas_cblas_dgemm" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBGSLCBLAS 1
+_ACEOF
+
+  LIBS="-lgslcblas $LIBS"
+
+fi
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gsl_blas_dgemm in -lgsl" >&5
+$as_echo_n "checking for gsl_blas_dgemm in -lgsl... " >&6; }
+if ${ac_cv_lib_gsl_gsl_blas_dgemm+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgsl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gsl_blas_dgemm ();
+int
+main ()
+{
+return gsl_blas_dgemm ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gsl_gsl_blas_dgemm=yes
+else
+  ac_cv_lib_gsl_gsl_blas_dgemm=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gsl_gsl_blas_dgemm" >&5
+$as_echo "$ac_cv_lib_gsl_gsl_blas_dgemm" >&6; }
+if test "x$ac_cv_lib_gsl_gsl_blas_dgemm" = xyes; then :
+  GOT_GSL_LIB=yes
+fi
+
+      fi
+    else
+      as_fn_error $? "\"Odd argument passed for GSL\"" "$LINENO" 5
+    fi
+    ;;
+esac
+
+if [ "x$GSL_SUPPRESSED" = "xno" ]; then
+	if [ "x$GOT_GSL_INC" = "xno" -o "x$GOT_GSL_LIB" = "xno" ]; then
+		as_fn_error $? "\"Could not successfully find GSL the GNU scientific library\"" "$LINENO" 5
+	fi
+fi
+
+GSL_LIBRARY_FLAG=${GSL_LIB_DIR}
+GSL_INCLUDE_FLAG=${GSL_INCLUDE_DIR}
+
+
+
 RSL_INCLUDE_DIR=
 RSL_LIB_DIR=
 RSL_CFLAG=
@@ -3924,6 +4429,8 @@ fi
 if [ "$HLHDF_SZLIB_LIB" != "" ]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$HLHDF_SZLIB_LIB" | sed -e"s/[ \t]*-L//"`
 fi
+
+
 
 
 
@@ -5108,4 +5615,5 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
+
 

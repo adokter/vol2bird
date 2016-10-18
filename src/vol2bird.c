@@ -38,8 +38,8 @@ int main(int argc, char** argv) {
     if (argc == 1) {
         fprintf(stderr,"usage: %s <polar volume> [<ODIM hdf5 profile output> [<ODIM hdf5 volume output>]]\n",argv[0]);
         fprintf(stderr,"   Version %s (%s)\n", VERSION, VERSIONDATE);
-        fprintf(stderr,"   expects OPERA ODIM hdf5 input format, see http://www.eumetnet.eu/opera-software\n");
-        fprintf(stderr,"   or input formats compatible with RSL, see http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl\n\n");
+        fprintf(stderr,"   expects OPERA ODIM hdf5 input format, see <http://www.eumetnet.eu/opera-software>\n");
+        fprintf(stderr,"   or input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>\n\n");
         fprintf(stderr,"   Output fields to stdout:\n");
         fprintf(stderr,"   Date    - date in UTC\n");
         fprintf(stderr,"   Time    - time in UTC\n");
@@ -56,7 +56,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,"   dBZAll  - Total reflectivity factor (bio+meteo scattering) [dBZ]\n");
         fprintf(stderr,"   nPts    - number of points VVP bird velocity analysis\n");
         fprintf(stderr,"   nPtsZ   - number of points bird density estimate \n");
-        fprintf(stderr,"   nPtsAll - number of points VVP velocity Stdev analysis\n");
+        fprintf(stderr,"   nPtsAll - number of points VVP velocity Stdev analysis\n\n");
+        fprintf(stderr,"   Report bugs to: a.m.dokter@uva.nl\n");
+        fprintf(stderr,"   vol2bird home page: <http://github.com/adokter/vol2bird>\n");
         return -1;
     }
     // check to see if we have the right number of input arguments
@@ -93,6 +95,7 @@ int main(int argc, char** argv) {
     int configSuccessful = vol2birdLoadConfig(&alldata) == 0;
 
     if (configSuccessful == FALSE) {
+        fprintf(stderr,"Error: failed to load configuration\n");
         return -1;
     }
     
@@ -101,7 +104,11 @@ int main(int argc, char** argv) {
     PolarVolume_t* volume = NULL;
     volume = vol2birdGetVolume(fileVolIn, alldata.misc.rCellMax);
     
-    if (volume != NULL) {
+    if (volume == NULL) {
+        fprintf(stderr,"Error: failed to read radar volume\n");
+        return -1;
+    }
+    else {
 
         // initialize volbird library
         int initSuccessful = vol2birdSetUp(volume, &alldata) == 0;
@@ -112,6 +119,7 @@ int main(int argc, char** argv) {
         }
         
         if (initSuccessful == FALSE) {
+            fprintf(stderr,"Error: failed to initialize vol2bird\n");
             return -1;
         }
 
@@ -134,7 +142,7 @@ int main(int argc, char** argv) {
 
                 int nRowsProfile = vol2birdGetNRowsProfile(&alldata);
                 int nColsProfile = vol2birdGetNColsProfile(&alldata);
-
+				
                 fprintf(stdout, "# vol2bird Vertical Profile of Birds (VPB)\n");
                 fprintf(stdout, "# source: %s\n",source);
                 fprintf(stdout, "# ODIM HDF5 input: %s\n",fileVolIn);
