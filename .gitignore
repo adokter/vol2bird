@@ -14,6 +14,7 @@ config.log
 config.status
 /**/.dep/
 /**/def.mk
+autom4te.cache
 
 # binaries
 lib/libvol2bird.so
