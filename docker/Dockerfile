@@ -13,7 +13,7 @@ MAINTAINER Adriaan Dokter
 # * flex, otherwise configure script of RSL library does not function properly
 RUN apt-get update && apt-get install --no-install-recommends -y libconfuse-dev \
     libhdf5-dev gcc make zlib1g-dev python-dev python-numpy libproj-dev flex file \
-    && apt-get install -y git && apt-get install -y libgsl2
+    && apt-get install -y git && apt-get install -y libgsl-dev
 
 # get a copy of hlhdf:
 # configure and build hlhdf
@@ -38,6 +38,7 @@ RUN git clone https://github.com/adokter/rsl.git && cd rsl \
 # configure vol2bird
 RUN git clone https://github.com/adokter/vol2bird.git \
     && cd vol2bird && ./configure --prefix=/opt/radar/vol2bird --with-rave=/opt/radar/rave --with-rsl=/opt/radar/rsl \
+    --with-gsl=/usr/include/gsl,/usr/lib/x86_64-linux-gnu \
     && make && make install && cd .. && rm -rf vol2bird
 
 # clean up

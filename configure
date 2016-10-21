@@ -675,6 +675,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -749,6 +750,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1001,6 +1003,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1138,7 +1149,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1291,6 +1302,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1320,7 +1332,7 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-confuse=DIR	  The confuse root installation directory
-  --with-gsl=DIR	  The GSL (GNU Scientific Library) root installation directory
+  --with-gsl=DIR|INC,LIB  The GSL (GNU Scientific Library) installation directory
   --with-rsl=DIR	  The RSL root installation directory
   --with-rave=ROOT	  The RAVE root installation directory
 
@@ -3500,9 +3512,99 @@ fi
 
 done
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gsl_multimin_fminimizer_set in -lgsl" >&5
-$as_echo_n "checking for gsl_multimin_fminimizer_set in -lgsl... " >&6; }
-if ${ac_cv_lib_gsl_gsl_multimin_fminimizer_set+:} false; then :
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cos in -lm" >&5
+$as_echo_n "checking for cos in -lm... " >&6; }
+if ${ac_cv_lib_m_cos+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lm  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cos ();
+int
+main ()
+{
+return cos ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_m_cos=yes
+else
+  ac_cv_lib_m_cos=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m_cos" >&5
+$as_echo "$ac_cv_lib_m_cos" >&6; }
+if test "x$ac_cv_lib_m_cos" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBM 1
+_ACEOF
+
+  LIBS="-lm $LIBS"
+
+fi
+
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cblas_dgemm in -lgslcblas" >&5
+$as_echo_n "checking for cblas_dgemm in -lgslcblas... " >&6; }
+if ${ac_cv_lib_gslcblas_cblas_dgemm+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgslcblas  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cblas_dgemm ();
+int
+main ()
+{
+return cblas_dgemm ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gslcblas_cblas_dgemm=yes
+else
+  ac_cv_lib_gslcblas_cblas_dgemm=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gslcblas_cblas_dgemm" >&5
+$as_echo "$ac_cv_lib_gslcblas_cblas_dgemm" >&6; }
+if test "x$ac_cv_lib_gslcblas_cblas_dgemm" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBGSLCBLAS 1
+_ACEOF
+
+  LIBS="-lgslcblas $LIBS"
+
+fi
+
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gsl_blas_dgemm in -lgsl" >&5
+$as_echo_n "checking for gsl_blas_dgemm in -lgsl... " >&6; }
+if ${ac_cv_lib_gsl_gsl_blas_dgemm+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -3516,29 +3618,30 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char gsl_multimin_fminimizer_set ();
+char gsl_blas_dgemm ();
 int
 main ()
 {
-return gsl_multimin_fminimizer_set ();
+return gsl_blas_dgemm ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_gsl_gsl_multimin_fminimizer_set=yes
+  ac_cv_lib_gsl_gsl_blas_dgemm=yes
 else
-  ac_cv_lib_gsl_gsl_multimin_fminimizer_set=no
+  ac_cv_lib_gsl_gsl_blas_dgemm=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gsl_gsl_multimin_fminimizer_set" >&5
-$as_echo "$ac_cv_lib_gsl_gsl_multimin_fminimizer_set" >&6; }
-if test "x$ac_cv_lib_gsl_gsl_multimin_fminimizer_set" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gsl_gsl_blas_dgemm" >&5
+$as_echo "$ac_cv_lib_gsl_gsl_blas_dgemm" >&6; }
+if test "x$ac_cv_lib_gsl_gsl_blas_dgemm" = xyes; then :
   GOT_GSL_LIB=yes
 fi
+
 
 		;;
 	no)
@@ -3549,7 +3652,7 @@ $as_echo "suppressed" >&6; }
 		GSL_SUPPRESSED=yes
 		;;
 	*)
-    if [ "$withval" != "" ]; then
+   if [ "$withval" != "" ]; then
       if [ "`echo $withval | grep ','`" = "" ]; then
         gsl_inc=$withval/include/gsl
         gsl_lib=$withval/lib
@@ -3596,9 +3699,99 @@ done
       if [ "$gsl_lib" != "" ]; then
         saved_LDFLAGS="$LDFLAGS"
         LDFLAGS="$LDFLAGS -L$gsl_lib"
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gsl_multimin_fminimizer_set in -lgsl" >&5
-$as_echo_n "checking for gsl_multimin_fminimizer_set in -lgsl... " >&6; }
-if ${ac_cv_lib_gsl_gsl_multimin_fminimizer_set+:} false; then :
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cos in -lm" >&5
+$as_echo_n "checking for cos in -lm... " >&6; }
+if ${ac_cv_lib_m_cos+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lm  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cos ();
+int
+main ()
+{
+return cos ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_m_cos=yes
+else
+  ac_cv_lib_m_cos=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m_cos" >&5
+$as_echo "$ac_cv_lib_m_cos" >&6; }
+if test "x$ac_cv_lib_m_cos" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBM 1
+_ACEOF
+
+  LIBS="-lm $LIBS"
+
+fi
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cblas_dgemm in -lgslcblas" >&5
+$as_echo_n "checking for cblas_dgemm in -lgslcblas... " >&6; }
+if ${ac_cv_lib_gslcblas_cblas_dgemm+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgslcblas  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cblas_dgemm ();
+int
+main ()
+{
+return cblas_dgemm ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gslcblas_cblas_dgemm=yes
+else
+  ac_cv_lib_gslcblas_cblas_dgemm=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gslcblas_cblas_dgemm" >&5
+$as_echo "$ac_cv_lib_gslcblas_cblas_dgemm" >&6; }
+if test "x$ac_cv_lib_gslcblas_cblas_dgemm" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBGSLCBLAS 1
+_ACEOF
+
+  LIBS="-lgslcblas $LIBS"
+
+fi
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gsl_blas_dgemm in -lgsl" >&5
+$as_echo_n "checking for gsl_blas_dgemm in -lgsl... " >&6; }
+if ${ac_cv_lib_gsl_gsl_blas_dgemm+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -3612,27 +3805,27 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char gsl_multimin_fminimizer_set ();
+char gsl_blas_dgemm ();
 int
 main ()
 {
-return gsl_multimin_fminimizer_set ();
+return gsl_blas_dgemm ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_gsl_gsl_multimin_fminimizer_set=yes
+  ac_cv_lib_gsl_gsl_blas_dgemm=yes
 else
-  ac_cv_lib_gsl_gsl_multimin_fminimizer_set=no
+  ac_cv_lib_gsl_gsl_blas_dgemm=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gsl_gsl_multimin_fminimizer_set" >&5
-$as_echo "$ac_cv_lib_gsl_gsl_multimin_fminimizer_set" >&6; }
-if test "x$ac_cv_lib_gsl_gsl_multimin_fminimizer_set" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gsl_gsl_blas_dgemm" >&5
+$as_echo "$ac_cv_lib_gsl_gsl_blas_dgemm" >&6; }
+if test "x$ac_cv_lib_gsl_gsl_blas_dgemm" = xyes; then :
   GOT_GSL_LIB=yes
 fi
 
@@ -3642,9 +3835,99 @@ fi
           LDFLAGS="$saved_LDFLAGS"
         fi
       else
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gsl_multimin_fminimizer_set in -lgsl" >&5
-$as_echo_n "checking for gsl_multimin_fminimizer_set in -lgsl... " >&6; }
-if ${ac_cv_lib_gsl_gsl_multimin_fminimizer_set+:} false; then :
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cos in -lm" >&5
+$as_echo_n "checking for cos in -lm... " >&6; }
+if ${ac_cv_lib_m_cos+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lm  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cos ();
+int
+main ()
+{
+return cos ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_m_cos=yes
+else
+  ac_cv_lib_m_cos=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m_cos" >&5
+$as_echo "$ac_cv_lib_m_cos" >&6; }
+if test "x$ac_cv_lib_m_cos" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBM 1
+_ACEOF
+
+  LIBS="-lm $LIBS"
+
+fi
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cblas_dgemm in -lgslcblas" >&5
+$as_echo_n "checking for cblas_dgemm in -lgslcblas... " >&6; }
+if ${ac_cv_lib_gslcblas_cblas_dgemm+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgslcblas  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char cblas_dgemm ();
+int
+main ()
+{
+return cblas_dgemm ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gslcblas_cblas_dgemm=yes
+else
+  ac_cv_lib_gslcblas_cblas_dgemm=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gslcblas_cblas_dgemm" >&5
+$as_echo "$ac_cv_lib_gslcblas_cblas_dgemm" >&6; }
+if test "x$ac_cv_lib_gslcblas_cblas_dgemm" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBGSLCBLAS 1
+_ACEOF
+
+  LIBS="-lgslcblas $LIBS"
+
+fi
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gsl_blas_dgemm in -lgsl" >&5
+$as_echo_n "checking for gsl_blas_dgemm in -lgsl... " >&6; }
+if ${ac_cv_lib_gsl_gsl_blas_dgemm+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -3658,27 +3941,27 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char gsl_multimin_fminimizer_set ();
+char gsl_blas_dgemm ();
 int
 main ()
 {
-return gsl_multimin_fminimizer_set ();
+return gsl_blas_dgemm ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_gsl_gsl_multimin_fminimizer_set=yes
+  ac_cv_lib_gsl_gsl_blas_dgemm=yes
 else
-  ac_cv_lib_gsl_gsl_multimin_fminimizer_set=no
+  ac_cv_lib_gsl_gsl_blas_dgemm=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gsl_gsl_multimin_fminimizer_set" >&5
-$as_echo "$ac_cv_lib_gsl_gsl_multimin_fminimizer_set" >&6; }
-if test "x$ac_cv_lib_gsl_gsl_multimin_fminimizer_set" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gsl_gsl_blas_dgemm" >&5
+$as_echo "$ac_cv_lib_gsl_gsl_blas_dgemm" >&6; }
+if test "x$ac_cv_lib_gsl_gsl_blas_dgemm" = xyes; then :
   GOT_GSL_LIB=yes
 fi
 
