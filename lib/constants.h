@@ -70,16 +70,16 @@
 // and correlation coefficient
 // Once encoded values should be positive for storage in RAVE objects
 // Used with data read by the RSL library only
-#define RSL_OFFSET_DBZ -100
-#define RSL_GAIN_DBZ 0.01
-#define RSL_OFFSET_VRAD -60
-#define RSL_GAIN_VRAD 0.01
-#define RSL_OFFSET_RHOHV -0.002
-#define RSL_GAIN_RHOHV 0.001
+#define RSL_OFFSET_DBZ 0
+#define RSL_GAIN_DBZ 1
+#define RSL_OFFSET_VRAD 0
+#define RSL_GAIN_VRAD 1
+#define RSL_OFFSET_RHOHV 0
+#define RSL_GAIN_RHOHV 1
 // Encoded values reserved for nodata and undetects.
 // Should be positive integers larger than zero
-#define RSL_NODATA 1
-#define RSL_UNDETECT 2
+#define RSL_NODATA -1000
+#define RSL_UNDETECT -999
 #endif
 
 //-------------------------------------------------------//
@@ -87,11 +87,12 @@
 //-------------------------------------------------------//
 
 // Raw value used for gates or layers void of data (never ra-diated)
-#define UNDETECT FLT_MAX
+#define UNDETECT -999
 // Raw value used for gates or layers when below the measurement detection threshold
 // or when information could not be retrieved (radiated but nothing detected or calculated)
-#define NODATA -FLT_MAX
+#define NODATA -1000
 // Name of the program, to be stored as task attribute in ODIM
+
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
 #define VERSION "0.3.3"

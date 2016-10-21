@@ -244,6 +244,7 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
         RAVE_FREE(uh);
         RAVE_FREE(vh);
         RAVE_FREE(vt1);
+        RAVE_FREE(pointsTrigon);
         gsl_vector_free(uv);
         
         if(fitOk) return 1;
