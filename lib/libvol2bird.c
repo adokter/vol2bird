@@ -40,25 +40,13 @@
 
 // non-public function prototypes (local to this file/translation unit)
 
-static int analyzeCells(const float *dbzImage, const float *vradImage,
-                        const float *texImage, const float *clutterImage, int *cellImage,
-                        const SCANMETA *dbzMeta, const SCANMETA *vradMeta, const SCANMETA *texMeta, const SCANMETA *clutterMeta,
-                        const int nCells, vol2bird_t* alldata);
-
-static int analyzeCellsRave(PolarScan_t *scan, vol2birdScanUse_t scanUse, const int nCells, vol2bird_t *alldata);
+static int analyzeCells(PolarScan_t *scan, vol2birdScanUse_t scanUse, const int nCells, vol2bird_t *alldata);
 
 static float calcDist(const int range1, const int azim1, const int range2, const int azim2, const float rscale, const float ascale);
 
-static void calcTexture(float *texImage, const float *vradImage, const float *dbzImage,
-                        const SCANMETA *texMeta, const SCANMETA *vradMeta, const SCANMETA *dbzMeta, vol2bird_t* alldata);
-
-static void calcTextureRave(PolarScan_t *scan, vol2birdScanUse_t scanUse, vol2bird_t* alldata);
+static void calcTexture(PolarScan_t *scan, vol2birdScanUse_t scanUse, vol2bird_t* alldata);
 
 static void classifyGatesSimple(vol2bird_t* alldata);
-
-static int constructorInt(SCANMETA* meta, int* image, PolarScan_t* scan, const int nGlobal, const int initValue);
-
-static int constructorFloat(SCANMETA* meta, float* image, PolarScan_t* scan, const int nGlobal, const float initValue);
 
 static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t *scanUse, vol2bird_t* alldata);
 
@@ -71,45 +59,23 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 
 static void exportBirdProfileAsJSON(vol2bird_t* alldata);
 
-static int findWeatherCells(const float *dbzImage, int *cellImage, const SCANMETA *dbzMeta,
-                            float quantityThreshold, int selectAboveThreshold, vol2bird_t* alldata);
-
-static int findWeatherCellsRave(PolarScan_t *scan, const char* quantity, float quantityThreshold,
+static int findWeatherCells(PolarScan_t *scan, const char* quantity, float quantityThreshold,
         int selectAboveThreshold, vol2bird_t* alldata);
 
 static int findNearbyGateIndex(const int nAzimParent, const int nRangParent, const int iParent,
-                               const int nAzimChild,  const int nRangChild,  const int iChild);
-
-static int findNearbyGateIndexRave(const int nAzimParent, const int nRangParent, const int iParent,
                         const int nAzimChild,  const int nRangChild,  const int iChild, int *iAzimReturn, int *iRangReturn);
 
-static void fringeCells(int *cellImage,int nRang, int nAzim, float aScale, float rScale, vol2bird_t* alldata);
+static void fringeCells(PolarScan_t* scan, vol2bird_t* alldata);
 
-static void fringeCellsRave(PolarScan_t* scan, vol2bird_t* alldata);
+CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const int nCells, vol2bird_t* alldata);
 
-CELLPROP* getCellProperties(const float *dbzImage, const float *vradImage,
-                            const float *texImage, const float *clutterImage, int *cellImage,
-                            const SCANMETA *dbzMeta, const SCANMETA *vradMeta, const SCANMETA *texMeta,
-                            const SCANMETA *clutterMeta, const int nCells, vol2bird_t* alldata);
-
-CELLPROP* getCellPropertiesRave(PolarScan_t* scan, vol2birdScanUse_t scanUse, const int nCells, vol2bird_t* alldata);
-
-static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradImage,
-                                  const SCANMETA* dbzMeta, const float *dbzImage,
-                                  const int *cellImage,
-                                  const float altitudeMin, const float altitudeMax,
-                                  float* points_local, int iPoint, int nColsPoints, vol2bird_t* alldata);
-
-static int getListOfSelectedGatesRave(PolarScan_t* scan, vol2birdScanUse_t scanUse,
+static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse,
                                       const float altitudeMin, const float altitudeMax,
                                       float* points_local, int iRowPoints, int nColsPoints_local, vol2bird_t* alldata);
 
 static int hasAzimuthGap(const float *points_local, const int nPoints, vol2bird_t* alldata);
 
 static int includeGate(const int iProfileType, const int iQuantityType, const unsigned int gateCode, vol2bird_t* alldata);
-
-static int mapDataFromRave(PolarScan_t* scan, SCANMETA *meta, 
-                           float *values, char *paramStr);
 
 static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* field, const char* quantity);
 
@@ -145,11 +111,9 @@ static void printCellProp(CELLPROP* cellProp, float elev, int nCells, int nCells
 
 static void printGateCode(char* flags, const unsigned int gateCode);
 
-static void printImageInt(const SCANMETA* meta, const int* imageInt);
+static void printImage(PolarScan_t* scan, const char* quantity);
 
-static void printImageFloat(const SCANMETA* meta, const float* imageFloat);
-
-static int printMeta(const SCANMETA* meta, const char* varName);
+static int printMeta(PolarScan_t* scan, const char* quantity);
 
 static void printProfile(vol2bird_t* alldata);
 
@@ -166,74 +130,13 @@ static void sortCellsByArea(CELLPROP *cellProp, const int nCells);
 static void updateFlagFieldsInPointsArray(const float* yObs, const float* yFitted, const int* includedIndex, 
                                           const int nPointsIncluded, float* points_local, vol2bird_t* alldata);
 
-static int updateMap(int *cellImage, const int nGlobal, CELLPROP *cellProp, const int nCells, vol2bird_t* alldata);
-
-static int updateMapRave(PolarScan_t* scan, CELLPROP *cellProp, const int nCells, vol2bird_t* alldata);
+static int updateMap(PolarScan_t* scan, CELLPROP *cellProp, const int nCells, vol2bird_t* alldata);
 
 
 
 // non-public function declarations (local to this file/translation unit)
 
-static int analyzeCells(const float *dbzImage, const float *vradImage,
-        const float *texImage, const float *clutterImage, int *cellImage,
-        const SCANMETA *dbzMeta, const SCANMETA *vradMeta, const SCANMETA *texMeta, const SCANMETA *clutterMeta,
-        const int nCells, vol2bird_t* alldata) {
-
-    // ----------------------------------------------------------------------------------- // 
-    //  This function analyzes the cellImage array found by the 'findWeatherCells'         //
-    //  procedure. Small cells are rejected and the cells are re-numbered according        //
-    //  to size. The final number of cells in cellImage is returned as an integer.         // 
-    // ----------------------------------------------------------------------------------- //
-
-    CELLPROP *cellProp;
-    int iGlobal;
-    int nGlobal;
-    int nCellsValid;
-    int nAzim;
-    int nRang;
-
-    nCellsValid = nCells;
-    nRang = dbzMeta->nRang;
-    nAzim = dbzMeta->nAzim;
-    nGlobal = nAzim*nRang;
-    nCellsValid = 0;
-    
-    // first deal with the case that no weather cells were detected by findWeatherCells
-    if (nCells == 0) {
-        iGlobal = 0;
-        for (int iAzim = 0; iAzim < nAzim; iAzim++) {
-            for (int iRang = 0; iRang < nRang; iRang++) {
-                cellImage[iGlobal] = -1;
-                iGlobal++;
-            }
-        }
-        return nCellsValid;
-    }
-    
-    cellProp = getCellProperties(dbzImage, vradImage, texImage, 
-                    clutterImage, cellImage, dbzMeta, vradMeta, texMeta, 
-                    clutterMeta, nCells, alldata);
-
-
-    selectCellsToDrop(cellProp, nCells, alldata);
-    
-    
-    // sorting cell properties according to cell area. Drop small cells from map
-    nCellsValid = updateMap(cellImage,nGlobal,cellProp,nCells, alldata);
-
-    // printing of cell properties to stderr
-    if (alldata->options.printCellProp == TRUE) {
-        printCellProp(cellProp, dbzMeta->elev, nCells, nCellsValid, alldata);
-    } // endif (printCellProp == TRUE)
-
-    free(cellProp);
-
-    return nCellsValid;
-} // analyzeCells
-
-
-
-static int analyzeCellsRave(PolarScan_t *scan, vol2birdScanUse_t scanUse, const int nCells, vol2bird_t *alldata) {
+static int analyzeCells(PolarScan_t *scan, vol2birdScanUse_t scanUse, const int nCells, vol2bird_t *alldata) {
 
     // ----------------------------------------------------------------------------------- // 
     //  This function analyzes the cellImage array found by the 'findWeatherCells'         //
@@ -253,7 +156,7 @@ static int analyzeCellsRave(PolarScan_t *scan, vol2birdScanUse_t scanUse, const 
     nGlobal = nAzim*nRang;
     nCellsValid = 0;
     
-    if(!PolarScan_hasParameter(scan, "CELL")){
+    if(!PolarScan_hasParameter(scan, scanUse.cellName)){
         fprintf(stderr,"no CELL quantity in polar scan, aborting analyzeCells()\n");
         return 0;
     }
@@ -262,19 +165,19 @@ static int analyzeCellsRave(PolarScan_t *scan, vol2birdScanUse_t scanUse, const 
     if (nCells == 0) {
         for (int iAzim = 0; iAzim < nAzim; iAzim++) {
             for (int iRang = 0; iRang < nRang; iRang++) {
-                PolarScan_setParameterValue(scan, "CELL", iRang, iAzim, -1);
+                PolarScan_setParameterValue(scan, scanUse.cellName, iRang, iAzim, -1);
             }
         }
         return nCellsValid;
     }
     
-    cellProp = getCellPropertiesRave(scan, scanUse, nCells, alldata);
+    cellProp = getCellProperties(scan, scanUse, nCells, alldata);
 
     selectCellsToDrop(cellProp, nCells, alldata);    
     
     // sorting cell properties according to cell area. Drop small cells from map
 //    nCellsValid = updateMap(cellImage,nGlobal,cellProp,nCells, alldata);
-    nCellsValid = updateMapRave(scan, cellProp, nCells, alldata);
+    nCellsValid = updateMap(scan, cellProp, nCells, alldata);
         
     // printing of cell properties to stderr
     if (alldata->options.printCellProp == TRUE) {
@@ -315,137 +218,7 @@ static float calcDist(const int iRang1, const int iAzim1, const int iRang2,
 
 
 
-
-
-static void calcTexture(float* texImage, const float* vradImage,
-        const float* dbzImage, const SCANMETA* texMeta, const SCANMETA* vradMeta,
-        const SCANMETA* dbzMeta, vol2bird_t* alldata) {
-
-
-    // --------------------------------------------------------------------------------------- //
-    // This function computes a texture parameter based on a block of (nRangNeighborhood x     //
-    // nAzimNeighborhood) pixels. The texture parameter equals the local standard deviation    //
-    // in the radial velocity field                                                            //
-    // --------------------------------------------------------------------------------------- //
-
-
-    int iRang;
-    int iAzim;
-    int nRang;
-    int nAzim;
-    int iNeighborhood;
-    int nNeighborhood;
-    int count;
-    float vradMissingValue;
-    float dbzMissingValue;
-    float texMissingValue;
-    double vmoment1;
-    double vmoment2;
-    double dbz;
-    double tex;
-    int iGlobal;
-    int iLocal;
-    float texOffset;
-    float texScale;
-    float dbzOffset;
-    float dbzScale;
-    float vradOffset;
-    float vradScale;
-    float vRadDiff;
-
-    nRang = vradMeta->nRang;
-    nAzim = vradMeta->nAzim;
-
-    dbzOffset = dbzMeta->valueOffset;
-    dbzScale = dbzMeta->valueScale;
-    dbzMissingValue = dbzMeta->missing;
-
-    vradOffset = vradMeta->valueOffset;
-    vradScale = vradMeta->valueScale;
-    vradMissingValue = vradMeta->missing;
-
-    texOffset = texMeta->valueOffset;
-    texScale = texMeta->valueScale;
-    texMissingValue = texMeta->missing;
-
-    nNeighborhood = (int)(alldata->constants.nRangNeighborhood * alldata->constants.nAzimNeighborhood);
-
-    for (iAzim = 0; iAzim < nAzim; iAzim++) {
-        for (iRang = 0; iRang < nRang; iRang++) {
-
-            iGlobal = iRang + iAzim * nRang;
-
-            // count number of direct neighbors above threshold
-            count = 0;
-            vmoment1 = 0;
-            vmoment2 = 0;
-
-            dbz = 0;
-
-            for (iNeighborhood = 0; iNeighborhood < nNeighborhood; iNeighborhood++) {
-
-                iLocal = findNearbyGateIndex(nAzim,nRang,iGlobal,alldata->constants.nAzimNeighborhood,alldata->constants.nRangNeighborhood,iNeighborhood);
-
-                #ifdef FPRINTFON
-                fprintf(stderr, "iLocal = %d; ",iLocal);
-                #endif
-
-                if (iLocal < 0) {
-                    // iLocal less than zero are error codes
-                    continue;
-                }
-
-                if (vradImage[iLocal] == vradMissingValue || dbzImage[iLocal] == dbzMissingValue) {
-                    continue;
-                }
-
-                vRadDiff = vradOffset + vradScale * (float) (vradImage[iGlobal] - vradImage[iLocal]);
-                vmoment1 += vRadDiff;
-                vmoment2 += SQUARE(vRadDiff);
-
-                dbz += dbzOffset + dbzScale * (float) dbzImage[iLocal];
-
-                count++;
-
-            }
-
-            vmoment1 /= count;
-            vmoment2 /= count;
-            dbz /= count;
-
-            // when not enough neighbors, continue
-            if (count < alldata->constants.nCountMin) {
-                texImage[iGlobal] = texMissingValue;
-            }
-            else {
-
-                tex = sqrt(XABS(vmoment2-SQUARE(vmoment1)));
-
-                double tmpTex = (tex - texOffset) / texScale;
-                if (-FLT_MAX <= tmpTex && tmpTex <= FLT_MAX) {
-                    texImage[iGlobal] = (float) tmpTex;
-                }
-                else {
-                    fprintf(stderr, "Error casting texture value of %f to float type at texImage[%d]. Aborting.\n",tmpTex,iGlobal);
-                    return;
-                }
-                
-
-                #ifdef FPRINTFON
-                fprintf(stderr,
-                        "\n(C) count = %d; nCountMin = %d; vmoment1 = %f; vmoment2 = %f; tex = %f; texBody[%d] = %d\n",
-                        count, alldata->constants.nCountMin, vmoment1, vmoment2, tex,
-                        iGlobal, texImage[iGlobal]);
-                #endif
-
-            } //else
-        } //for
-    } //for
-} // calcTexture
-
-
-
-static void calcTextureRave(PolarScan_t *scan, vol2birdScanUse_t scanUse, vol2bird_t* alldata) {
+static void calcTexture(PolarScan_t *scan, vol2birdScanUse_t scanUse, vol2bird_t* alldata) {
 
 
     // --------------------------------------------------------------------------------------- //
@@ -488,7 +261,7 @@ static void calcTextureRave(PolarScan_t *scan, vol2birdScanUse_t scanUse, vol2bi
     nRang = PolarScan_getNbins(scan);
     nAzim = PolarScan_getNrays(scan);
 
-    PolarScanParam_t* texImage = PolarScan_getParameter(scan, "VTEX");
+    PolarScanParam_t* texImage = PolarScan_getParameter(scan, scanUse.texName);
     PolarScanParam_t* vradImage = PolarScan_getParameter(scan, scanUse.vradName);
     PolarScanParam_t* dbzImage = PolarScan_getParameter(scan, scanUse.dbzName);
 
@@ -522,7 +295,7 @@ static void calcTextureRave(PolarScan_t *scan, vol2birdScanUse_t scanUse, vol2bi
 
             for (iNeighborhood = 0; iNeighborhood < nNeighborhood; iNeighborhood++) {
 
-                iLocal = findNearbyGateIndexRave(nAzim,nRang,iGlobal,alldata->constants.nAzimNeighborhood,
+                iLocal = findNearbyGateIndex(nAzim,nRang,iGlobal,alldata->constants.nAzimNeighborhood,
                          alldata->constants.nRangNeighborhood,iNeighborhood,&iAzimLocal,&iRangLocal);
 
                 #ifdef FPRINTFON
@@ -664,61 +437,6 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
 
 
 
-
-static int constructorInt(SCANMETA* meta, int* image, PolarScan_t* scan, const int nGlobal, const int initValue) {
-
-    int iGlobal;
-    
-    if (image == NULL) {
-        fprintf(stderr,"Error allocating image");
-        return -2;
-    }
-    for (iGlobal = 0; iGlobal < nGlobal; iGlobal++) {
-        image[iGlobal] = initValue;
-    }
-    meta->heig = (float) PolarScan_getHeight(scan);
-    meta->elev = (float) (360 * PolarScan_getElangle(scan) / 2 / PI );
-    meta->nRang = (int) PolarScan_getNbins(scan);
-    meta->nAzim = (int) PolarScan_getNrays(scan);
-    meta->rangeScale = (float) PolarScan_getRscale(scan);
-    meta->azimScale = 360.0f/meta->nAzim;   // for ODIM files this always works
-    meta->valueOffset = 0.0f;
-    meta->valueScale = 1.0f;
-    meta->missing = (float) NODATA;  // FIXME this does not work as intended for type int
-    
-    return 0;
-
-}
-
-
-
-
-static int constructorFloat(SCANMETA* meta, float* image, PolarScan_t* scan, const int nGlobal, const float initValue) {
-
-    int iGlobal;
-    
-    if (image == NULL) {
-        fprintf(stderr,"Error allocating image");
-        return -2;
-    }
-    for (iGlobal = 0; iGlobal < nGlobal; iGlobal++) {
-        image[iGlobal] = initValue;
-    }
-    meta->heig = (float) PolarScan_getHeight(scan);
-    meta->elev = (float) (360 * PolarScan_getElangle(scan) / 2 / PI );
-    meta->nRang = (int) PolarScan_getNbins(scan);
-    meta->nAzim = (int) PolarScan_getNrays(scan);
-    meta->rangeScale = (float) PolarScan_getRscale(scan);
-    meta->azimScale = 360.0f/meta->nAzim;   // for ODIM files this always works
-    meta->valueOffset = 0.0f;
-    meta->valueScale = 1.0f;
-    meta->missing = (float) NODATA;
-    
-    return 0;
-
-}
-
-
 static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanUse, vol2bird_t* alldata) {
     
         // iterate over the scans in 'volume'
@@ -738,105 +456,32 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
             
                 // extract the scan object from the volume object
                 scan = PolarVolume_getScan(volume, iScan);
-                
-                // determine the number of array elements in the polar scan
-                int nGlobal = (int) PolarScan_getNbins(scan) * PolarScan_getNrays(scan);
-                
-                // pre-allocate the dbz variables
-                float* dbzImage = malloc(sizeof(float) * nGlobal);
-                SCANMETA dbzMeta;
-                constructorFloat(&dbzMeta, &dbzImage[0], scan, nGlobal, NAN);
-                
-                // pre-allocate the vrad variables
-                float* rhohvImage = malloc(sizeof(float) * nGlobal);
-                SCANMETA rhohvMeta;
-                constructorFloat(&rhohvMeta, &rhohvImage[0], scan, nGlobal, NAN);
-
-                // pre-allocate the vrad variables
-                float* vradImage = malloc(sizeof(float) * nGlobal);
-                SCANMETA vradMeta;
-                constructorFloat(&vradMeta, &vradImage[0], scan, nGlobal, NAN);
-                
-                // pre-allocate the tex variables
-                float* texImage = malloc(sizeof(float) * nGlobal);
-                SCANMETA texMeta;
-                constructorFloat(&texMeta, &texImage[0], scan, nGlobal, NAN);
-                
-                // pre-allocate the clutter variables
-                float* clutterImage = malloc(sizeof(float) * nGlobal);
-                SCANMETA clutterMeta;
-                constructorFloat(&clutterMeta, &clutterImage[0], scan, nGlobal, NAN);
-                
-                // pre-allocate the cell variables
-                int* cellImage = malloc(sizeof(int) * nGlobal);
-                SCANMETA cellMeta;
-                constructorInt(&cellMeta, &cellImage[0], scan, nGlobal, -1);
-    
-                // populate the dbzMeta and dbzImage variables with data from 
-                // the Rave scan object:
-                int rcDbz = mapDataFromRave(scan, &dbzMeta, &dbzImage[0],scanUse[iScan].dbzName);
-                if (rcDbz != 0) {
-                    fprintf(stderr, "Something went wrong while mapping DBZH data from RAVE to LIBVOL2BIRD.\n");
-                }
-    
-                // populate the vradMeta and vradImage variables with data from  
-                // the Rave scan object:
-                int rcVrad = mapDataFromRave(scan, &vradMeta, &vradImage[0],scanUse[iScan].vradName);
-                if (rcVrad != 0) {
-                    fprintf(stderr, "Something went wrong while mapping VRAD data from RAVE to LIBVOL2BIRD.\n");
-                }
-                
-                // populate the rhohvMeta and rhohvImage variables with data from  
-                // the Rave scan object:
-                if (alldata->options.dualPol){
-                    int rcRhohv = mapDataFromRave(scan, &rhohvMeta, &rhohvImage[0],scanUse[iScan].rhohvName);
-                    if (rcRhohv != 0) {
-                        fprintf(stderr, "Something went wrong while mapping RHOHV data from RAVE to LIBVOL2BIRD.\n");
-                    }
-                }
-                
-                PolarScanParam_t *texScanParam = PolarScan_newParam(scan, "VTEX", RaveDataType_DOUBLE);
-                PolarScanParam_t *cellScanParam = PolarScan_newParam(scan, "CELL", RaveDataType_INT);
-                PolarScanParam_t *clutScanParam = PolarScan_newParam(scan, "CLUT", RaveDataType_DOUBLE);
-                
-                double v=0;
-                for (int iAzim = 0; iAzim < PolarScan_getNrays(scan); iAzim++) {
-                    for (int iRang = 0; iRang < PolarScan_getNbins(scan); iRang++) {
-                        PolarScan_getParameterValue(scan, "VTEX", iRang, iAzim, &v);
-                        if(v != NODATA){
-                            fprintf(stderr,"%i,%i wrongly initialized: %f\n",iRang,iAzim,v);
-                        }
-                        
-                    }
-                }
-
+                                
+                PolarScanParam_t *texScanParam = PolarScan_newParam(scan, scanUse->texName, RaveDataType_DOUBLE);
+                PolarScanParam_t *cellScanParam = PolarScan_newParam(scan, scanUse->cellName, RaveDataType_INT);
+                PolarScanParam_t *clutScanParam = PolarScan_newParam(scan, scanUse->clutName, RaveDataType_DOUBLE);
     
                 // ------------------------------------------------------------- //
                 //                      calculate vrad texture                   //
                 // ------------------------------------------------------------- //
 
-                calcTexture(&texImage[0], &vradImage[0], &dbzImage[0], 
-                            &texMeta, &vradMeta, &dbzMeta, alldata);
-
-                calcTextureRave(scan, scanUse[iScan], alldata);
+                calcTexture(scan, scanUse[iScan], alldata);
                         
                 // ------------------------------------------------------------- //
                 //        find (weather) cells in the reflectivity image         //
                 // ------------------------------------------------------------- //
                 
-                int nCells0 = -1;
                 int nCells = -1;
                 if (alldata->options.dualPol){
-                    nCells = findWeatherCells(&rhohvImage[0], &cellImage[0], 
-                                       &rhohvMeta,alldata->options.rhohvThresMin,TRUE,alldata);
-                    nCells = findWeatherCellsRave(scan,scanUse[iScan].rhohvName,
+
+                    nCells = findWeatherCells(scan,scanUse[iScan].rhohvName,
                                     alldata->options.rhohvThresMin,TRUE,alldata);
 
                 }
                 else{
-                    nCells0 = findWeatherCells(&dbzImage[0], &cellImage[0], 
-                                       &dbzMeta,alldata->options.dbzThresMin,TRUE,alldata);
-                    nCells = findWeatherCellsRave(scan,scanUse[iScan].dbzName,alldata->options.dbzThresMin,TRUE,alldata);
+
+                    nCells = findWeatherCells(scan,scanUse[iScan].dbzName,alldata->options.dbzThresMin,TRUE,alldata);
+
                 }
                 
                 if (nCells<0){
@@ -852,20 +497,13 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 //                      analyze cells                            //
                 // ------------------------------------------------------------- //
     
-                analyzeCells(&dbzImage[0], &vradImage[0], &texImage[0], 
-                    &clutterImage[0], &cellImage[0], &dbzMeta, &vradMeta, &texMeta, 
-                    &clutterMeta, nCells0, alldata);
-
-                analyzeCellsRave(scan, scanUse[iScan], nCells, alldata);
+                analyzeCells(scan, scanUse[iScan], nCells, alldata);
     
                 // ------------------------------------------------------------- //
                 //                     calculate fringe                          //
                 // ------------------------------------------------------------- //
     
-                fringeCells(&cellImage[0], cellMeta.nRang, cellMeta.nAzim, 
-                    cellMeta.azimScale, cellMeta.rangeScale, alldata);
-
-                fringeCellsRave(scan, alldata); 
+                fringeCells(scan, alldata); 
                 
                 // ------------------------------------------------------------- //
                 //            print selected outputs to stderr                   //
@@ -873,28 +511,33 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
     
                 if (alldata->options.printDbz == TRUE) {
                     fprintf(stderr,"product = dbz\n");
-                    printMeta(&dbzMeta,"dbzMeta");
-                    printImageFloat(&dbzMeta,&dbzImage[0]);
+                    printMeta(scan,scanUse[iScan].dbzName);
+                    printImage(scan,scanUse[iScan].dbzName);
                 }
                 if (alldata->options.printVrad == TRUE) {
                     fprintf(stderr,"product = vrad\n");
-                    printMeta(&vradMeta,"vradMeta");
-                    printImageFloat(&vradMeta,&vradImage[0]);
+                    printMeta(scan,scanUse[iScan].vradName);
+                    printImage(scan,scanUse[iScan].vradName);
+                }
+                if (alldata->options.printRhohv == TRUE) {
+                    fprintf(stderr,"product = rhohv\n");
+                    printMeta(scan,scanUse[iScan].rhohvName);
+                    printImage(scan,scanUse[iScan].rhohvName);
                 }
                 if (alldata->options.printTex == TRUE) {
                     fprintf(stderr,"product = tex\n");
-                    printMeta(&texMeta,"texMeta");
-                    printImageFloat(&texMeta,&texImage[0]);
+                    printMeta(scan,scanUse[iScan].texName);
+                    printImage(scan,scanUse[iScan].texName);
                 }
                 if (alldata->options.printCell == TRUE) {
                     fprintf(stderr,"product = cell\n");
-                    printMeta(&cellMeta,"cellMeta");
-                    printImageInt(&cellMeta,&cellImage[0]);
+                    printMeta(scan,scanUse[iScan].cellName);
+                    printImage(scan,scanUse[iScan].cellName);
                 }
                 if (alldata->options.printClut == TRUE) { 
                     fprintf(stderr,"product = clut\n");
-                    printMeta(&clutterMeta,"clutterMeta");
-                    printImageFloat(&clutterMeta,&clutterImage[0]);
+                    printMeta(scan,scanUse[iScan].clutName);
+                    printImage(scan,scanUse[iScan].clutName);
                 }
                             
                 // ------------------------------------------------------------- //
@@ -908,14 +551,8 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                     float altitudeMin = iLayer * alldata->options.layerThickness;
                     float altitudeMax = (iLayer + 1) * alldata->options.layerThickness;
                     int iRowPoints = alldata->points.indexFrom[iLayer] + alldata->points.nPointsWritten[iLayer];
-    
-                    int n = getListOfSelectedGates(&vradMeta, &vradImage[0],
-                        &dbzMeta, &dbzImage[0], 
-                        &cellImage[0], 
-                        altitudeMin, altitudeMax, 
-                        &(alldata->points.points[0]), iRowPoints, alldata->points.nColsPoints, alldata);
-                    
-                    n = getListOfSelectedGatesRave(scan, scanUse[iScan], altitudeMin, altitudeMax, 
+                        
+                    int n = getListOfSelectedGates(scan, scanUse[iScan], altitudeMin, altitudeMax, 
                         &(alldata->points.points[0]), iRowPoints, alldata->points.nColsPoints, alldata);
                     
                     alldata->points.nPointsWritten[iLayer] += n;
@@ -931,14 +568,7 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 //                         clean up                              //
                 // ------------------------------------------------------------- //
     
-                // free previously malloc'ed arrays
-                free((void*) dbzImage);
-                free((void*) vradImage);
-                free((void*) rhohvImage);
-                free((void*) texImage);
-                free((void*) cellImage);
-                free((void*) clutterImage);
-                
+                // free previously malloc'ed arrays                
                 RAVE_OBJECT_RELEASE(scan);
                 RAVE_OBJECT_RELEASE(texScanParam);
                 RAVE_OBJECT_RELEASE(cellScanParam);
@@ -1248,6 +878,12 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
         }
         
         if (scanUse[iScan].useScan){
+
+            // copy names of scans that will be generated by the program
+            sprintf(scanUse[iScan].texName,TEXNAME);	
+            sprintf(scanUse[iScan].clutName,CLUTNAME);	
+            sprintf(scanUse[iScan].cellName,CELLNAME);	
+
             nScansUsed+=1;
         }
     }
@@ -1465,272 +1101,7 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
 
 
 
-
-static int findWeatherCells(const float *quantityImage, int *cellImage,
-        const SCANMETA *quantityMeta, float quantityThreshold,
-        int selectAboveThreshold, vol2bird_t* alldata) {
-
-    //  ----------------------------------------------------------------------------- //
-    //  This function detects the cells in 'quantityImage' using a threshold value of      //
-    //  'dbzThresMin' and a non-recursive algorithm which looks for neighboring       //
-    //  pixels above that threshold. On return the marked cells are contained by      //
-    //  'cellImage'. The number of detected cells/highest index value is returned.    //
-    //  ----------------------------------------------------------------------------- //
-
-
-    int iCellIdentifier;
-    int nCells;
-    int iRang;
-    int nRang;
-    int iAzim;
-    int nAzim;
-    int iNeighborhood;
-    int nNeighborhood;
-    int count;
-    int cellImageInitialValue;
-
-    float quantityThres;
-
-    int iGlobal;
-    int iGlobalOther;
-    int nGlobal;
-    int iLocal;
-
-    float quantityMissing;
-    int quantitynAzim;
-    int quantitynRang;
-    float quantityValueOffset;
-    float quantityValueScale;
-    float quantityRangeScale;
-
-
-    // These next two local variables 'nAzimNeighborhood' and 
-    // 'nRangNeighborhood' shadow two static global variables of the 
-    // same name, but that is in fact what you want. This is because the
-    // value of 'nAzimNeighborHood' (function scope) is not equal to 
-    // 'nAzimNeighborHood' (file scope) and because 'nRangNeighborHood' 
-    // (function scope) is not equal to 'nRangNeighborHood' (file 
-    // scope). The variable names are the same though, because they play
-    // the same role in 'findNearbyGateIndex()'.
-    int nAzimNeighborhood_local;
-    int nRangNeighborhood_local;
-    
-    int nHalfNeighborhood;
-
-    int cellIdentifierGlobal;
-    int cellIdentifierGlobalOther;
-    int iGlobalInner;
-
-
-    #ifdef FPRINTFON
-    int dbg = 0;
-    #endif
-
-    if (quantityImage==NULL) {
-        fprintf(stderr,"Input argument quantityImage is NULL.\n");
-        return -1;
-    }
-
-    quantityMissing = quantityMeta->missing;
-    quantitynAzim = quantityMeta->nAzim;
-    quantitynRang = quantityMeta->nRang;
-    quantityValueOffset = quantityMeta->valueOffset;
-    quantityValueScale = quantityMeta->valueScale;
-    quantityRangeScale = quantityMeta->rangeScale;
-
-    nAzim = quantitynAzim;
-    nRang = quantitynRang;
-
-    nGlobal = nAzim * nRang;
-    
-    // We use a neighborhood of 3x3, because in this function we are
-    // interested in a cell's direct neighbors. See also comment at
-    // variable definitions of 'nAzimNeighborhood' and 'nRangNeighborhood'
-    // above. 
-    nAzimNeighborhood_local = 3;
-    nRangNeighborhood_local = 3;
-    
-    nNeighborhood = nAzimNeighborhood_local * nRangNeighborhood_local;
-    nHalfNeighborhood = (nNeighborhood - 1)/2;
-
-
-    if (quantityImage != NULL) {
-        quantityThres = (float) ROUND((quantityThreshold - quantityValueOffset) / quantityValueScale);
-    }
-
-    cellImageInitialValue = -1;
-    for (iGlobal = 0; iGlobal < nGlobal; iGlobal++) {
-        cellImage[iGlobal] = cellImageInitialValue;
-    }
-
-    // If threshold value is equal to missing value, produce a warning
-    if (quantityThres == quantityMissing) {
-        fprintf(stderr,"Warning: in function findWeatherCells, quantityThres equals quantityMissing\n");
-    }
-
-    // ----------------------------------------------------------------------- //
-    // Labeling of groups of connected pixels using horizontal, vertical, and  //
-    // diagonal connections. The algorithm is described in 'Digital Image      //
-    // Processing' by Gonzales and Woods published by Addison-Wesley.          //
-    // ----------------------------------------------------------------------- //
-
-    // The first cell will have iCellIdentifier = 2, because we reserve 1 for fringe
-    // to be added by function fringeCells
-    iCellIdentifier = 2;
-
-    for (iAzim = 0; iAzim < nAzim; iAzim++) {
-        for (iRang = 0; iRang < nRang; iRang++) {
-
-            iGlobal = iRang + iAzim * nRang;
-
-            if ((float)(iRang + 1) * quantityRangeScale > alldata->misc.rCellMax) {
-                continue;
-            }
-            else {
-                #ifdef FPRINTFON
-                fprintf(stderr, "iGlobal = %d\niRang + 1 = %d\n"
-                "quantityRangeScale = %f\n"
-                "rCellMax = %f\n"
-                "(iRang + 1) * quantityRangeScale = %f\n"
-                "((iRang + 1) * quantityRangeScale > rCellMax) = %d\n"
-                "dbg=%d\n",iGlobal,iRang + 1,quantityRangeScale,alldata->misc.rCellMax,
-                (iRang + 1) * quantityRangeScale,
-                ((iRang + 1) * quantityRangeScale > alldata->misc.rCellMax),dbg);
-                
-                dbg++;
-                #endif
-            }
-
-            #ifdef FPRINTFON
-            fprintf(stderr,"iGlobal = %d\n",iGlobal);
-            #endif
-
-            if (quantityImage[iGlobal] == (float) quantityMissing) {
-
-                #ifdef FPRINTFON
-                fprintf(stderr,"quantityImage[%d] == quantityMissing\n",iGlobal);
-                #endif
-
-                continue;
-            }
-
-            if (quantityImage[iGlobal] < (float) quantityThres) {
-                continue;
-            }
-
-            // count number of direct neighbors above threshold
-            count = 0;
-            for (iNeighborhood = 0; iNeighborhood < nNeighborhood; iNeighborhood++) {
-
-                iLocal = findNearbyGateIndex(nAzim,nRang,iGlobal,nAzimNeighborhood_local,nRangNeighborhood_local,iNeighborhood);
-
-                if (iLocal < 0) {
-                    // iLocal below zero are error codes
-                    continue;
-                }
-                if (quantityImage[iLocal] > quantityThres) {
-                    count++;
-                }
-
-            }
-            // when not enough qualified neighbors, continue
-            if (count - 1 < alldata->constants.nNeighborsMin) {
-                continue;
-            }
-
-            #ifdef FPRINTFON
-            fprintf(stderr,"iGlobal = %d, count = %d\n",iGlobal,count);
-            #endif
-
-
-            // Looking for horizontal, vertical, forward diagonal, and backward diagonal connections.
-            for (iNeighborhood = 0; iNeighborhood < nHalfNeighborhood; iNeighborhood++) {
-
-                iLocal = findNearbyGateIndex(nAzim,nRang,iGlobal,nAzimNeighborhood_local,nRangNeighborhood_local,iNeighborhood);
-//                fprintf(stderr,"iLocal %i - args %i %i %i %i %i %i\n",iLocal,nAzim,nRang,iGlobal,nAzimNeighborhood_local,nRangNeighborhood_local,iNeighborhood);
-
-                if (iLocal < 0) {
-                    // iLocal less than zero are error codes
-                    continue;
-                }
-                
-                // no connection found, go to next pixel within neighborhood
-                if (cellImage[iLocal] == cellImageInitialValue) {
-                    continue;
-                }
-
-                // if pixel still unassigned, assign same iCellIdentifier as connection
-                if (cellImage[iGlobal] == cellImageInitialValue) {
-                    cellImage[iGlobal] = cellImage[iLocal];
-                }
-                else {
-                    // if connection found but pixel is already assigned a different iCellIdentifier:
-                    if (cellImage[iGlobal] != cellImage[iLocal]) {
-                        // merging cells detected: replace all other occurences by value of connection:
-                        for (iGlobalOther = 0; iGlobalOther < nGlobal; iGlobalOther++) {
-                            if (cellImage[iGlobalOther] == cellImage[iGlobal]) {
-                                cellImage[iGlobalOther] = cellImage[iLocal];
-                            }
-                            // note: not all iCellIdentifier need to be used eventually
-                        }
-                    }
-                }
-            }
-
-            // When no connections are found, give a new number.
-            if (cellImage[iGlobal] == cellImageInitialValue) {
-
-                #ifdef FPRINTFON
-                fprintf(stderr, "new cell found...assigning number %d\n",iCellIdentifier);
-                #endif
-
-                cellImage[iGlobal] = iCellIdentifier;
-                iCellIdentifier++;
-            }
-        } // (iRang=0; iRang<nRang; iRang++)
-    } // for (iAzim=0; iAzim<nAzim; iAzim++)
-
-
-    // check whether a cell crosses the border of the array (remember that iAzim=0 is
-    // adjacent to iAzim=nAzim-1):
-    iAzim = 0;
-
-    for (iRang = 0; iRang < nRang; iRang++) {
-
-        iGlobal = iRang + iAzim * nRang;
-        // index 1 in a 3x3 child array refers to the cell that is a direct neighbor of
-        // iGlobal, but on the other side of the array (because the polar plot is wrapped
-        // in the azimuth dimension):
-        iGlobalOther = findNearbyGateIndex(nAzim,nRang,iGlobal,3,3,1);
-
-        #ifdef FPRINTFON
-        fprintf(stderr,"iGlobal = %d, iGlobalOther = %d\n",iGlobal,iGlobalOther);
-        #endif
-
-        cellIdentifierGlobal = cellImage[iGlobal];
-        cellIdentifierGlobalOther = cellImage[iGlobalOther];
-        if (cellIdentifierGlobal != cellImageInitialValue && cellIdentifierGlobalOther != cellImageInitialValue ) {
-            // adjacent gates, both part of a cell -> assign them the same identifier, i.e. assign
-            // all elements of cellImage that are equal to cellImage[iGlobalOther] the value of
-            // cellImage[iGlobal]
-
-            for (iGlobalInner = 0; iGlobalInner < nGlobal; iGlobalInner++) {
-                if (cellImage[iGlobalInner] == cellIdentifierGlobalOther) {
-                    cellImage[iGlobalInner] = cellIdentifierGlobal;
-                }
-            }
-        }
-    }
-
-    // Returning number of detected cells (including fringe/clutter)
-    nCells = iCellIdentifier;
-
-    return nCells;
-} // findWeatherCells
-
-
-
-static int findWeatherCellsRave(PolarScan_t *scan, const char* quantity, float quantityThreshold,
+static int findWeatherCells(PolarScan_t *scan, const char* quantity, float quantityThreshold,
         int selectAboveThreshold, vol2bird_t* alldata) {
 
     //  ----------------------------------------------------------------------------- //
@@ -1800,7 +1171,7 @@ static int findWeatherCellsRave(PolarScan_t *scan, const char* quantity, float q
     }
     
     PolarScanParam_t *scanParam = PolarScan_getParameter(scan, quantity);
-    PolarScanParam_t *cellParam = PolarScan_getParameter(scan, "CELL");
+    PolarScanParam_t *cellParam = PolarScan_getParameter(scan, CELLNAME);
 
     if (scanParam == NULL || cellParam == NULL) {
         fprintf(stderr,"%s and/or CELL quantities not found in polar scan\n", quantity);
@@ -1908,7 +1279,7 @@ static int findWeatherCellsRave(PolarScan_t *scan, const char* quantity, float q
             count = 0;
             for (iNeighborhood = 0; iNeighborhood < nNeighborhood; iNeighborhood++) {
 
-                iLocal = findNearbyGateIndexRave(nAzim,nRang,iGlobal,nAzimNeighborhood_local,nRangNeighborhood_local,iNeighborhood,&iAzimLocal,&iRangLocal);
+                iLocal = findNearbyGateIndex(nAzim,nRang,iGlobal,nAzimNeighborhood_local,nRangNeighborhood_local,iNeighborhood,&iAzimLocal,&iRangLocal);
 
                 if (iLocal < 0) {
                     // iLocal below zero are error codes
@@ -1935,7 +1306,7 @@ static int findWeatherCellsRave(PolarScan_t *scan, const char* quantity, float q
             // Looking for horizontal, vertical, forward diagonal, and backward diagonal connections.
             for (iNeighborhood = 0; iNeighborhood < nHalfNeighborhood; iNeighborhood++) {
 
-                iLocal = findNearbyGateIndexRave(nAzim,nRang,iGlobal,nAzimNeighborhood_local,nRangNeighborhood_local,iNeighborhood,&iAzimLocal,&iRangLocal);
+                iLocal = findNearbyGateIndex(nAzim,nRang,iGlobal,nAzimNeighborhood_local,nRangNeighborhood_local,iNeighborhood,&iAzimLocal,&iRangLocal);
 //                fprintf(stderr, "iLocal %i - args %i %i %i %i %i %i %i %i\n",iLocal,nAzim,nRang,iGlobal,nAzimNeighborhood_local,nRangNeighborhood_local,iNeighborhood,iAzimLocal,iRangLocal);
                 if (iLocal < 0) {
                     // iLocal less than zero are error codes
@@ -1993,7 +1364,7 @@ static int findWeatherCellsRave(PolarScan_t *scan, const char* quantity, float q
         // index 1 in a 3x3 child array refers to the cell that is a direct neighbor of
         // iGlobal, but on the other side of the array (because the polar plot is wrapped
         // in the azimuth dimension):
-        iGlobalOther = findNearbyGateIndexRave(nAzim,nRang,iGlobal,3,3,1,&iAzimLocal,&iRangLocal);
+        iGlobalOther = findNearbyGateIndex(nAzim,nRang,iGlobal,3,3,1,&iAzimLocal,&iRangLocal);
         PolarScanParam_getValue(cellParam, iRangLocal, iAzimLocal, &cellValueOther);
 
         #ifdef FPRINTFON
@@ -2023,75 +1394,7 @@ static int findWeatherCellsRave(PolarScan_t *scan, const char* quantity, float q
 
 
 
-
 static int findNearbyGateIndex(const int nAzimParent, const int nRangParent, const int iParent,
-                        const int nAzimChild,  const int nRangChild,  const int iChild) {
-
-
-
-    if (nRangChild%2 != 1) {
-
-        #ifdef FPRINTFON
-        fprintf(stderr, "nRangChild must be an odd integer number.\n");
-        #endif
-
-        return -1;
-    }
-
-    if (nAzimChild%2 != 1) {
-
-        #ifdef FPRINTFON
-        fprintf(stderr, "nAzimChild must be an odd integer number.\n");
-        #endif
-
-        return -2;
-    }
-
-    if (iChild > nAzimChild * nRangChild - 1) {
-
-        #ifdef FPRINTFON
-        fprintf(stderr, "iChild is outside the child window.\n");
-        #endif
-
-        return -3;
-    }
-
-
-    const int iAzimParent = iParent / nRangParent;
-    const int iRangParent = iParent % nRangParent;
-
-    const int iAzimChild = iChild / nRangChild;
-    const int iRangChild = iChild % nRangChild;
-
-    // the azimuth dimension is wrapped (polar plot); iAzim = 0 is adjacent to iAzim = nAzim-1:
-    const int iAzimReturn = (iAzimParent - nAzimChild/2 + iAzimChild + nAzimParent) % nAzimParent;
-    const int iRangReturn = iRangParent - nRangChild/2 + iRangChild;
-
-
-    if (iRangReturn > nRangParent - 1) {
-
-        #ifdef FPRINTFON
-        fprintf(stderr, "iChild is outside the parent array on the right-hand side.\n");
-        #endif
-
-        return -4;
-    }
-    if (iRangReturn < 0) {
-
-        #ifdef FPRINTFON
-        fprintf(stderr, "iChild is outside the parent array on the left-hand side.\n");
-        #endif
-
-        return -5;
-    }
-
-    return iAzimReturn * nRangParent + iRangReturn;
-
-} // findNearbyGateIndex
-
-
-
-static int findNearbyGateIndexRave(const int nAzimParent, const int nRangParent, const int iParent,
                         const int nAzimChild,  const int nRangChild,  const int iChild, int *iAzimReturn, int *iRangReturn) {
 
 
@@ -2157,119 +1460,15 @@ static int findNearbyGateIndexRave(const int nAzimParent, const int nRangParent,
 } // findNearbyGateIndex
 
 
-
-static void fringeCells(int *cellImage, int nRang, int nAzim, float aScale, float rScale, vol2bird_t* alldata) {
-
-    // -------------------------------------------------------------------------- //
-    // This function enlarges cells in cellImage by an additional fringe.         //
-    // First a block around each pixel is searched for pixels within a distance   //
-    // equal to 'fringeDist'.                                                     //
-    // -------------------------------------------------------------------------- //
-
-    int iRang;
-    int iAzim;
-    int iNeighborhood;
-    int nNeighborhood;
-    int iRangLocal;
-    int iAzimLocal;
-    int iLocal;
-    int rBlock;
-    int aBlock;
-    int isEdge;
-    int iGlobal;
-    float theDist;
-    int nAzimChild;
-    int nRangChild;
-
-    float actualRange;
-    float circumferenceAtActualRange;
-
-
-    rBlock = ROUND(alldata->constants.fringeDist / rScale);
-    for (iAzim = 0; iAzim < nAzim; iAzim++) {
-        for (iRang = 0; iRang < nRang; iRang++) {
-
-            iGlobal = iRang + iAzim * nRang;
-
-            if (cellImage[iGlobal] <= 1) {
-                continue; // with the next iGlobal; already fringe or not in cellImage
-            }
-
-            // determine whether current pixel is a pixel on the edge of a cell
-            isEdge = FALSE;
-            for (iNeighborhood = 0; iNeighborhood < 9 && isEdge == FALSE; iNeighborhood++) {
-
-                iLocal = findNearbyGateIndex(nAzim,nRang,iGlobal,3,3,iNeighborhood);
-
-                if (iLocal < 0) {
-                    // iLocal less than zero are error codes
-                    continue; // with the next iGlobal
-                }
-
-                if (cellImage[iLocal] < 1) { //FIXME: Strictly this should be <=1, but then much slower
-                    isEdge = TRUE;           //Now only pixels without any bordering fringe are 'fringed', giving very similar result (but improvement welcome)
-                }
-
-            }
-            
-            if (isEdge == FALSE) {
-                continue; // with the next iGlobal
-            }
-
-            actualRange = (iRang+0.5) * rScale;
-            circumferenceAtActualRange = 2 * PI * actualRange;
-            aBlock = (alldata->constants.fringeDist / circumferenceAtActualRange) * nAzim;
-
-
-            #ifdef FPRINTFON
-            fprintf(stderr, "actualRange = %f\n",actualRange);
-            fprintf(stderr, "circumferenceAtActualRange = %f\n",circumferenceAtActualRange);
-            fprintf(stderr, "fringeDist / circumferenceAtActualRange = %f\n",alldata->constants.fringeDist / circumferenceAtActualRange);
-            fprintf(stderr, "aBlock = %d\n", aBlock);
-            fprintf(stderr, "rBlock = %d\n", rBlock);
-            #endif
-
-            nAzimChild = 2 * aBlock + 1;
-            nRangChild = 2 * rBlock + 1;
-            nNeighborhood = nAzimChild * nRangChild;
-
-            for (iNeighborhood = 0; iNeighborhood < nNeighborhood; iNeighborhood++) {
-
-                iLocal = findNearbyGateIndex(nAzim,nRang,iGlobal,nAzimChild,nRangChild,iNeighborhood);
-
-                if (iLocal < 0) {
-                    // iLocal less than zero are error codes
-                    continue;
-                }
-
-                iAzimLocal = iLocal / nRang;
-                iRangLocal = iLocal % nRang;
-
-                // if not within range or already in cellImage or already a fringe, do nothing
-                theDist = calcDist(iRang, iAzim, iRangLocal, iAzimLocal, rScale, aScale);
-                if (theDist > alldata->constants.fringeDist || cellImage[iLocal] >= 1) {
-                    continue; // with the next iGlobal
-                }
-                // include pixel (iRangLocal,iAzimLocal) in fringe
-                cellImage[iLocal] = 1;
-                
-            } // (iNeighborhood = 0; iNeighborhood < nNeighborhood; iNeighborhood++)
-        } // (iRang = 0; iRang < nRang; iRang++)
-    } // (iAzim = 0; iAzim < nAzim; iAzim++)
-
-    return;
-
-} // fringeCells
-
-static void fringeCellsRave(PolarScan_t* scan, vol2bird_t* alldata) {
+static void fringeCells(PolarScan_t* scan, vol2bird_t* alldata) {
 
     // -------------------------------------------------------------------------- //
     // This function enlarges cells in cellImage by an additional fringe.         //
     // First a block around each pixel is searched for pixels within a distance   //
     // equal to 'fringeDist'.                                                     //
     // -------------------------------------------------------------------------- //
-    
-    if(!PolarScan_hasParameter(scan, "CELL")){
+
+    if(!PolarScan_hasParameter(scan, CELLNAME)){
         fprintf(stderr,"no CELL quantity in polar scan, aborting fringeCells()\n");
         return;
     }
@@ -2278,7 +1477,7 @@ static void fringeCellsRave(PolarScan_t* scan, vol2bird_t* alldata) {
     int nAzim = (int) PolarScan_getNrays(scan);
     float aScale = 360.0f/ nAzim;
     float rScale = (float) PolarScan_getRscale(scan);
-    PolarScanParam_t *cellParam = PolarScan_getParameter(scan,"CELL");
+    PolarScanParam_t *cellParam = PolarScan_getParameter(scan,CELLNAME);
     int *cellImage = (int *) PolarScanParam_getData(cellParam);
 
     int iRang;
@@ -2314,7 +1513,7 @@ static void fringeCellsRave(PolarScan_t* scan, vol2bird_t* alldata) {
             isEdge = FALSE;
             for (iNeighborhood = 0; iNeighborhood < 9 && isEdge == FALSE; iNeighborhood++) {
 
-                iLocal = findNearbyGateIndexRave(nAzim,nRang,iGlobal,3,3,iNeighborhood,&iAzimLocal,&iRangLocal);
+                iLocal = findNearbyGateIndex(nAzim,nRang,iGlobal,3,3,iNeighborhood,&iAzimLocal,&iRangLocal);
 
                 if (iLocal < 0) {
                     // iLocal less than zero are error codes
@@ -2350,7 +1549,7 @@ static void fringeCellsRave(PolarScan_t* scan, vol2bird_t* alldata) {
 
             for (iNeighborhood = 0; iNeighborhood < nNeighborhood; iNeighborhood++) {
 
-                iLocal = findNearbyGateIndexRave(nAzim,nRang,iGlobal,nAzimChild,nRangChild,iNeighborhood,&iAzimLocal,&iRangLocal);
+                iLocal = findNearbyGateIndex(nAzim,nRang,iGlobal,nAzimChild,nRangChild,iNeighborhood,&iAzimLocal,&iRangLocal);
 
                 if (iLocal < 0) {
                     // iLocal less than zero are error codes
@@ -2377,140 +1576,7 @@ static void fringeCellsRave(PolarScan_t* scan, vol2bird_t* alldata) {
 } // fringeCells
 
 
-CELLPROP* getCellProperties(const float *dbzImage, const float *vradImage,
-    const float *texImage, const float *clutterImage, int *cellImage,
-    const SCANMETA *dbzMeta, const SCANMETA *vradMeta, const SCANMETA *texMeta, const SCANMETA *clutterMeta,
-    const int nCells, vol2bird_t* alldata){
-    
-    int iCell;
-    int iGlobal;
-    int nGlobal;
-    int iRang;
-    int iAzim;
-    int nAzim;
-    int nRang;
-    float nGatesValid;
-    float dbzValue;
-    float texValue;
-    float vradValue;
-    float clutterValue;
-
-    nRang = dbzMeta->nRang;
-    nAzim = dbzMeta->nAzim;
-    nGlobal = nAzim*nRang;
-    
-    // Allocating and initializing memory for cell properties.
-    CELLPROP* cellProp;
-    cellProp = (CELLPROP *)malloc(nCells*sizeof(CELLPROP));
-    
-    if (!cellProp) {
-        fprintf(stderr,"Requested memory could not be allocated in getCellProperties!\n");
-        return cellProp;
-    }
-    
-    for (iCell = 0; iCell < nCells; iCell++) {
-        cellProp[iCell].iRangOfMax = -1;
-        cellProp[iCell].iAzimOfMax = -1;
-        cellProp[iCell].nGates = 0;
-        cellProp[iCell].nGatesClutter = 0;
-        cellProp[iCell].dbzAvg = NAN;
-        cellProp[iCell].texAvg = NAN;
-        cellProp[iCell].dbzMax = NAN;
-        cellProp[iCell].index = iCell;
-        cellProp[iCell].drop = TRUE;
-        cellProp[iCell].cv = NAN;
-    }
-
-    // Calculation of cell properties.
-    for (iAzim = 0; iAzim < nAzim; iAzim++) {
-        for (iRang = 0; iRang < nRang; iRang++) {
-
-            iGlobal = iRang + iAzim * nRang;
-
-            dbzValue = dbzMeta->valueScale * (float) dbzImage[iGlobal] + dbzMeta->valueOffset;
-            vradValue = vradMeta->valueScale * (float) vradImage[iGlobal] + vradMeta->valueOffset;
-            clutterValue = clutterMeta->valueScale * (float) clutterImage[iGlobal] + clutterMeta->valueOffset;
-            texValue = texMeta->valueScale * (float) texImage[iGlobal] + texMeta->valueOffset;
-	    
-            iCell = cellImage[iGlobal];
-
-            // Note: this also throws out all nodata/undetect values for dbzValue
-            if (iCell<0) {
-                continue;
-            }
-
-            #ifdef FPRINTFON
-            fprintf(stderr,"dbzValue = %f; vradValue = %f; clutterValue = %f; texValue = %f\n",dbzValue,vradValue,clutterValue,texValue);
-            fprintf(stderr,"iGlobal = %d, iCell = %d\n",iGlobal,iCell);
-            #endif
-
-            cellProp[iCell].nGates += 1;
-            cellProp[iCell].drop = FALSE;
-
-            // low radial velocities are treated as clutter, not included in calculation cell properties
-            if ((fabs(vradValue) < alldata->constants.vradMin) & (vradImage[iGlobal] != vradMeta->missing)){
-
-                cellProp[iCell].nGatesClutter += 1;
-
-                #ifdef FPRINTFON
-                fprintf(stderr,"iGlobal = %d: vrad too low...treating as clutter\n",iGlobal);
-                #endif
-
-                continue;
-            }
-
-            // pixels in clutter map not included in calculation cell properties
-            if (alldata->options.useStaticClutterData == TRUE){
-                if (clutterValue > alldata->constants.clutterValueMin){
-                    cellProp[iCell].nGatesClutter += 1;
-                    continue;
-                }
-            }
-
-            if (isnan(cellProp[iCell].dbzMax) || dbzValue > cellProp[iCell].dbzMax) {
-
-
-                #ifdef FPRINTFON
-                fprintf(stderr,"%d: new dbzMax value of %f found for this cell (%d).\n",iGlobal,dbzValue,iCell);
-                #endif
-
-                cellProp[iCell].dbzMax = dbzValue;
-                cellProp[iCell].iRangOfMax = iGlobal%nRang;
-                cellProp[iCell].iAzimOfMax = iGlobal/nRang;
-            }
-
-            if (isnan(cellProp[iCell].dbzAvg)) {
-                cellProp[iCell].dbzAvg = dbzValue;
-            } 
-            else {
-                cellProp[iCell].dbzAvg += dbzValue;
-            }
-            
-            if (isnan(cellProp[iCell].texAvg)) {
-                cellProp[iCell].texAvg = texValue;
-            } 
-            else {
-                cellProp[iCell].texAvg += texValue;
-            }
-            
-        } // for (iRang = 0; iRang < nRang; iRang++)
-    } // for (iAzim = 0; iAzim < nAzim; iAzim++)
-
-
-    for (iCell = 0; iCell < nCells; iCell++) {
-        nGatesValid = cellProp[iCell].nGates - cellProp[iCell].nGatesClutter;
-        if (nGatesValid > 0){
-            cellProp[iCell].dbzAvg /= nGatesValid;
-            cellProp[iCell].texAvg /= nGatesValid;
-            cellProp[iCell].cv = cellProp[iCell].texAvg / cellProp[iCell].dbzAvg;
-        }
-    }
-    
-    return cellProp;
-} // getCellProperties
-
-CELLPROP* getCellPropertiesRave(PolarScan_t* scan, vol2birdScanUse_t scanUse, const int nCells, vol2bird_t* alldata){
-    
+CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const int nCells, vol2bird_t* alldata){    
     int iCell;
     int iGlobal;
     int nGlobal;
@@ -2527,9 +1593,9 @@ CELLPROP* getCellPropertiesRave(PolarScan_t* scan, vol2birdScanUse_t scanUse, co
     
     PolarScanParam_t *dbzParam = PolarScan_getParameter(scan,scanUse.dbzName);
     PolarScanParam_t *vradParam = PolarScan_getParameter(scan,scanUse.vradName);
-    PolarScanParam_t *texParam = PolarScan_getParameter(scan,"VTEX");
-    PolarScanParam_t *clutParam = PolarScan_getParameter(scan,"CLUT");
-    PolarScanParam_t *cellParam = PolarScan_getParameter(scan,"CELL");
+    PolarScanParam_t *texParam = PolarScan_getParameter(scan,scanUse.texName);
+    PolarScanParam_t *clutParam = PolarScan_getParameter(scan,scanUse.clutName);
+    PolarScanParam_t *cellParam = PolarScan_getParameter(scan,scanUse.cellName);
 
     double vradUndetect = PolarScanParam_getUndetect(vradParam);
     double vradNodata = PolarScanParam_getNodata(vradParam);
@@ -2652,140 +1718,7 @@ CELLPROP* getCellPropertiesRave(PolarScan_t* scan, vol2birdScanUse_t scanUse, co
 
 
 
-
-static int getListOfSelectedGates(const SCANMETA* vradMeta, const float *vradImage, 
-                           const SCANMETA* dbzMeta, const float *dbzImage,
-                           const int *cellImage,
-                           const float altitudeMin, const float altitudeMax,
-                           float* points_local, int iRowPoints, int nColsPoints_local, vol2bird_t* alldata) {
-
-    // ------------------------------------------------------------------- //
-    // Write combinations of an azimuth angle, an elevation angle, an      // 
-    // observed vrad value, an observed dbz value, and a cell identifier   //
-    // value into an external larger list.                                 //
-    // ------------------------------------------------------------------- //
-
-    int iAzim;
-    int iRang;
-    int iGlobal;
-    int nRang;
-    int nAzim;
-    int nPointsWritten_local;
-
-    float gateHeight;
-    float gateRange;
-    float gateAzim;
-    float rangeScale;
-    float azimuthScale;
-    float elevAngle;
-    float radarHeight;
-    float vradValueOffset;
-    float vradValueScale;
-    float dbzValueOffset;
-    float dbzValueScale;
-    float vradValue;
-    float dbzValue;
-    
-    float dbzMissingValue;
-    float vradMissingValue;
-
-    nPointsWritten_local = 0;
-
-    nRang = vradMeta->nRang;
-    nAzim = vradMeta->nAzim;
-    rangeScale = vradMeta->rangeScale;
-    azimuthScale = vradMeta->azimScale;
-    elevAngle = vradMeta->elev;
-    radarHeight = vradMeta->heig;
-    vradValueOffset = vradMeta->valueOffset;
-    vradValueScale = vradMeta->valueScale;
-
-    dbzValueOffset = dbzMeta->valueOffset;
-    dbzValueScale = dbzMeta->valueScale;
-
-    dbzMissingValue = dbzMeta->missing;
-    vradMissingValue = vradMeta->missing;
-
-    for (iRang = 0; iRang < nRang; iRang++) {
-
-        // so gateRange represents a distance along the view direction (not necessarily horizontal)
-        gateRange = ((float) iRang + 0.5f) * rangeScale;
-
-        // note that "sin(elevAngle*DEG2RAD)" is equivalent to = "cos((90 - elevAngle)*DEG2RAD)":
-        gateHeight = gateRange * (float) sin(elevAngle*DEG2RAD) + radarHeight;
-
-        if (gateRange < alldata->options.rangeMin || gateRange > alldata->options.rangeMax) {
-            // the current gate is either 
-            // (1) too close to the radar; or
-            // (2) too far away.
-            continue;
-        }
-        if (gateHeight < altitudeMin || gateHeight > altitudeMax) {
-            // if the height of the middle of the current gate is too far away from
-            // the requested height, continue with the next gate
-            continue;
-        }
-
-        // the gates at this range and elevation angle are within bounds,
-        // include their data in the 'points' array:
-
-        for (iAzim = 0; iAzim < nAzim; iAzim++) {
-
-            iGlobal = iRang + iAzim * nRang;
-            gateAzim = ((float) iAzim + 0.5f) * azimuthScale;
-            vradValue = vradValueScale * (float) vradImage[iGlobal] + vradValueOffset;
-            dbzValue = dbzValueScale * (float) dbzImage[iGlobal] + dbzValueOffset;
-
-			// in the points array, store missing reflectivity values as the lowest possible reflectivity
-			// this is to treat undetects as absence of scatterers
-			if (dbzImage[iGlobal] == dbzMissingValue){
-			dbzValue = NAN;
-			}
-
-			// in the points array, store missing vrad values as NAN
-			// this is necessary because different scans may have different missing values
-			if (vradImage[iGlobal] == vradMissingValue){
-				vradValue = NAN;
-			}
-
-            // store the location as an azimuth angle, elevation angle combination
-            points_local[iRowPoints * nColsPoints_local + 0] = gateAzim;
-            points_local[iRowPoints * nColsPoints_local + 1] = elevAngle;
-
-            // also store the dbz value --useful when estimating the bird density
-            points_local[iRowPoints * nColsPoints_local + 2] = dbzValue;
-            
-            // store the corresponding observed vrad value
-            points_local[iRowPoints * nColsPoints_local + 3] = vradValue;
-
-            // store the corresponding cellImage value
-            points_local[iRowPoints * nColsPoints_local + 4] = (float) cellImage[iGlobal];
-
-            // set the gateCode to zero for now
-            points_local[iRowPoints * nColsPoints_local + 5] = (float) 0;
-
-			// store the corresponding observed nyquist velocity
-			points_local[iRowPoints * nColsPoints_local + 6] = vradMeta->nyquist;
-
-			// store the corresponding observed vrad value for now (to be dealiased later)
-			points_local[iRowPoints * nColsPoints_local + 7] = vradValue;
-
-			// raise the row counter by 1
-            iRowPoints += 1;
-            
-            // raise number of points written by 1
-            nPointsWritten_local += 1;
-
-        }  //for iAzim
-    } //for iRang
-
-    return nPointsWritten_local;
-
-
-} // getListOfSelectedGates
-
-
-static int getListOfSelectedGatesRave(PolarScan_t* scan, vol2birdScanUse_t scanUse, const float altitudeMin, const float altitudeMax,
+static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, const float altitudeMin, const float altitudeMax,
                            float* points_local, int iRowPoints, int nColsPoints_local, vol2bird_t* alldata) {
 
     // ------------------------------------------------------------------- //
@@ -2830,7 +1763,7 @@ static int getListOfSelectedGatesRave(PolarScan_t* scan, vol2birdScanUse_t scanU
     
     PolarScanParam_t* vradParam = PolarScan_getParameter(scan,scanUse.vradName);
     PolarScanParam_t* dbzParam = PolarScan_getParameter(scan,scanUse.dbzName);
-    PolarScanParam_t* cellParam = PolarScan_getParameter(scan,"CELL");
+    PolarScanParam_t* cellParam = PolarScan_getParameter(scan,scanUse.cellName);
 
     for (iRang = 0; iRang < nRang; iRang++) {
 
@@ -3850,6 +2783,7 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_BOOL("PRINT_DBZ",PRINT_DBZ,CFGF_NONE),
         CFG_BOOL("PRINT_DEALIAS",PRINT_DEALIAS,CFGF_NONE),
         CFG_BOOL("PRINT_VRAD",PRINT_VRAD,CFGF_NONE),
+        CFG_BOOL("PRINT_RHOHV",PRINT_RHOHV,CFGF_NONE),
         CFG_BOOL("PRINT_CELL",PRINT_CELL,CFGF_NONE),
         CFG_BOOL("PRINT_CELL_PROP",PRINT_CELL_PROP,CFGF_NONE),
         CFG_BOOL("PRINT_TEXTURE",PRINT_TEXTURE,CFGF_NONE),
@@ -3886,83 +2820,6 @@ static int readUserConfigOptions(cfg_t** cfg) {
     
 
 
-
-
-
-static int mapDataFromRave(PolarScan_t* scan, SCANMETA* meta, float* values, char* paramStr) {
-
-    PolarScanParam_t* param = PolarScan_getParameter(scan,paramStr);
-
-    int iRang;
-    int iAzim;
-    
-    int nRang = PolarScan_getNbins(scan);
-    int nAzim = PolarScan_getNrays(scan);
-    int iGlobal;
-    
-    iGlobal = 0;    
-    
-    if (param != NULL) {
-
-        // scan includes requested information, apparently
-        
-        meta->heig = (float) PolarScan_getHeight(scan);
-        meta->elev = (float) (360 * PolarScan_getElangle(scan) / 2 / PI );
-        meta->nRang = (int) PolarScan_getNbins(scan);
-        meta->nAzim = (int) PolarScan_getNrays(scan);
-        meta->rangeScale = (float) PolarScan_getRscale(scan);
-        meta->azimScale = 360.0f/meta->nAzim;   // for ODIM files this always works
-        meta->valueOffset = (float) PolarScanParam_getOffset(param);
-        meta->valueScale = (float) PolarScanParam_getGain(param);
-        meta->missing = (float) PolarScanParam_getNodata(param);
-		
-		// add nyquist interval to scan
-		RaveAttribute_t *attr = PolarScan_getAttribute(scan, "how/NI");
-		double nyquist;
-		int result = 0;
-		if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getDouble(attr, &nyquist);
-        if (result == 0){
-			meta->nyquist = 0;
-		}
-		else{
-			meta->nyquist = nyquist;
-		}
-		
-		double value;
-        double* valuePtr = &value;
-        float valueFloat;        
-        
-        for (iAzim = 0; iAzim < nAzim; iAzim++) {
-            for (iRang = 0; iRang < nRang; iRang++) {
-            
-                RaveValueType t = PolarScanParam_getValue(param, iRang, iAzim, valuePtr);
-                
-                valueFloat = (float) value;
-                
-                //the below conditions sets RaveValueType_UNDEFINED, RaveValueType_UNDETECT, RaveValueType_NODATA all to nodata value
-                //thereby the difference between these three types is lost
-                if(t != RaveValueType_DATA ){
-                    valueFloat = meta->missing;
-                }
-                values[iGlobal] = valueFloat;
-
-                iGlobal++;
-            }
-        }
-
-        RAVE_OBJECT_RELEASE(param);
-    } 
-    else {
-        
-        fprintf(stderr,"Requested parameter not available\n");
-        return -1;
-
-    }
-    
-    
-    return 0;
-
-} // mapDataFromRave
 
 // copies shared metadata from rave polar volume to rave vertical profile
 static int mapVolumeToProfile(VerticalProfile_t* vp, PolarVolume_t* volume){
@@ -4286,41 +3143,54 @@ static void printGateCode(char* flags, const unsigned int gateCode) {
 } // printGateCode
 
 
-void printImageInt(const SCANMETA* meta, const int* imageInt) {
-
-
-    int nRang = meta->nRang;
-    int nAzim = meta->nAzim;
+void printImage(PolarScan_t* scan, const char* quantity) {
+    int nAzim = PolarScan_getNrays(scan);
+    int nRang = PolarScan_getNbins(scan);
     int iRang;
     int iAzim;
     int iGlobal;
     int needsSignChar;
+    int needsFloat;
     int maxValue;
     
+    PolarScanParam_t* scanParam = PolarScan_getParameter(scan, quantity);
+    
+    if(scanParam == (PolarScanParam_t *) NULL){
+        fprintf(stderr,"warning::printImage: quantity %s not found in scan\n",quantity);
+        return;
+    }
 
-    int thisValue;
+    double thisValue;
     int nChars;
     char* formatStr;
+    char* naStr;
     
     iGlobal = 0;
     maxValue = 0;
     needsSignChar = FALSE;
+    needsFloat = FALSE;
+    
+    RaveValueType type;
     
     // first, determine how many characters are needed to print array 'imageInt'
     for (iAzim = 0; iAzim < nAzim; iAzim++) { 
         
         for (iRang = 0; iRang < nRang; iRang++) {
             
-            thisValue = (int) XABS(imageInt[iGlobal]);
-            if (imageInt[iGlobal] < 0) {
+            type = PolarScanParam_getValue(scanParam,iRang,iAzim,&thisValue);
+            if (thisValue < 0) {
                 needsSignChar = TRUE;
             }
+            
+            if (XABS(thisValue - (long) thisValue) >= 0.01) {
+                needsFloat = TRUE;
+            }
+
+            thisValue = XABS(thisValue);
+
             if (thisValue > maxValue) {
                 maxValue = thisValue;
-            } ;
-            
-            iGlobal += 1;
-            
+            }
         }
     }
 
@@ -4331,41 +3201,77 @@ void printImageInt(const SCANMETA* meta, const int* imageInt) {
         nChars += 1;
     }
     
-    switch (nChars) {
-        case 0 :
-            formatStr = " %1d";
-            break; 
-        case 1 :
-            formatStr = " %1d";
-            break; 
-        case 2 :
-            formatStr = " %2d"; 
-            break;
-        case 3 :
-            formatStr = " %3d"; 
-            break;
-        case 4 :
-            formatStr = " %4d"; 
-            break;
-        default :
-            formatStr = " %8d"; 
+    if (!needsFloat){
+        switch (nChars) {
+            case 0 :
+                formatStr = "  %1f";
+                naStr=" NA";
+                break; 
+            case 1 :
+                formatStr = "  %1f";
+                naStr=" NA";
+                break; 
+            case 2 :
+                formatStr = " %2f"; 
+                naStr=" NA";
+                break;
+            case 3 :
+                formatStr = " %3f"; 
+                naStr=" NA ";
+                break;
+            case 4 :
+                formatStr = " %4f"; 
+                naStr=" NA  ";
+                break;
+            default :
+                formatStr = " %8f"; 
+                naStr=" NA      ";
+                
+        }        
     }
-    
-    
-    iGlobal = 0;
+    else{
+        switch (nChars) {
+            case 0 :
+                formatStr = " %1.2f";
+                naStr=" NA  ";
+                break; 
+            case 1 :
+                formatStr = " %1.2f";
+                naStr=" NA  ";
+                break; 
+            case 2 :
+                formatStr = " %2.2f"; 
+                naStr=" NA   ";
+                break;
+            case 3 :
+                formatStr = " %3.2f"; 
+                naStr=" NA    ";
+                break;
+            case 4 :
+                formatStr = " %4.2f"; 
+                naStr=" NA     ";
+                break;
+            default :
+                formatStr = " %8.2f"; 
+                naStr=" NA         ";
+
+        }
+    }
+
     
     for (iAzim = 0; iAzim < nAzim; iAzim++) { 
         
         for (iRang = 0; iRang < nRang; iRang++) {
-    
-            iGlobal = iRang + iAzim * nRang;
+                
+            type = PolarScanParam_getValue(scanParam,iRang,iAzim,&thisValue);
             
-            thisValue = (int) imageInt[iGlobal];
-            
-            fprintf(stderr,formatStr,thisValue);
-            
-            iGlobal += 1;
-            
+            if (type == RaveValueType_DATA){
+                fprintf(stderr,formatStr,thisValue);
+            }
+            else{
+                fprintf(stderr,naStr,thisValue);
+
+            }
         }
         fprintf(stderr,"\n");
     }
@@ -4375,51 +3281,23 @@ void printImageInt(const SCANMETA* meta, const int* imageInt) {
 
 
 
-void printImageFloat(const SCANMETA* meta, const float* imageFloat) {
-
-    int nAzim;
-    int iAzim;
-    int nRang;
-    int iRang;
-    int iGlobal;
-
-    nAzim = meta->nAzim;
-    nRang = meta->nRang;
+static int printMeta(PolarScan_t* scan, const char* quantity) {
     
-    int* imageInt = malloc(sizeof(int) * nRang * nAzim);
-    iGlobal = 0;
+    fprintf(stderr,"scan->heig = %f\n",PolarScan_getHeight(scan));
+    fprintf(stderr,"scan->elev = %f\n",PolarScan_getElangle(scan));
+    fprintf(stderr,"scan->nRang = %ld\n",PolarScan_getNbins(scan));
+    fprintf(stderr,"scan->nAzim = %ld\n",PolarScan_getNrays(scan));
+    fprintf(stderr,"scan->rangeScale = %f\n",PolarScan_getRscale(scan));
+    fprintf(stderr,"scan->azimScale = %f\n",360.0f/PolarScan_getNrays(scan));
     
-    for (iAzim = 0; iAzim < nAzim; iAzim++) {
-        for (iRang = 0; iRang < nRang; iRang++) {
-            
-            iGlobal = iRang + iAzim * nRang;
-            imageInt[iGlobal] = (int) imageFloat[iGlobal];
-            iGlobal += 1;
-            
-        }
-    }     
-
-    printImageInt(meta,imageInt);
+    PolarScanParam_t* scanParam = PolarScan_getParameter(scan,quantity);
     
-    free(imageInt);
-    
-} // printImageFloat
-
-
-
-
-
-static int printMeta(const SCANMETA* meta, const char* varName) {
-    
-    fprintf(stderr,"%s->heig = %f\n",varName,meta->heig);
-    fprintf(stderr,"%s->elev = %f\n",varName,meta->elev);
-    fprintf(stderr,"%s->nRang = %d\n",varName,meta->nRang);
-    fprintf(stderr,"%s->nAzim = %d\n",varName,meta->nAzim);
-    fprintf(stderr,"%s->rangeScale = %f\n",varName,meta->rangeScale);
-    fprintf(stderr,"%s->azimScale = %f\n",varName,meta->azimScale);
-    fprintf(stderr,"%s->valueOffset = %f\n",varName,meta->valueOffset);
-    fprintf(stderr,"%s->valueScale = %f\n",varName,meta->valueScale);
-    fprintf(stderr,"%s->missing = %f\n",varName,meta->missing);
+    if(scanParam != (PolarScanParam_t*) NULL){
+        fprintf(stderr,"scan->%s->valueOffset = %f\n",quantity,PolarScanParam_getOffset(scanParam));
+        fprintf(stderr,"scan->%s->valueScale = %f\n",quantity,PolarScanParam_getGain(scanParam));
+        fprintf(stderr,"scan->%s->nodata = %f\n",quantity,PolarScanParam_getNodata(scanParam));
+        fprintf(stderr,"scan->%s->undetect = %f\n",quantity,PolarScanParam_getUndetect(scanParam));
+    }
     
     return 0;
 
@@ -4650,137 +3528,7 @@ static void updateFlagFieldsInPointsArray(const float* yObs, const float* yFitte
 
 
 
-
-static int updateMap(int *cellImage, const int nGlobal, CELLPROP *cellProp, const int nCells, vol2bird_t* alldata) {
-
-    // ------------------------------------------------------------------------- //
-    // This function updates cellImage by dropping cells and reindexing the map. //
-    // Leaving index 0 unused, will be used for assigning cell fringes           //
-    // ------------------------------------------------------------------------- //
-
-    int iGlobal;
-    int iCell;
-    int iCellNew;
-    int nCellsValid;
-    int cellImageValue;
-
-
-    #ifdef FPRINTFON
-    int minValue = cellImage[0];
-    int maxValue = cellImage[0];
-    for (iGlobal = 1;iGlobal < nGlobal;iGlobal++) {
-        if (cellImage[iGlobal] < minValue) {
-            minValue = cellImage[iGlobal];
-        }
-        if (cellImage[iGlobal] > maxValue) {
-            maxValue = cellImage[iGlobal];
-        }
-    }
-    fprintf(stderr,"minimum value in cellImage array = %d.\n", minValue);
-    fprintf(stderr,"maximum value in cellImage array = %d.\n", maxValue);
-    #endif
-
-    nCellsValid = nCells;
-
-    for (iGlobal = 0; iGlobal < nGlobal; iGlobal++) {
-
-        if (cellImage[iGlobal] == -1) {
-            continue;
-        }
-
-        cellImageValue = cellImage[iGlobal];
-
-        if (cellImageValue > nCells - 1) {
-            fprintf(stderr, "You just asked for the properties of cell %d, which does not exist.\n", cellImageValue);
-            continue;
-        }
-
-        if (cellProp[cellImageValue].drop == TRUE) {
-            cellImage[iGlobal] = -1;
-        }
-    }
-
-    // label small cells so that 'removeDroppedCells()' will remove them (below)
-    for (iCell = 0; iCell < nCells; iCell++) {
-        if (cellProp[iCell].nGates < alldata->constants.nGatesCellMin) {
-            cellProp[iCell].drop = TRUE;
-        }
-    }
-
-    // remove all cell that have .drop == TRUE
-    nCellsValid = removeDroppedCells(&cellProp[0],nCells);
-
-    // sort the cells by area
-    sortCellsByArea(&cellProp[0],nCells);
-
-
-    #ifdef FPRINTFON
-    fprintf(stderr,"nCellsValid = %d\n",nCellsValid);
-    fprintf(stderr,"\n");
-    #endif
-
-    // replace the values in cellImage with newly calculated index values:
-    for (iCell = 0; iCell < nCells; iCell++) {
-
-        if (iCell < nCellsValid) {
-            iCellNew = -1 * (iCell + 2 + 100);
-        }
-        else {
-            iCellNew = -1;
-        }
-
-        #ifdef FPRINTFON
-        fprintf(stderr,"before: cellProp[%d].index = %d.\n",iCell,cellProp[iCell].index);
-        fprintf(stderr,"before: cellProp[%d].nGates = %d.\n",iCell,cellProp[iCell].nGates);
-        fprintf(stderr,"before: iCell = %d.\n",iCell);
-        fprintf(stderr,"before: iCellNew = %d.\n",iCellNew);
-        fprintf(stderr,"\n");
-        #endif
-
-        for (iGlobal = 0; iGlobal < nGlobal; iGlobal++) {
-            if (cellImage[iGlobal] == cellProp[iCell].index) {
-                cellImage[iGlobal] = iCellNew;
-            }
-        }
-        // have the indices in cellProp match the re-numbering
-        cellProp[iCell].index = iCellNew;
-
-    } // (iCell = 0; iCell < nCells; iCell++)
-
-
-    // once you've re-numbered everything, flip the sign back and
-    // remove the offset of 100...
-    for (iGlobal = 0; iGlobal < nGlobal; iGlobal++) {
-        if (cellImage[iGlobal] == -1) {
-            // do nothing
-        }
-        else {
-            cellImage[iGlobal] = (-1 * cellImage[iGlobal]) - 100;
-        }
-    }
-    // ...and make sure the indices in cellProp match that change
-    for (iCell = 0; iCell < nCells; iCell++) {
-
-        if (cellProp[iCell].index == -1) {
-            // do nothing
-        }
-        else {
-            cellProp[iCell].index = (-1 * cellProp[iCell].index) - 100;
-        }
-
-        #ifdef FPRINTFON
-        fprintf(stderr,"after: cellProp[%d].index = %d.\n",iCell,cellProp[iCell].index);
-        fprintf(stderr,"after: cellProp[%d].nGates = %d.\n",iCell,cellProp[iCell].nGates);
-        fprintf(stderr,"\n");
-        #endif
-    }
-
-    return nCellsValid;
-} // updateMap
-
-
-
-static int updateMapRave(PolarScan_t* scan, CELLPROP *cellProp, const int nCells, vol2bird_t* alldata) {
+static int updateMap(PolarScan_t* scan, CELLPROP *cellProp, const int nCells, vol2bird_t* alldata) {
 
     // ------------------------------------------------------------------------- //
     // This function updates cellImage by dropping cells and reindexing the map. //
@@ -4793,7 +3541,7 @@ static int updateMapRave(PolarScan_t* scan, CELLPROP *cellProp, const int nCells
     int nCellsValid;
     int cellImageValue;
 
-    PolarScanParam_t *cellParam = PolarScan_getParameter(scan, "CELL");
+    PolarScanParam_t *cellParam = PolarScan_getParameter(scan, CELLNAME);
     int* cellImage = (int *) PolarScanParam_getData(cellParam);
 
     int nGlobal = PolarScanParam_getNbins(cellParam) * PolarScanParam_getNrays(cellParam);
@@ -5664,6 +4412,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.printDbz = cfg_getbool(*cfg,"PRINT_DBZ");
     alldata->options.printDealias = cfg_getbool(*cfg,"PRINT_DEALIAS");
     alldata->options.printVrad = cfg_getbool(*cfg,"PRINT_VRAD");
+    alldata->options.printRhohv = cfg_getbool(*cfg,"PRINT_RHOHV");
     alldata->options.printTex = cfg_getbool(*cfg,"PRINT_TEXTURE");
     alldata->options.printCell = cfg_getbool(*cfg,"PRINT_CELL");
     alldata->options.printCellProp = cfg_getbool(*cfg,"PRINT_CELL_PROP");

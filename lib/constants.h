@@ -91,8 +91,13 @@
 // Raw value used for gates or layers when below the measurement detection threshold
 // or when information could not be retrieved (radiated but nothing detected or calculated)
 #define NODATA -1000
+// name under which the calculated texture quantity will be stored
+#define TEXNAME "VTEX"
+// name under which the calculated raincell masking quantity will be stored
+#define CELLNAME "CELL"
+// name under which the static cluttermap will be stored
+#define CLUTNAME "CLUT"
 // Name of the program, to be stored as task attribute in ODIM
-
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
 #define VERSION "0.3.3"
@@ -133,6 +138,8 @@
 #define PRINT_DEALIAS 0
 // print vrad to stderr
 #define PRINT_VRAD 0
+// print rhohv to stderr
+#define PRINT_RHOHV 0
 // print cell to stderr
 #define PRINT_CELL 0
 // print cell properties to stderr

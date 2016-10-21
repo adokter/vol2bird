@@ -102,6 +102,7 @@ struct vol2birdOptions {
     int printDbz;             /* print dbz to stderr */
     int printDealias;         /* print aliased and dealiased vrad pairs to stderr */
     int printVrad;            /* print vrad to stderr */
+    int printRhohv;           /* print rhohv to stderr */
     int printCell;            /* print cell to stderr */
     int printCellProp;        /* print cell properties to stderr */
     int printTex;             /* print texture to stderr */
@@ -338,6 +339,12 @@ struct vol2birdScanUse {
     char vradName[10];
     // the correlation coefficient quantity used for this scan
     char rhohvName[10];
+    // the texture field quantity used for this scan
+    char texName[10];
+    // the raincell masking quantity used for this scan
+    char cellName[10];
+    // the static clutter map quantity used for this scan
+    char clutName[10];
 };
 typedef struct vol2birdScanUse vol2birdScanUse_t;
 
