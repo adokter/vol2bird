@@ -814,12 +814,12 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 // ------------------------------------------------------------- //
                 //                      calculate vrad texture                   //
                 // ------------------------------------------------------------- //
-    
+
+                calcTexture(&texImage[0], &vradImage[0], &dbzImage[0], 
+                            &texMeta, &vradMeta, &dbzMeta, alldata);
+
                 calcTextureRave(scan, scanUse[iScan], alldata);
-    
-//                calcTexture(&texImage[0], &vradImage[0], &dbzImage[0], 
-//                            &texMeta, &vradMeta, &dbzMeta, alldata);
-                    
+                        
                 // ------------------------------------------------------------- //
                 //        find (weather) cells in the reflectivity image         //
                 // ------------------------------------------------------------- //
@@ -827,15 +827,15 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 int nCells0 = -1;
                 int nCells = -1;
                 if (alldata->options.dualPol){
-//                    nCells = findWeatherCells(&rhohvImage[0], &cellImage[0], 
-//                                       &rhohvMeta,alldata->options.rhohvThresMin,TRUE,alldata);
+                    nCells = findWeatherCells(&rhohvImage[0], &cellImage[0], 
+                                       &rhohvMeta,alldata->options.rhohvThresMin,TRUE,alldata);
                     nCells = findWeatherCellsRave(scan,scanUse[iScan].rhohvName,
                                     alldata->options.rhohvThresMin,TRUE,alldata);
 
                 }
                 else{
-//                    nCells0 = findWeatherCells(&dbzImage[0], &cellImage[0], 
-//                                       &dbzMeta,alldata->options.dbzThresMin,TRUE,alldata);
+                    nCells0 = findWeatherCells(&dbzImage[0], &cellImage[0], 
+                                       &dbzMeta,alldata->options.dbzThresMin,TRUE,alldata);
                     nCells = findWeatherCellsRave(scan,scanUse[iScan].dbzName,alldata->options.dbzThresMin,TRUE,alldata);
                 }
                 
@@ -852,9 +852,9 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 //                      analyze cells                            //
                 // ------------------------------------------------------------- //
     
-//                analyzeCells(&dbzImage[0], &vradImage[0], &texImage[0], 
-//                    &clutterImage[0], &cellImage[0], &dbzMeta, &vradMeta, &texMeta, 
-//                    &clutterMeta, nCells0, alldata);
+                analyzeCells(&dbzImage[0], &vradImage[0], &texImage[0], 
+                    &clutterImage[0], &cellImage[0], &dbzMeta, &vradMeta, &texMeta, 
+                    &clutterMeta, nCells0, alldata);
 
                 analyzeCellsRave(scan, scanUse[iScan], nCells, alldata);
     
@@ -862,11 +862,11 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 //                     calculate fringe                          //
                 // ------------------------------------------------------------- //
     
-//              fringeCells(&cellImage[0], cellMeta.nRang, cellMeta.nAzim, 
-//                  cellMeta.azimScale, cellMeta.rangeScale, alldata);
+                fringeCells(&cellImage[0], cellMeta.nRang, cellMeta.nAzim, 
+                    cellMeta.azimScale, cellMeta.rangeScale, alldata);
 
                 fringeCellsRave(scan, alldata); 
-    
+                
                 // ------------------------------------------------------------- //
                 //            print selected outputs to stderr                   //
                 // ------------------------------------------------------------- //
@@ -914,10 +914,10 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                         &cellImage[0], 
                         altitudeMin, altitudeMax, 
                         &(alldata->points.points[0]), iRowPoints, alldata->points.nColsPoints, alldata);
-
+                    
                     n = getListOfSelectedGatesRave(scan, scanUse[iScan], altitudeMin, altitudeMax, 
                         &(alldata->points.points[0]), iRowPoints, alldata->points.nColsPoints, alldata);
-
+                    
                     alldata->points.nPointsWritten[iLayer] += n;
 
                     if (alldata->points.indexFrom[iLayer] + alldata->points.nPointsWritten[iLayer] > alldata->points.indexTo[iLayer]) {
@@ -2877,7 +2877,7 @@ static int getListOfSelectedGatesRave(PolarScan_t* scan, vol2birdScanUse_t scanU
 
             // store the location as an azimuth angle, elevation angle combination
             points_local[iRowPoints * nColsPoints_local + 0] = gateAzim;
-            points_local[iRowPoints * nColsPoints_local + 1] = elevAngle;
+            points_local[iRowPoints * nColsPoints_local + 1] = elevAngle * RAD2DEG;
 
             // also store the dbz value --useful when estimating the bird density
             points_local[iRowPoints * nColsPoints_local + 2] = (float) dbzValue;
@@ -5470,6 +5470,36 @@ void vol2birdPrintPointsArray(vol2bird_t* alldata) {
             fprintf(stderr, "\n");
     }    
 } // vol2birdPrintPointsArray
+
+
+
+
+void vol2birdPrintPointsArraySimple(vol2bird_t* alldata) {
+    
+    // ------------------------------------------------- //
+    // this function prints the 'points' array to stderr //
+    // ------------------------------------------------- //
+    
+    int iPoint;
+    
+    fprintf(stderr, "iPoint  azim    elev    dbz         vrad        cell     flags     nyquist vradd\n");
+    
+    for (iPoint = 0; iPoint < alldata->points.nRowsPoints * alldata->points.nColsPoints; iPoint+=alldata->points.nColsPoints) {
+                
+            fprintf(stderr, "  %6d",    iPoint/alldata->points.nColsPoints);
+            fprintf(stderr, "  %6.2f",  alldata->points.points[iPoint + alldata->points.azimAngleCol]);
+            fprintf(stderr, "  %6.2f",  alldata->points.points[iPoint + alldata->points.elevAngleCol]);
+            fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.dbzValueCol]);
+            fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.vradValueCol]);
+            fprintf(stderr, "  %6.0f",  alldata->points.points[iPoint + alldata->points.cellValueCol]);
+            fprintf(stderr, "  %8.0f",  alldata->points.points[iPoint + alldata->points.gateCodeCol]);
+            fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.nyquistCol]);
+            fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.vraddValueCol]);
+            fprintf(stderr, "\n");
+    }    
+} // vol2birdPrintPointsArray
+
+
 
 
 
