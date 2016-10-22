@@ -397,7 +397,7 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
             gateCode |= 1<<(alldata->flags.flagPositionVradMissing);
         }
 
-        if (dbzValue > alldata->options.dbzMax) {
+        if (dbzValue > alldata->misc.dbzMax) {
             // this gate's dbz value is too high to be due to birds, it must be 
             // caused by something else
             gateCode |= 1<<(alldata->flags.flagPositionDbzTooHighForBirds);
@@ -456,30 +456,44 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
             
                 // extract the scan object from the volume object
                 scan = PolarVolume_getScan(volume, iScan);
-                                
-                PolarScanParam_t *texScanParam = PolarScan_newParam(scan, scanUse->texName, RaveDataType_DOUBLE);
+                
                 PolarScanParam_t *cellScanParam = PolarScan_newParam(scan, scanUse->cellName, RaveDataType_INT);
-                PolarScanParam_t *clutScanParam = PolarScan_newParam(scan, scanUse->clutName, RaveDataType_DOUBLE);
-    
-                // ------------------------------------------------------------- //
-                //                      calculate vrad texture                   //
-                // ------------------------------------------------------------- //
+                PolarScanParam_t *texScanParam = NULL;
+                PolarScanParam_t *clutScanParam = NULL;                
 
-                calcTexture(scan, scanUse[iScan], alldata);
-                        
-                // ------------------------------------------------------------- //
-                //        find (weather) cells in the reflectivity image         //
-                // ------------------------------------------------------------- //
+                // only when static cluttermap data is available, initialize cluttermap field                
+                if(alldata->options.useStaticClutterData){
+                    clutScanParam = PolarScan_newParam(scan, scanUse->clutName, RaveDataType_DOUBLE);
+                }
+                
+                // only when dealing with normal (non-dual pol) data, initialize a vrad texture field
+                if(!alldata->options.dualPol){
+                    texScanParam = PolarScan_newParam(scan, scanUse->texName, RaveDataType_DOUBLE);
+                }
                 
                 int nCells = -1;
                 if (alldata->options.dualPol){
 
+                    // ------------------------------------------------------------- //
+                    //        find (weather) cells in the reflectivity image         //
+                    // ------------------------------------------------------------- //
+                    
                     nCells = findWeatherCells(scan,scanUse[iScan].rhohvName,
                                     alldata->options.rhohvThresMin,TRUE,alldata);
 
                 }
                 else{
 
+                    // ------------------------------------------------------------- //
+                    //                      calculate vrad texture                   //
+                    // ------------------------------------------------------------- //
+
+                    calcTexture(scan, scanUse[iScan], alldata);
+    
+                    // ------------------------------------------------------------- //
+                    //        find (weather) cells in the reflectivity image         //
+                    // ------------------------------------------------------------- //
+                    
                     nCells = findWeatherCells(scan,scanUse[iScan].dbzName,alldata->options.dbzThresMin,TRUE,alldata);
 
                 }
@@ -1586,9 +1600,9 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
     long nRang;
     float nGatesValid;
     double dbzValue;
-    double texValue;
+    double texValue = 0;
     double vradValue, vradUnconvertedValue;
-    double clutterValue;
+    double clutterValue = alldata->constants.clutterValueMin;
     double cellValue;
     
     PolarScanParam_t *dbzParam = PolarScan_getParameter(scan,scanUse.dbzName);
@@ -1635,8 +1649,8 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
             PolarScanParam_getConvertedValue(dbzParam, iRang, iAzim, &dbzValue);
             PolarScanParam_getConvertedValue(vradParam, iRang, iAzim, &vradValue);
             PolarScanParam_getValue(vradParam, iRang, iAzim, &vradUnconvertedValue);
-            PolarScanParam_getConvertedValue(clutParam, iRang, iAzim, &clutterValue);
-            PolarScanParam_getConvertedValue(texParam, iRang, iAzim, &texValue);
+            if (clutParam != NULL) PolarScanParam_getConvertedValue(clutParam, iRang, iAzim, &clutterValue);
+            if (texParam != NULL) PolarScanParam_getConvertedValue(texParam, iRang, iAzim, &texValue);
             PolarScanParam_getConvertedValue(cellParam, iRang, iAzim, &cellValue);
 	    
             iCell = (int) cellValue;
@@ -1669,6 +1683,7 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
             // pixels in clutter map not included in calculation cell properties
             if (alldata->options.useStaticClutterData == TRUE){
                 if (clutterValue > alldata->constants.clutterValueMin){
+                    fprintf(stderr,"static cluttermap active!!!\n");
                     cellProp[iCell].nGatesClutter += 1;
                     continue;
                 }
@@ -2795,8 +2810,8 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_FLOAT("MIN_NYQUIST_VELOCITY",MIN_NYQUIST_VELOCITY,CFGF_NONE),
         CFG_FLOAT("STDEV_BIRD",STDEV_BIRD,CFGF_NONE),
         CFG_FLOAT("SIGMA_BIRD",SIGMA_BIRD,CFGF_NONE),
-        CFG_FLOAT("DBZMAX",DBZMAX,CFGF_NONE),
-        CFG_FLOAT("DBZCELL",DBZCELL,CFGF_NONE),
+        CFG_FLOAT("ETAMAX",ETAMAX,CFGF_NONE),
+        CFG_FLOAT("ETACELL",ETACELL,CFGF_NONE),
         CFG_STR("DBZTYPE",DBZTYPE,CFGF_NONE),
         CFG_BOOL("REQUIRE_VRAD",REQUIRE_VRAD,CFGF_NONE),
         CFG_BOOL("DEALIAS_VRAD",DEALIAS_VRAD,CFGF_NONE),
@@ -3073,7 +3088,7 @@ static void printCellProp(CELLPROP* cellProp, float elev, int nCells, int nCells
     
     fprintf(stderr,"#Cell analysis for elevation %f:\n",elev);
     fprintf(stderr,"#Minimum cell area in pixels   : %i\n",alldata->constants.nGatesCellMin);
-    fprintf(stderr,"#Threshold for mean dBZ cell   : %g dBZ\n",alldata->options.cellDbzMin);
+    fprintf(stderr,"#Threshold for mean dBZ cell   : %g dBZ\n",alldata->misc.cellDbzMin);
     fprintf(stderr,"#Threshold for mean stdev cell : %g dBZ\n",alldata->constants.cellStdDevMax);
     fprintf(stderr,"#Valid cells                   : %i/%i\n#\n",nCellsValid,nCells);
     fprintf(stderr,"cellProp: .index .nGates .nGatesClutter .dbzAvg .texAvg .cv   .dbzMax .iRangOfMax .iAzimOfMax .drop\n");
@@ -3324,7 +3339,7 @@ static int selectCellsToDrop_singlePol(CELLPROP *cellProp, int nCells, vol2bird_
     // small area / high percentage clutter
     for (int iCell = 0; iCell < nCells; iCell++) {
         int notEnoughGates = cellProp[iCell].nGates < alldata->constants.nGatesCellMin;
-        int dbzTooLow = cellProp[iCell].dbzAvg < alldata->options.cellDbzMin;
+        int dbzTooLow = cellProp[iCell].dbzAvg < alldata->misc.cellDbzMin;
         int texTooHigh = cellProp[iCell].texAvg > alldata->constants.cellStdDevMax;
         int tooMuchClutter = ((float) cellProp[iCell].nGatesClutter / cellProp[iCell].nGates) > alldata->constants.cellClutterFractionMax;
         
@@ -3906,7 +3921,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         //print the dealiased values to stderr
                         if(alldata->options.printDealias == TRUE){
                             printDealias(&pointsSelection[0], alldata->misc.nDims, &yNyquist[0],
-                                            &yObs[0], &yDealias[0], nPointsIncluded, iProfileType, iLayer, iPass);
+                                            &yObs[0], &yDealias[0], nPointsIncluded, iProfileType, iLayer+1, iPass+1);
                         }
 
                         
@@ -4144,12 +4159,11 @@ void vol2birdPrintOptions(vol2bird_t* alldata) {
     fprintf(stderr,"%-25s = %f\n","azimMin",alldata->options.azimMin);
     fprintf(stderr,"%-25s = %f\n","birdRadarCrossSection",alldata->options.birdRadarCrossSection);
     fprintf(stderr,"%-25s = %f\n","cellClutterFractionMax",alldata->constants.cellClutterFractionMax);
-    fprintf(stderr,"%-25s = %f\n","cellDbzMin",alldata->options.cellDbzMin);
+    fprintf(stderr,"%-25s = %f\n","cellEtaMin",alldata->options.cellEtaMin);
     fprintf(stderr,"%-25s = %f\n","cellStdDevMax",alldata->constants.cellStdDevMax);
     fprintf(stderr,"%-25s = %f\n","chisqMin",alldata->constants.chisqMin);
     fprintf(stderr,"%-25s = %f\n","clutterValueMin",alldata->constants.clutterValueMin);
-    fprintf(stderr,"%-25s = %f\n","dbzFactor",alldata->misc.dbzFactor);
-    fprintf(stderr,"%-25s = %f\n","dbzMax",alldata->options.dbzMax);
+    fprintf(stderr,"%-25s = %f\n","etaMax",alldata->options.etaMax);
     fprintf(stderr,"%-25s = %f\n","dbzThresMin",alldata->options.dbzThresMin);
     fprintf(stderr,"%-25s = %s\n","dbzType",alldata->options.dbzType);
     fprintf(stderr,"%-25s = %f\n","elevMax",alldata->options.elevMax);
@@ -4425,8 +4439,8 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.minNyquist = cfg_getfloat(*cfg,"MIN_NYQUIST_VELOCITY");
     alldata->options.birdRadarCrossSection = cfg_getfloat(*cfg,"SIGMA_BIRD");
     alldata->options.stdDevMinBird = cfg_getfloat(*cfg,"STDEV_BIRD");
-    alldata->options.dbzMax = cfg_getfloat(*cfg,"DBZMAX");
-    alldata->options.cellDbzMin = cfg_getfloat(*cfg,"DBZCELL");
+    alldata->options.etaMax = cfg_getfloat(*cfg,"ETAMAX");
+    alldata->options.cellEtaMin = cfg_getfloat(*cfg,"ETACELL");
     strcpy(alldata->options.dbzType,cfg_getstr(*cfg,"DBZTYPE"));
     alldata->options.requireVrad = cfg_getbool(*cfg,"REQUIRE_VRAD");
     alldata->options.dealiasVrad = cfg_getbool(*cfg,"DEALIAS_VRAD");
@@ -4457,13 +4471,17 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->constants.vradMin = VRADMIN;
 
     // ------------------------------------------------------------- //
-    //                       some other variables                    //
+    //       some other variables, derived from user options         //
     // ------------------------------------------------------------- //
 
     alldata->misc.rCellMax = alldata->options.rangeMax + RCELLMAX_OFFSET;
     alldata->misc.nDims = 2;
     alldata->misc.nParsFitted = 3;
-    alldata->misc.dbzFactor = (pow(alldata->constants.refracIndex,2) * 1000 * pow(PI,5))/pow(alldata->options.radarWavelength,4);
+
+    // the following settings depend on wavelength, will be set in Vol2birdSetup
+    alldata->misc.dbzFactor = NAN;
+    alldata->misc.dbzMax = NAN;
+    alldata->misc.cellDbzMin = NAN;
 
     alldata->misc.loadConfigSuccessful = TRUE;
 
@@ -4493,7 +4511,13 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     else{
         fprintf(stderr,"Warning: radar wavelength not stored in polar volume. Using user-defined value of %f cm ...\n", alldata->options.radarWavelength);
     }
- 
+    
+    // Now that we have the wavelength, calculate its derived quantities:
+    // dbzFactor is the proportionality constant between reflectivity factor Z in mm^6/m^3
+    // and reflectivity eta in cm^2/km^3, when radarWavelength in cm:
+    alldata->misc.dbzFactor = (pow(alldata->constants.refracIndex,2) * 1000 * pow(PI,5))/pow(alldata->options.radarWavelength,4);
+    alldata->misc.dbzMax = 10*log(alldata->options.etaMax / alldata->misc.dbzFactor)/log(10);
+    alldata->misc.cellDbzMin = 10*log(alldata->options.cellEtaMin / alldata->misc.dbzFactor)/log(10);
  
     // ------------------------------------------------------------- //
     //     store all options and constants in task_args string       //
@@ -4508,7 +4532,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         "rangeMin=%f,elevMax=%f,elevMin=%f,radarWavelength=%f,"
         "useStaticClutterData=%i,fitVrad=%i,exportBirdProfileAsJSONVar=%i,"
         "minNyquist=%f,birdRadarCrossSection=%f,stdDevMinBird=%f,"
-        "cellDbzMin=%f,dbzMax=%f,dbzType=%s,requireVrad=%i,"
+        "cellEtaMin=%f,etaMax=%f,dbzType=%s,requireVrad=%i,"
         "dealiasVrad=%i,dealiasRecycle=%i,dualPol=%i,rhohvThresMin=%f,"
     
         "nGatesCellMin=%i,cellClutterFractionMax=%f,"
@@ -4532,8 +4556,8 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         alldata->options.minNyquist,
         alldata->options.birdRadarCrossSection,
         alldata->options.stdDevMinBird,
-        alldata->options.cellDbzMin,
-        alldata->options.dbzMax,
+        alldata->options.cellEtaMin,
+        alldata->options.etaMax,
         alldata->options.dbzType,
         alldata->options.requireVrad,
         alldata->options.dealiasVrad,

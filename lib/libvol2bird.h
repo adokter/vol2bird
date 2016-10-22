@@ -113,8 +113,8 @@ struct vol2birdOptions {
     int exportBirdProfileAsJSONVar; /* whether you want to export the vertical bird profile as JSON */
     float minNyquist;               /* Minimum Nyquist velocity [m/s] to include a scan; */
     float birdRadarCrossSection;    /* Bird radar cross section [cm^2] */
-    float dbzMax;                   /* Maximum reflectivity factor of reflectivity gates containing birds */
-    float cellDbzMin;               /* Maximum mean reflectivity factor of cells of birds */
+    float etaMax;                   /* Maximum reflectivity factor of reflectivity gates containing birds */
+    float cellEtaMin;               /* Maximum mean reflectivity [cm^2/km^3] of cells of birds */
     float stdDevMinBird;            /* Minimum VVP radial velocity standard deviation for layer containing birds*/
     char dbzType[10];               /* Preferred dBZ quantity to use */
     int requireVrad;                /* require range gates to have a valid radial velocity measurement */
@@ -308,7 +308,11 @@ struct vol2birdMisc {
     int nParsFitted;
     // the factor that is used when converting from Z to eta, calculated from radar wavelength
     float dbzFactor;
-    // whether the vol2bird module has been initialized
+    //Maximum mean reflectivity factor of cells of birds (conversion of cellEtaMin)
+    float cellDbzMin;                   
+    //Maximum reflectivity factor of reflectivity factor gates containing birds (conversion of cellEtaMax)
+    float dbzMax;
+    // whether the vol2bird module has been initialized    
     int initializationSuccessful;
     // whether vol2bird calculated a valid bird profile
     int vol2birdSuccessful;

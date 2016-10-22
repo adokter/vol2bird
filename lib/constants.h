@@ -11,10 +11,8 @@
 #define CHISQMIN 1e-5
 // cells with clutter fractions above this value are likely not birds
 #define CLUTPERCCELL 0.5
-// threshold dbz value for excluding gates as clutter (static clutter only)
+// threshold dbz value (on the external static clutter map!) above which gates are excluded as clutter
 #define DBZCLUTTER -10.0
-// minimum dbz for inclusion in a weather cell
-#define DBZMIN 0.0
 // each weather cell identified by findWeatherCells() is grown by a distance
 // equal to 'fringeDist' using a region-growing approach
 #define FRINGEDIST 5000.0
@@ -109,7 +107,7 @@
 //-------------------------------------------------------//
 
 // the number of layers in an altitude profile
-#define NLAYER 30
+#define NLAYER 25
 // the width/thickness of a layer [m]
 #define HLAYER 200.0f
 // the minimum range [m] used for constructing the bird density profile
@@ -163,10 +161,12 @@
 // Bird radar cross section [cm^2]
 #define SIGMA_BIRD 11.0f
 // Maximum mean reflectivity factor for cells containing birds
-#define DBZCELL 15.0f
-// Maximum reflectivity factor for gates containing birds
-#define DBZMAX 20.0f
-// reflectivity quantity to use, one of DBZH, DBZV, TH, TV
+#define ETACELL 11500.0f
+// Maximum reflectivity factor for single gates containing birds
+#define ETAMAX 36000.0f
+// minimum dbz of a gate to be considered for inclusion in a weather cell
+#define DBZMIN 0.0
+// reflectivity quantity to use, one of "DBZH", "DBZV", "TH", "TV"
 #define DBZTYPE "DBZH"
 // for a range gate to contribute it should have a valid radial velocity
 #define REQUIRE_VRAD 0
