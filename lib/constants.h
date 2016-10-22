@@ -11,10 +11,8 @@
 #define CHISQMIN 1e-5
 // cells with clutter fractions above this value are likely not birds
 #define CLUTPERCCELL 0.5
-// threshold dbz value for excluding gates as clutter (static clutter only)
+// threshold dbz value (on the external static clutter map!) above which gates are excluded as clutter
 #define DBZCLUTTER -10.0
-// minimum dbz for inclusion in a weather cell
-#define DBZMIN 0.0
 // each weather cell identified by findWeatherCells() is grown by a distance
 // equal to 'fringeDist' using a region-growing approach
 #define FRINGEDIST 5000.0
@@ -70,16 +68,16 @@
 // and correlation coefficient
 // Once encoded values should be positive for storage in RAVE objects
 // Used with data read by the RSL library only
-#define RSL_OFFSET_DBZ -100
-#define RSL_GAIN_DBZ 0.01
-#define RSL_OFFSET_VRAD -60
-#define RSL_GAIN_VRAD 0.01
-#define RSL_OFFSET_RHOHV -0.002
-#define RSL_GAIN_RHOHV 0.001
+#define RSL_OFFSET_DBZ 0
+#define RSL_GAIN_DBZ 1
+#define RSL_OFFSET_VRAD 0
+#define RSL_GAIN_VRAD 1
+#define RSL_OFFSET_RHOHV 0
+#define RSL_GAIN_RHOHV 1
 // Encoded values reserved for nodata and undetects.
 // Should be positive integers larger than zero
-#define RSL_NODATA 1
-#define RSL_UNDETECT 2
+#define RSL_NODATA -1000
+#define RSL_UNDETECT -999
 #endif
 
 //-------------------------------------------------------//
@@ -87,23 +85,29 @@
 //-------------------------------------------------------//
 
 // Raw value used for gates or layers void of data (never ra-diated)
-#define UNDETECT FLT_MAX
+#define UNDETECT -999
 // Raw value used for gates or layers when below the measurement detection threshold
 // or when information could not be retrieved (radiated but nothing detected or calculated)
-#define NODATA -FLT_MAX
+#define NODATA -1000
+// name under which the calculated texture quantity will be stored
+#define TEXNAME "VTEX"
+// name under which the calculated raincell masking quantity will be stored
+#define CELLNAME "CELL"
+// name under which the static cluttermap will be stored
+#define CLUTNAME "CLUT"
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
-#define VERSION "0.3.3"
+#define VERSION "0.3.4"
 // Date of latest version of the program
-#define VERSIONDATE "17-Oct-2016"
+#define VERSIONDATE "22-Oct-2016"
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //
 //-------------------------------------------------------//
 
 // the number of layers in an altitude profile
-#define NLAYER 30
+#define NLAYER 25
 // the width/thickness of a layer [m]
 #define HLAYER 200.0f
 // the minimum range [m] used for constructing the bird density profile
@@ -132,6 +136,8 @@
 #define PRINT_DEALIAS 0
 // print vrad to stderr
 #define PRINT_VRAD 0
+// print rhohv to stderr
+#define PRINT_RHOHV 0
 // print cell to stderr
 #define PRINT_CELL 0
 // print cell properties to stderr
@@ -155,10 +161,12 @@
 // Bird radar cross section [cm^2]
 #define SIGMA_BIRD 11.0f
 // Maximum mean reflectivity factor for cells containing birds
-#define DBZCELL 15.0f
-// Maximum reflectivity factor for gates containing birds
-#define DBZMAX 20.0f
-// reflectivity quantity to use, one of DBZH, DBZV, TH, TV
+#define ETACELL 11500.0f
+// Maximum reflectivity factor for single gates containing birds
+#define ETAMAX 36000.0f
+// minimum dbz of a gate to be considered for inclusion in a weather cell
+#define DBZMIN 0.0
+// reflectivity quantity to use, one of "DBZH", "DBZV", "TH", "TV"
 #define DBZTYPE "DBZH"
 // for a range gate to contribute it should have a valid radial velocity
 #define REQUIRE_VRAD 0

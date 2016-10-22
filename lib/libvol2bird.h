@@ -102,6 +102,7 @@ struct vol2birdOptions {
     int printDbz;             /* print dbz to stderr */
     int printDealias;         /* print aliased and dealiased vrad pairs to stderr */
     int printVrad;            /* print vrad to stderr */
+    int printRhohv;           /* print rhohv to stderr */
     int printCell;            /* print cell to stderr */
     int printCellProp;        /* print cell properties to stderr */
     int printTex;             /* print texture to stderr */
@@ -112,8 +113,8 @@ struct vol2birdOptions {
     int exportBirdProfileAsJSONVar; /* whether you want to export the vertical bird profile as JSON */
     float minNyquist;               /* Minimum Nyquist velocity [m/s] to include a scan; */
     float birdRadarCrossSection;    /* Bird radar cross section [cm^2] */
-    float dbzMax;                   /* Maximum reflectivity factor of reflectivity gates containing birds */
-    float cellDbzMin;               /* Maximum mean reflectivity factor of cells of birds */
+    float etaMax;                   /* Maximum reflectivity factor of reflectivity gates containing birds */
+    float cellEtaMin;               /* Maximum mean reflectivity [cm^2/km^3] of cells of birds */
     float stdDevMinBird;            /* Minimum VVP radial velocity standard deviation for layer containing birds*/
     char dbzType[10];               /* Preferred dBZ quantity to use */
     int requireVrad;                /* require range gates to have a valid radial velocity measurement */
@@ -307,7 +308,11 @@ struct vol2birdMisc {
     int nParsFitted;
     // the factor that is used when converting from Z to eta, calculated from radar wavelength
     float dbzFactor;
-    // whether the vol2bird module has been initialized
+    //Maximum mean reflectivity factor of cells of birds (conversion of cellEtaMin)
+    float cellDbzMin;                   
+    //Maximum reflectivity factor of reflectivity factor gates containing birds (conversion of cellEtaMax)
+    float dbzMax;
+    // whether the vol2bird module has been initialized    
     int initializationSuccessful;
     // whether vol2bird calculated a valid bird profile
     int vol2birdSuccessful;
@@ -338,6 +343,12 @@ struct vol2birdScanUse {
     char vradName[10];
     // the correlation coefficient quantity used for this scan
     char rhohvName[10];
+    // the texture field quantity used for this scan
+    char texName[10];
+    // the raincell masking quantity used for this scan
+    char cellName[10];
+    // the static clutter map quantity used for this scan
+    char clutName[10];
 };
 typedef struct vol2birdScanUse vol2birdScanUse_t;
 
@@ -373,6 +384,8 @@ void vol2birdPrintIndexArrays(vol2bird_t* alldata);
 void vol2birdPrintOptions(vol2bird_t* alldata);
 
 void vol2birdPrintPointsArray(vol2bird_t* alldata);
+
+void vol2birdPrintPointsArraySimple(vol2bird_t* alldata);
 
 int vol2birdLoadConfig(vol2bird_t* alldata);
 
