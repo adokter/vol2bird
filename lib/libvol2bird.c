@@ -735,6 +735,24 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 	// Allocate memory for useScan variable
 	scanUse = (vol2birdScanUse_t *) malloc(nScans * sizeof(vol2birdScanUse_t));
 	
+    // check that correlation coefficient is present
+    // if not, revert to single pol mode
+    if (alldata->options.dualPol){
+        int dualPolPresent = FALSE;
+        
+        for (iScan = 0; iScan < nScans; iScan++)
+        {
+            scan = PolarVolume_getScan(volume, iScan);
+            if (PolarScan_hasParameter(scan, "RHOHV")){
+                dualPolPresent = TRUE;
+            }
+        }
+        if (!dualPolPresent){
+            fprintf(stderr,"Warning: required dual-pol moments not found, entering SINGLE POL mode\n");
+            alldata->options.dualPol = FALSE;
+        }
+    }
+    
 	for (iScan = 0; iScan < nScans; iScan++)
 	{
 		// Initialize useScan and result
@@ -4596,6 +4614,12 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         fprintf(stderr, "Error: no valid scans found in polar volume, aborting ...\n");
         return -1;
     }
+
+    // Print warning for S-band in single pol mode
+    if(alldata->options.radarWavelength > 7.5 && !alldata->options.dualPol){
+        fprintf(stderr,"Warning: using experimental SINGLE polarization mode on S-band data, results may be unreliable!\n");
+    }
+
 
     int iLayer;
     
