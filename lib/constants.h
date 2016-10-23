@@ -40,8 +40,6 @@
 #define NTEXMIN 4
 // the refractive index of water
 #define REFRACTIVE_INDEX_OF_WATER 0.964
-// minimum standard deviation of the VVP fit
-#define STDEVCELL 5.0
 // range gates up to a distance of RANGE_MAX+RCELLMAX_OFFSET are read into memory
 // the extra offset allows for the raincell search to extend somewhat further
 // than the maximum range used in the profile generation (RANGE_MAX).
@@ -156,6 +154,10 @@
 #define EXPORT_BIRD_PROFILE_AS_JSON 0
 // Minimum Nyquist velocity
 #define MIN_NYQUIST_VELOCITY 20.0f
+// when analyzing cells, only cells for which the stddev of vrad
+// (aka the texture) is less than cellStdDevMax are considered in the
+// rest of the analysis
+#define STDEV_CELL 5.0
 // VVP Radial velocity standard deviation threshold
 #define STDEV_BIRD 2.0f
 // Bird radar cross section [cm^2]

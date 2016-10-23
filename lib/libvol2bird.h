@@ -115,6 +115,9 @@ struct vol2birdOptions {
     float birdRadarCrossSection;    /* Bird radar cross section [cm^2] */
     float etaMax;                   /* Maximum reflectivity factor of reflectivity gates containing birds */
     float cellEtaMin;               /* Maximum mean reflectivity [cm^2/km^3] of cells of birds */
+    float cellStdDevMax;            /* When analyzing cells, only cells for which the stddev of vrad */
+                                    /* (aka the texture) is less than cellStdDevMax are considered in the */
+                                    /* rest of the analysis*/    
     float stdDevMinBird;            /* Minimum VVP radial velocity standard deviation for layer containing birds*/
     char dbzType[10];               /* Preferred dBZ quantity to use */
     int requireVrad;                /* require range gates to have a valid radial velocity measurement */
@@ -139,13 +142,6 @@ struct vol2birdConstants {
     int nGatesCellMin;
     // cells with clutter fractions above this value are likely not birds
     float cellClutterFractionMax;
-    // when analyzing cells, only cells for which the average dbz is
-    // more than DBZCELL are considered in the rest of the analysis
-    float cellDbzMin;
-    // when analyzing cells, only cells for which the stddev of vrad
-    // (aka the texture) is less than cellStdDevMax are considered in the
-    // rest of the analysis
-    float cellStdDevMax;
     // minimum standard deviation of the VVP fit
     float chisqMin;
     // threshold dbz value for excluding gates as clutter (static clutter only)

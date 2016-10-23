@@ -178,7 +178,7 @@ static PyObject* _pyvol2bird_vol2bird(PyVol2Bird* self, PyObject* args)
 static struct PyMethodDef _pyvol2bird_methods[] =
 {
   {"misc_vol2birdSuccessful", NULL},
-  {"constants_cellDbzMin", NULL},
+  {"options_cellEtaMin", NULL},
   {"vol2bird", (PyCFunction)_pyvol2bird_vol2bird, 1},
   {NULL, NULL} /* sentinel */
 };
@@ -192,8 +192,8 @@ static PyObject* _pyvol2bird_getattr(PyVol2Bird* self, char* name)
 
   if (strcmp("misc_vol2birdSuccessful", name) == 0) {
     return PyInt_FromLong(self->v2b->misc.vol2birdSuccessful);
-  } else if(strcmp("constants_cellDbzMin", name) == 0) {
-    return PyFloat_FromDouble(self->v2b->constants.cellDbzMin);
+  } else if(strcmp("options_cellEtaMin", name) == 0) {
+    return PyFloat_FromDouble(self->v2b->options.cellEtaMin);
   }
 
   res = Py_FindMethod(_pyvol2bird_methods, (PyObject*) self, name);
@@ -225,15 +225,15 @@ static int _pyvol2bird_setattr(PyVol2Bird* self, char* name, PyObject* val)
     } else {
       raiseException_gotoTag(done, PyExc_ValueError, "misc_vol2birdSuccessful must be number")
     }
-  } else if (strcmp("constants_cellDbzMin", name) == 0) {
+  } else if (strcmp("options_cellEtaMin", name) == 0) {
     if (PyFloat_Check(val)) {
-      self->v2b->constants.cellDbzMin = PyFloat_AsDouble(val);
+      self->v2b->options.cellEtaMin = PyFloat_AsDouble(val);
     } else if (PyLong_Check(val)) {
-        self->v2b->constants.cellDbzMin = PyLong_AsDouble(val);
+        self->v2b->options.cellEtaMin = PyLong_AsDouble(val);
     } else if (PyInt_Check(val)) {
-        self->v2b->constants.cellDbzMin = (double)PyInt_AsLong(val);
+        self->v2b->options.cellEtaMin = (double)PyInt_AsLong(val);
     } else {
-      raiseException_gotoTag(done, PyExc_ValueError, "constants_cellDbzMin must be number")
+      raiseException_gotoTag(done, PyExc_ValueError, "options_cellEtaMin must be number")
     }
   } else {
     raiseException_gotoTag(done, PyExc_AttributeError, name);
