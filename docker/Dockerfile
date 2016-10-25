@@ -4,16 +4,18 @@ MAINTAINER Adriaan Dokter
 # installs using apt-get:
 # * libconfuse: library for parsing options
 # * libhdf5: HDF5, Hierarchichal Data Format library
+# * libgsl: the GNU Scientific Library
 # * git, for fetching repositories from Github
 # * compiler (gcc, make, etc)
 # * zlib (gzip archiving library)
+# * libbz2 (bzip2 archiving library)
 # * python
 # * numpy 
 # * proj4 library
 # * flex, otherwise configure script of RSL library does not function properly
 RUN apt-get update && apt-get install --no-install-recommends -y libconfuse-dev \
     libhdf5-dev gcc make zlib1g-dev python-dev python-numpy libproj-dev flex file \
-    && apt-get install -y git && apt-get install -y libgsl-dev
+    && apt-get install -y git && apt-get install -y libgsl-dev && apt-get install -y libbz2-dev
 
 # get a copy of hlhdf:
 # configure and build hlhdf
@@ -30,7 +32,9 @@ RUN git clone git://git.baltrad.eu/rave.git \
 
 # get a copy of RSL:
 RUN git clone https://github.com/adokter/rsl.git && cd rsl \
-    && ./configure --prefix=/opt/radar/rsl && make AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=: \
+    && cd decode_ar2v && ./configure --prefix=/usr && make && make install && cd .. \
+    && ./configure --prefix=/opt/radar/rsl \
+    && make AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=: \
     && make install AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=: \
     && cd .. && rm -rf rsl
 
@@ -49,7 +53,7 @@ RUN apt-get remove -y git gcc make python-numpy -y python-dev flex \
 RUN mkdir data
 
 # set the paths to installed libraries and executables
-ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/radar/lib:/opt/radar/rave/lib:/opt/radar/rsl/lib:/opt/radar/vol2bird/lib
+ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/radar/lib:/opt/radar/rave/lib:/opt/radar/rsl/lib:/opt/radar/vol2bird/lib:/usr/lib/x86_64-linux-gnu
 ENV PATH=${PATH}:/opt/radar/vol2bird/bin
 
 CMD vol2bird

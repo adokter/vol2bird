@@ -34,6 +34,7 @@
 
 #ifdef RSL
 #include "rsl.h"
+#include <libgen.h>
 #endif
 
 
@@ -4363,8 +4364,9 @@ PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax){
         
         // according to documentation of RSL it is not required to parse a callid
         // but in practice it is for WSR88D.
+        char* base = basename(filename);
         char callid[5];
-        strncpy(callid, filename,4);
+        strncpy(callid, base,4);
         callid[4] = 0; //null terminate destination
         radar = RSL_anyformat_to_radar(filename,callid);
  
