@@ -3109,7 +3109,7 @@ static void printCellProp(CELLPROP* cellProp, float elev, int nCells, int nCells
     // this function prints the cell properties struct to stderr  //
     // ---------------------------------------------------------- //
     
-    fprintf(stderr,"#Cell analysis for elevation %f:\n",elev*DEG2RAD);
+    fprintf(stderr,"#Cell analysis for elevation %f:\n",elev*RAD2DEG);
     fprintf(stderr,"#Minimum cell area in pixels   : %i\n",alldata->constants.nGatesCellMin);
     fprintf(stderr,"#Threshold for mean dBZ cell   : %g dBZ\n",alldata->misc.cellDbzMin);
     fprintf(stderr,"#Threshold for mean stdev cell : %g dBZ\n",alldata->options.cellStdDevMax);
