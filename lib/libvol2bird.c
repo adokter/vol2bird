@@ -177,7 +177,6 @@ static int analyzeCells(PolarScan_t *scan, vol2birdScanUse_t scanUse, const int 
     selectCellsToDrop(cellProp, nCells, alldata);    
     
     // sorting cell properties according to cell area. Drop small cells from map
-//    nCellsValid = updateMap(cellImage,nGlobal,cellProp,nCells, alldata);
     nCellsValid = updateMap(scan, cellProp, nCells, alldata);
         
     // printing of cell properties to stderr
@@ -1239,7 +1238,7 @@ static int findWeatherCells(PolarScan_t *scan, const char* quantity, float quant
 
 
     if (scanParam != NULL) {
-        quantityThres = (float) ROUND((quantityThreshold - quantityValueOffset) / quantityValueScale);
+        quantityThres = (float) ((quantityThreshold - quantityValueOffset) / quantityValueScale);
     }
 
     cellImageInitialValue = -1;
@@ -1303,8 +1302,11 @@ static int findWeatherCells(PolarScan_t *scan, const char* quantity, float quant
 
                 continue;
             }
-
-            if (quantityValueGlobal < (float) quantityThres) {
+            
+            if (selectAboveThreshold && quantityValueGlobal < (float) quantityThres){
+                continue;
+            }
+            if (!selectAboveThreshold && quantityValueGlobal > (float) quantityThres){
                 continue;
             }
 
