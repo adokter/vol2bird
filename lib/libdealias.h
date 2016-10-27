@@ -16,7 +16,7 @@
 #endif
 #define VMAX       48         /* Test field velocities up to VMAX m/s             */
 #define VAF        6          /* Test field velocities increase in steps VMAX/VAF */
-#define NF         6          /* Test field directions increase by 360/NF degrees */
+#define NF         8          /* Test field directions increase by 360/NF degrees */
 
 void printDealias(const float *points, const int nDims, const float nyquist[], 
 	const float vradObs[], float vradDealias[], const int nPoints, const int iProfileType, const int iLayer, const int iPass);
