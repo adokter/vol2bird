@@ -177,7 +177,6 @@ static int analyzeCells(PolarScan_t *scan, vol2birdScanUse_t scanUse, const int 
     selectCellsToDrop(cellProp, nCells, alldata);    
     
     // sorting cell properties according to cell area. Drop small cells from map
-//    nCellsValid = updateMap(cellImage,nGlobal,cellProp,nCells, alldata);
     nCellsValid = updateMap(scan, cellProp, nCells, alldata);
         
     // printing of cell properties to stderr
@@ -1239,7 +1238,7 @@ static int findWeatherCells(PolarScan_t *scan, const char* quantity, float quant
 
 
     if (scanParam != NULL) {
-        quantityThres = (float) ROUND((quantityThreshold - quantityValueOffset) / quantityValueScale);
+        quantityThres = (float) ((quantityThreshold - quantityValueOffset) / quantityValueScale);
     }
 
     cellImageInitialValue = -1;
@@ -1303,8 +1302,11 @@ static int findWeatherCells(PolarScan_t *scan, const char* quantity, float quant
 
                 continue;
             }
-
-            if (quantityValueGlobal < (float) quantityThres) {
+            
+            if (selectAboveThreshold && quantityValueGlobal < (float) quantityThres){
+                continue;
+            }
+            if (!selectAboveThreshold && quantityValueGlobal > (float) quantityThres){
                 continue;
             }
 
@@ -2991,12 +2993,11 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
 
 
 
-// this function replaces NODATA and UNDETECT float values to NAN
+// this function replaces NODATA and UNDETECT float values to NA and NAN
 float nanify(float value){
     float output = value;
-    if(value == NODATA || value == UNDETECT){
-        output = NAN;
-    }
+    if(value == NODATA) output = NAN;
+    if(value == UNDETECT) output = NAN;
     return output;
 } // nanify
 
@@ -3109,7 +3110,7 @@ static void printCellProp(CELLPROP* cellProp, float elev, int nCells, int nCells
     // this function prints the cell properties struct to stderr  //
     // ---------------------------------------------------------- //
     
-    fprintf(stderr,"#Cell analysis for elevation %f:\n",elev*DEG2RAD);
+    fprintf(stderr,"#Cell analysis for elevation %f:\n",elev*RAD2DEG);
     fprintf(stderr,"#Minimum cell area in pixels   : %i\n",alldata->constants.nGatesCellMin);
     fprintf(stderr,"#Threshold for mean dBZ cell   : %g dBZ\n",alldata->misc.cellDbzMin);
     fprintf(stderr,"#Threshold for mean stdev cell : %g dBZ\n",alldata->options.cellStdDevMax);

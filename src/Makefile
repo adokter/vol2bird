@@ -25,18 +25,15 @@ LDFLAGS = -L../lib
 #SRC_VOL2BIRD_DIR         = /Users/adriaan/git/vol2bird/lib
 SRC_VOL2BIRD_DIR         = ./
 
-all : vol2bird
+all : vol2bird rsl2odim
 
 ../lib/libvol2bird.so :
 	make -C ../lib libvol2bird.so
 
 VOL2BIRD_DEPS = vol2bird.c ../lib/libvol2bird.h ../lib/constants.h
+RSL2ODIM_DEPS = rsl2odim.c ../lib/libvol2bird.h
 
 vol2bird : ../lib/libvol2bird.so $(VOL2BIRD_DEPS)
-	#
-	#
-	#
-	#
 	#
 	# ------------------------------------
 	#       making vol2bird 
@@ -50,17 +47,32 @@ vol2bird : ../lib/libvol2bird.so $(VOL2BIRD_DEPS)
 	$(RSL_LIBRARY_FLAG) \
 	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) -o vol2bird $(LDFLAGS)
 	
+rsl2odim : ../lib/libvol2bird.so $(RSL2ODIM_DEPS)
+	#
+	# ------------------------------------
+	#       making rsl2odim 
+	# ------------------------------------
+	#
+	$(CC) $(CFLAGS) rsl2odim.c \
+	-I. \
+	$(RAVE_MODULE_CFLAGS) \
+	$(RAVE_MODULE_LDFLAGS) \
+	$(PROJ_LIBRARY_FLAG) \
+	$(RSL_LIBRARY_FLAG) \
+	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) -o rsl2odim $(LDFLAGS)
+	
 	#
 	# (You may still have to change your LD_LIBRARY_PATH)
 	#
 
 .PHONY : install
-install : vol2bird
+install : 
 	# ------------------------------------
 	#  copy binaries to target directory
 	# ------------------------------------
 	install -d ${prefix}/bin
 	install -m 755 vol2bird ${prefix}/bin/vol2bird
+	install -m 755 rsl2odim ${prefix}/bin/rsl2odim
 
 .PHONY : clean
 clean : 
@@ -70,11 +82,15 @@ clean :
 	@if [ -f "./vol2bird" ]; then \
 		\rm vol2bird; \
 	fi
+	@if [ -f "./rsl2odim" ]; then \
+		\rm rsl2odim; \
+	fi
 	@\rm -f *~
 
 .PHONY : distclean
 distclean:
 	@\rm -f *~
 	@\rm vol2bird
+	@\rm rsl2odim
 
 
