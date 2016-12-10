@@ -2448,7 +2448,7 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax){
 
         // get the number of range bins
         nbins = 1+rslRayZ->h.nbins+rslRayZ->h.range_bin1/rscale;
-        nbins = MIN(nbins, ROUND(30000.0f/rscale));
+        nbins = MIN(nbins, ROUND(rangeMax/rscale));
         
         // estimate the number of azimuth bins
         // early WSR88D scans have somewhat variable azimuth spacing
