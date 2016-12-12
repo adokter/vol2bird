@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
         fprintf(stderr,"   Output fields to stdout:\n");
         fprintf(stderr,"   date      - date [UTC]\n");
         fprintf(stderr,"   time      - time [UTC]\n");
-        fprintf(stderr,"   HGHT      - height above sea level [m]\n");
+        fprintf(stderr,"   HGHT      - height above mean sea level [m]. Alt. bin from HGHT to HGHT+interval)\n");
         fprintf(stderr,"   u         - speed component west to east [m/s]\n");
         fprintf(stderr,"   v         - speed component north to south [m/s]\n");
         fprintf(stderr,"   w         - vertical speed (unreliable!) [m/s]\n");
@@ -148,7 +148,11 @@ int main(int argc, char** argv) {
                 fprintf(stdout, "# vol2bird Vertical Profile of Birds (VPB)\n");
                 fprintf(stdout, "# source: %s\n",source);
                 fprintf(stdout, "# ODIM HDF5 input: %s\n",fileVolIn);
+<<<<<<< HEAD
+                printf("# date   time HGHT    u      v       w     ff    dd  sd_vvp gap dbz     eta   dens   DBZH   n   n_dbz n_all n_dbz_all\n");
+=======
                 printf("# date   time HGHT    u      v       w     ff    dd  sd_vvp gap  dbz    eta    dens   DBZH     n n_dbz n_all n_all_dbz\n");
+>>>>>>> 91f1241963e7af53516c6559829baef7b52d7089
                
                 float *profileBio;
                 float *profileAll;

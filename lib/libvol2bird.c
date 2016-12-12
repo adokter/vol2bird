@@ -976,7 +976,7 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
         fprintf(f,"   {\n");
         
         {
-            char varName[] = "altmin";
+            char varName[] = "HGHT";
             float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  0];
             if (isnan(val) == TRUE) {
                 fprintf(f,"    \"%s\":null,\n",varName);
@@ -987,7 +987,7 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
         }
         
         {
-            char varName[] = "altmax";
+            char varName[] = "HGHT_max";
             float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  1];
             if (isnan(val) == TRUE) {
                 fprintf(f,"    \"%s\":null,\n",varName);
@@ -1031,7 +1031,7 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
         }
         
         {
-            char varName[] = "hSpeed";
+            char varName[] = "ff";
             float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  5];
             if (isnan(val) == TRUE) {
                 fprintf(f,"    \"%s\":null,\n",varName);
@@ -1042,7 +1042,7 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
         }
             
         {
-            char varName[] = "hDir";
+            char varName[] = "dd";
             float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  6];
             if (isnan(val) == TRUE) {
                 fprintf(f,"    \"%s\":null,\n",varName);
@@ -1053,7 +1053,7 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
         }
         
         {    
-            char varName[] = "chi";
+            char varName[] = "sd_vvp";
             float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  7];
             if (isnan(val) == TRUE) {
                 fprintf(f,"    \"%s\":null,\n",varName);
@@ -1064,7 +1064,7 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
         }
             
         {
-            char varName[] = "hasGap";
+            char varName[] = "gap";
             float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  8];
             if (isnan(val) == TRUE) {
                 fprintf(f,"    \"%s\":null,\n",varName);
@@ -1075,7 +1075,7 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
         }
 
         {            
-            char varName[] = "dbzAvg";
+            char varName[] = "dbz";
             float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  9];
             if (isnan(val) == TRUE) {
                 fprintf(f,"    \"%s\":null,\n",varName);
@@ -1086,7 +1086,7 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
         }
             
         {
-            char varName[] = "nPoints";
+            char varName[] = "n";
             float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  10];
             if (isnan(val) == TRUE) {
                 fprintf(f,"    \"%s\":null,\n",varName);
@@ -1108,7 +1108,7 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
         }
         
         {    
-            char varName[] = "rhobird";
+            char varName[] = "dens";
             float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  12];
             if (isnan(val) == TRUE) {
                 fprintf(f,"    \"%s\":null\n",varName);
@@ -1119,7 +1119,7 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
         }
 
         {
-            char varName[] = "nPointsZ";
+            char varName[] = "n_dbz";
             float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  13];
             if (isnan(val) == TRUE) {
                 fprintf(f,"    \"%s\":null,\n",varName);
@@ -3279,11 +3279,12 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     
     //layer specification:
     profileArray2RaveField(alldata, 1, 0, "HGHT", RaveDataType_DOUBLE);
-    profileArray2RaveField(alldata, 1, 1, "width", RaveDataType_DOUBLE);
 
     //bird-specific quantities:
     profileArray2RaveField(alldata, 1, 5, "ff", RaveDataType_DOUBLE);
     profileArray2RaveField(alldata, 1, 6, "dd", RaveDataType_DOUBLE);
+    profileArray2RaveField(alldata, 1, 2, "u", RaveDataType_DOUBLE);
+    profileArray2RaveField(alldata, 1, 3, "v", RaveDataType_DOUBLE);
     profileArray2RaveField(alldata, 1, 4, "w", RaveDataType_DOUBLE);
     profileArray2RaveField(alldata, 1, 8, "gap", RaveDataType_INT);
     profileArray2RaveField(alldata, 1, 9, "dbz", RaveDataType_DOUBLE);    
