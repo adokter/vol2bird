@@ -369,7 +369,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata);
 
 float* vol2birdGetProfile(int iProfileType, vol2bird_t* alldata);
 
-PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax);
+PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax, int small);
 
 int vol2birdGetNColsProfile(vol2bird_t* alldata);
 

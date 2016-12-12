@@ -41,24 +41,24 @@ int main(int argc, char** argv) {
         fprintf(stderr,"   expects OPERA ODIM hdf5 input format, see <http://www.eumetnet.eu/opera-software>\n");
         fprintf(stderr,"   or input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>\n\n");
         fprintf(stderr,"   Output fields to stdout:\n");
-        fprintf(stderr,"   date      - date in UTC\n");
-        fprintf(stderr,"   time      - time in UTC\n");
+        fprintf(stderr,"   date      - date [UTC]\n");
+        fprintf(stderr,"   time      - time [UTC]\n");
         fprintf(stderr,"   HGHT      - height above mean sea level [m]. Alt. bin from HGHT to HGHT+interval)\n");
         fprintf(stderr,"   u         - speed component west to east [m/s]\n");
         fprintf(stderr,"   v         - speed component north to south [m/s]\n");
         fprintf(stderr,"   w         - vertical speed (unreliable!) [m/s]\n");
         fprintf(stderr,"   ff        - horizontal speed [m/s]\n");
         fprintf(stderr,"   dd        - direction [degrees, clockwise from north]\n");
-        fprintf(stderr,"   sd_vvp    - VVP radial velocity standard deviation direction [m/s]\n");
+        fprintf(stderr,"   sd_vvp    - VVP radial velocity standard deviation [m/s]\n");
         fprintf(stderr,"   gap       - Angular data gap detected [T/F]\n");
         fprintf(stderr,"   dbz       - Bird reflectivity factor [dBZ]\n");
         fprintf(stderr,"   eta       - Bird reflectivity [cm^2/km^3]\n");
         fprintf(stderr,"   dens      - Bird density [birds/km^3]\n");
         fprintf(stderr,"   DBZH      - Total reflectivity factor (bio+meteo scattering) [dBZ]\n");
-        fprintf(stderr,"   n         - number of points VVP bird velocity analysis\n");
-        fprintf(stderr,"   n_dbz     - number of points bird density estimate \n");
-        fprintf(stderr,"   n_all     - number of points VVP velocity Stdev analysis\n");
-        fprintf(stderr,"   n_all_dbz - number of points total reflectivity estimate\n\n");
+        fprintf(stderr,"   n         - number of points VVP bird velocity analysis (u,v,w,ff,dd)\n");
+        fprintf(stderr,"   n_dbz     - number of points bird density estimate (dbz,eta,dens)\n");
+        fprintf(stderr,"   n_all     - number of points VVP st.dev. estimate (sd_vvp)\n");
+        fprintf(stderr,"   n_dbz_all - number of points total reflectivity estimate (DBZH)\n\n");
         fprintf(stderr,"   Report bugs to: a.m.dokter@uva.nl\n");
         fprintf(stderr,"   vol2bird home page: <http://github.com/adokter/vol2bird>\n");
         return -1;
@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
     // read in data up to a distance of alldata.misc.rCellMax
     // we do not read in the full volume for speed/memory
     PolarVolume_t* volume = NULL;
-    volume = vol2birdGetVolume(fileVolIn, alldata.misc.rCellMax);
+    volume = vol2birdGetVolume(fileVolIn, alldata.misc.rCellMax,1);
     
     if (volume == NULL) {
         fprintf(stderr,"Error: failed to read radar volume\n");
@@ -148,7 +148,11 @@ int main(int argc, char** argv) {
                 fprintf(stdout, "# vol2bird Vertical Profile of Birds (VPB)\n");
                 fprintf(stdout, "# source: %s\n",source);
                 fprintf(stdout, "# ODIM HDF5 input: %s\n",fileVolIn);
+<<<<<<< HEAD
                 printf("# date   time HGHT    u      v       w     ff    dd  sd_vvp gap dbz     eta   dens   DBZH   n   n_dbz n_all n_dbz_all\n");
+=======
+                printf("# date   time HGHT    u      v       w     ff    dd  sd_vvp gap  dbz    eta    dens   DBZH     n n_dbz n_all n_all_dbz\n");
+>>>>>>> 91f1241963e7af53516c6559829baef7b52d7089
                
                 float *profileBio;
                 float *profileAll;
