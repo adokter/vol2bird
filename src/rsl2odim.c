@@ -7,6 +7,7 @@
 
 
 #include <stdio.h>
+#include <float.h>
 #include "rave_io.h"
 #include "polarvolume.h"
 #include "libvol2bird.h"
@@ -35,7 +36,7 @@ int main(int argc, char** argv) {
     // read in data up to a distance of alldata.misc.rCellMax
     // we do not read in the full volume for speed/memory
     PolarVolume_t* volume = NULL;
-    volume = vol2birdGetVolume(fileVolIn, NAN);
+    volume = vol2birdGetVolume(fileVolIn, 1000000, 0);
     
     if (volume == NULL) {
         fprintf(stderr,"Error: failed to read radar volume\n");
