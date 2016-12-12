@@ -148,11 +148,7 @@ int main(int argc, char** argv) {
                 fprintf(stdout, "# vol2bird Vertical Profile of Birds (VPB)\n");
                 fprintf(stdout, "# source: %s\n",source);
                 fprintf(stdout, "# ODIM HDF5 input: %s\n",fileVolIn);
-<<<<<<< HEAD
                 printf("# date   time HGHT    u      v       w     ff    dd  sd_vvp gap dbz     eta   dens   DBZH   n   n_dbz n_all n_dbz_all\n");
-=======
-                printf("# date   time HGHT    u      v       w     ff    dd  sd_vvp gap  dbz    eta    dens   DBZH     n n_dbz n_all n_all_dbz\n");
->>>>>>> 91f1241963e7af53516c6559829baef7b52d7089
                
                 float *profileBio;
                 float *profileAll;
