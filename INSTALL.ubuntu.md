@@ -1,6 +1,6 @@
 # Instructions for Ubuntu 16.04 LTS
 
-
+```
 # the directory in which we will install 
 RADAR_ROOT_DIR=${PWD}
 
@@ -63,3 +63,4 @@ cd ${RADAR_ROOT_DIR}
 # set these each time you run vol2bird, or add to .bashrc
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/hlhdf/lib:${RADAR_ROOT_DIR}/opt/rave/lib:${RADAR_ROOT_DIR}/opt/rsl/lib:${RADAR_ROOT_DIR}/opt/radar/vol2bird/lib
 export PATH=${PATH}:${RADAR_ROOT_DIR}/opt/vol2bird/bin
+```
