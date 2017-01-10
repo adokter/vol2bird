@@ -731,7 +731,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 	int result, nScans, iScan, nScansUsed;
 	int noNyquist=0;
 	vol2birdScanUse_t *scanUse;
-	double nyquist, nyquistMin = DBL_MAX, nyquistMax = 0;
+	double nyquist, nyquistMin = DBL_MAX, nyquistMinUsed = DBL_MAX, nyquistMax = 0;
  
 	
 	// Read number of scans
@@ -756,7 +756,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
             }
         }
         if (!dualPolPresent){
-            fprintf(stderr,"Warning: required dual-pol moments not found, entering SINGLE POL mode\n");
+            fprintf(stderr,"Warning: no dual-pol moments not found, entering SINGLE POL mode\n");
             alldata->options.dualPol = FALSE;
         }
     }
@@ -911,6 +911,9 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
             if (nyquist < nyquistMin){
                 nyquistMin=nyquist;
             }
+            if (nyquist < nyquistMinUsed && nyquist > alldata->options.minNyquist){
+                nyquistMinUsed=nyquist;
+            }
             if (nyquist > nyquistMax){
                 nyquistMax=nyquist;
             }
@@ -930,6 +933,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
         
         
     alldata->misc.nyquistMin = nyquistMin;
+    alldata->misc.nyquistMinUsed = nyquistMinUsed;
     alldata->misc.nyquistMax = nyquistMax;
     
     // FIXME: better to make scanUse a struct that contains both the array of vol2birdScanUse_t objects
@@ -3181,6 +3185,7 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_BOOL("PRINT_PROFILE",PRINT_PROFILE,CFGF_NONE),
         CFG_BOOL("PRINT_POINTS_ARRAY",PRINT_POINTS_ARRAY,CFGF_NONE),
         CFG_FLOAT("MIN_NYQUIST_VELOCITY",MIN_NYQUIST_VELOCITY,CFGF_NONE),
+        CFG_FLOAT("MAX_NYQUIST_DEALIAS",MAX_NYQUIST_DEALIAS,CFGF_NONE),
         CFG_FLOAT("STDEV_BIRD",STDEV_BIRD,CFGF_NONE),
         CFG_FLOAT("STDEV_CELL",STDEV_CELL,CFGF_NONE),
         CFG_FLOAT("SIGMA_BIRD",SIGMA_BIRD,CFGF_NONE),
@@ -4276,6 +4281,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         // only dealias in first pass (later passes for removing dual-PRF dealiasing errors,
                         // which show smaller offsets than (2*nyquist velocity) and therefore are not
                         // removed by dealiasing routine)
+                        // The condition nyquistMinUsed<maxNyquistDealias enforces that if all scans
+                        // have a higher Nyquist velocity than maxNyquistDealias, dealiasing is suppressed
                         if(alldata->options.dealiasVrad && iPass == 0 && !recycleDealias){
                             #ifdef FPRINTFON
                             fprintf(stderr,"dealiasing %i points for profile %i, layer %i ...\n",nPointsIncluded,iProfileType,iLayer+1);
@@ -4816,6 +4823,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.fitVrad = cfg_getbool(*cfg,"FIT_VRAD");
     alldata->options.exportBirdProfileAsJSONVar = cfg_getbool(*cfg,"EXPORT_BIRD_PROFILE_AS_JSON"); 
     alldata->options.minNyquist = cfg_getfloat(*cfg,"MIN_NYQUIST_VELOCITY");
+    alldata->options.maxNyquistDealias = cfg_getfloat(*cfg,"MAX_NYQUIST_DEALIAS");
     alldata->options.birdRadarCrossSection = cfg_getfloat(*cfg,"SIGMA_BIRD");
     alldata->options.cellStdDevMax = cfg_getfloat(*cfg,"STDEV_CELL");
     alldata->options.stdDevMinBird = cfg_getfloat(*cfg,"STDEV_BIRD");
@@ -4824,7 +4832,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     strcpy(alldata->options.dbzType,cfg_getstr(*cfg,"DBZTYPE"));
     alldata->options.requireVrad = cfg_getbool(*cfg,"REQUIRE_VRAD");
     alldata->options.dealiasVrad = cfg_getbool(*cfg,"DEALIAS_VRAD");
-	alldata->options.dealiasRecycle = cfg_getbool(*cfg,"DEALIAS_RECYCLE");
+    alldata->options.dealiasRecycle = cfg_getbool(*cfg,"DEALIAS_RECYCLE");
     alldata->options.dualPol = cfg_getbool(*cfg,"DUALPOL");
     alldata->options.dbzThresMin = cfg_getfloat(*cfg,"DBZMIN");
     alldata->options.rhohvThresMin = cfg_getfloat(*cfg,"RHOHVMIN");
@@ -4899,6 +4907,23 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->misc.cellDbzMin = 10*log(alldata->options.cellEtaMin / alldata->misc.dbzFactor)/log(10);
  
     // ------------------------------------------------------------- //
+    //                 determine which scans to use                  //
+    // ------------------------------------------------------------- //
+    
+    vol2birdScanUse_t* scanUse;
+    scanUse = determineScanUse(volume, alldata);
+    if (!alldata->options.dealiasVrad && alldata->misc.nyquistMinUsed < alldata->options.maxNyquistDealias){   
+       fprintf(stderr,"Warning: Nyquist velocity below maxNyquistDealias threshold was found (%f<%f), consider dealiasing.\n",alldata->misc.nyquistMinUsed,alldata->options.maxNyquistDealias);       
+    }    
+    if (alldata->options.dealiasVrad && alldata->misc.nyquistMinUsed > alldata->options.maxNyquistDealias){
+       alldata->options.dealiasVrad=FALSE;
+       //Maybe you want to give a warning here, but that generates a lot of warnings as this situation is common ...
+    }
+    if (alldata->options.dealiasVrad){
+        fprintf(stderr,"Warning: radial velocities will be dealiased...\n");
+    }
+
+    // ------------------------------------------------------------- //
     //     store all options and constants in task_args string       //
     // ------------------------------------------------------------- //
 
@@ -4910,7 +4935,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         "azimMax=%f,azimMin=%f,layerThickness=%f,nLayers=%i,rangeMax=%f,"
         "rangeMin=%f,elevMax=%f,elevMin=%f,radarWavelength=%f,"
         "useStaticClutterData=%i,fitVrad=%i,exportBirdProfileAsJSONVar=%i,"
-        "minNyquist=%f,birdRadarCrossSection=%f,stdDevMinBird=%f,"
+        "minNyquist=%f,maxNyquistDealias=%f,birdRadarCrossSection=%f,stdDevMinBird=%f,"
         "cellEtaMin=%f,etaMax=%f,dbzType=%s,requireVrad=%i,"
         "dealiasVrad=%i,dealiasRecycle=%i,dualPol=%i,rhohvThresMin=%f,"
     
@@ -4933,6 +4958,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         alldata->options.fitVrad,
         alldata->options.exportBirdProfileAsJSONVar,
         alldata->options.minNyquist,
+        alldata->options.maxNyquistDealias,
         alldata->options.birdRadarCrossSection,
         alldata->options.stdDevMinBird,
         alldata->options.cellEtaMin,
@@ -4962,15 +4988,8 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         alldata->constants.absVDifMax,
         alldata->constants.vradMin
     );
-    
-    // ------------------------------------------------------------- //
-    //             lists of indices into the 'points' array:         //
-    //          where each altitude layer's data starts and ends     //
-    // ------------------------------------------------------------- //
-    
-    vol2birdScanUse_t* scanUse;
-    scanUse = determineScanUse(volume, alldata);
-    
+
+   
     if (scanUse == (vol2birdScanUse_t*) NULL){
         fprintf(stderr, "Error: no valid scans found in polar volume, aborting ...\n");
         return -1;
@@ -4981,6 +5000,11 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         fprintf(stderr,"Warning: using experimental SINGLE polarization mode on S-band data, results may be unreliable!\n");
     }
 
+
+    // ------------------------------------------------------------- //
+    //             lists of indices into the 'points' array:         //
+    //          where each altitude layer's data starts and ends     //
+    // ------------------------------------------------------------- //
 
     int iLayer;
     

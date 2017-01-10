@@ -112,6 +112,8 @@ struct vol2birdOptions {
     int fitVrad;              /* Whether or not to fit a model to the observed vrad */
     int exportBirdProfileAsJSONVar; /* whether you want to export the vertical bird profile as JSON */
     float minNyquist;               /* Minimum Nyquist velocity [m/s] to include a scan; */
+    float maxNyquistDealias;        /* When all scans (except those excluded by minNyquist) have nyquist velocity */
+                                    /* higher than this value, dealiasing is suppressed; */
     float birdRadarCrossSection;    /* Bird radar cross section [cm^2] */
     float etaMax;                   /* Maximum reflectivity factor of reflectivity gates containing birds */
     float cellEtaMin;               /* Maximum mean reflectivity [cm^2/km^3] of cells of birds */
@@ -314,9 +316,11 @@ struct vol2birdMisc {
     int vol2birdSuccessful;
     // number of scans used to calculate the profile
     int nScansUsed;
-	// lowest Nyquist velocity of used scans
+	// lowest Nyquist velocity of scans present
 	double nyquistMin;
-	// highest Nyquist velocity of used scans
+	// lowest Nyquist velocity of scans used
+	double nyquistMinUsed;
+	// highest Nyquist velocity of scans used
 	double nyquistMax;
     // whether configuration was loaded successfully
     int loadConfigSuccessful;
