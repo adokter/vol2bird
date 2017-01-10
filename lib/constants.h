@@ -96,9 +96,9 @@
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
-#define VERSION "0.3.5"
+#define VERSION "0.3.6"
 // Date of latest version of the program
-#define VERSIONDATE "09-Dec-2016"
+#define VERSIONDATE "10-Jan-2017"
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //
@@ -152,8 +152,10 @@
 #define FIT_VRAD 1
 // Whether to export bird profile as JSON
 #define EXPORT_BIRD_PROFILE_AS_JSON 0
-// Minimum Nyquist velocity
-#define MIN_NYQUIST_VELOCITY 20.0f
+// Scans with Nyquist velocity lower than this value are excluded
+#define MIN_NYQUIST_VELOCITY 5.0f
+// When all scans have nyquist velocity higher than this value, dealiasing is suppressed
+#define MAX_NYQUIST_DEALIAS 20.0f
 // when analyzing cells, only cells for which the stddev of vrad
 // (aka the texture) is less than cellStdDevMax are considered in the
 // rest of the analysis
@@ -173,7 +175,7 @@
 // for a range gate to contribute it should have a valid radial velocity
 #define REQUIRE_VRAD 0
 // whether we should dealias the radial velocities
-#define DEALIAS_VRAD 0
+#define DEALIAS_VRAD 1
 // whether we should dealias all data once (default), or dealias for each profile individually
 #define DEALIAS_RECYCLE 1
 // whether you want to export the vertical bird profile as JSON
