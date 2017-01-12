@@ -15,10 +15,10 @@
 # 
 -include ../def.mk 
  
-CC      = gcc
-#CFLAGS  = -fPIC -x c -DFPRINTFON
-CFLAGS  = -I../lib -Wall -g
-LDFLAGS = -L../lib
+CC      ?= gcc
+#CFLAGS  += -fPIC -x c -DFPRINTFON
+CFLAGS  += -I../lib -Wall -g
+LDFLAGS += -L../lib
 
 # define where the vol2bird stuff is
 #SRC_VOL2BIRD_DIR         = /projects/baltrad/vol2bird/lib

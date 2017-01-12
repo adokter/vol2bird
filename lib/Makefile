@@ -15,10 +15,11 @@
 # 
 -include ../def.mk 
  
-CC      = gcc
-#CFLAGS  = ${RSL_CFLAG} -fPIC -x c -DFPRINTFON
-CFLAGS  = ${RSL_CFLAG} -fPIC -g -x c
-LDFLAGS = -shared -Wall
+# use gcc if not set already
+CC      ?= gcc
+#CFLAGS  += ${RSL_CFLAG} -fPIC -x c -DFPRINTFON
+CFLAGS  += ${RSL_CFLAG} -fPIC -g -x c
+LDFLAGS += -shared -Wall
 
 # define where the vol2bird stuff is
 SRC_VOL2BIRD_DIR = .
