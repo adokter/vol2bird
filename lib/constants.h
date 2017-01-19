@@ -96,9 +96,9 @@
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
-#define VERSION "0.3.6"
+#define VERSION "0.3.7"
 // Date of latest version of the program
-#define VERSIONDATE "10-Jan-2017"
+#define VERSIONDATE "19-Jan-2017"
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //
@@ -181,6 +181,6 @@
 // whether you want to export the vertical bird profile as JSON
 #define EXPORT_BIRD_PROFILE_AS_JSON 0
 // whether to use dual-pol moments for filtering meteorological echoes
-#define DUALPOL 0
+#define DUALPOL 1
 // correlation coefficients higher than this threshold will be classified as precipitation
-#define RHOHVMIN 0.9
+#define RHOHVMIN 0.95
