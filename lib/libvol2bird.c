@@ -2293,6 +2293,8 @@ PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDE
     char* ZDR="ZDR";
     char* PHIDP="PHIDP";
     char* KDP="KDP";
+    char* VRAD2="VRAD2";
+    char* VRAD3="VRAD3";
     char *name;
 
     if(radar == NULL) {
@@ -2308,7 +2310,18 @@ PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDE
     }
 
     rslSweep = RSL_get_sweep(rslVolume, elev);
+
+    if(rslSweep == NULL) {
+        fprintf(stderr, "Warning: RSL sweep of volume %i not found by PolarScanParam_RSL2Rave...\n",RSL_INDEX);
+        return param;
+    }
+
     rslRay = RSL_get_first_ray_of_volume(rslVolume);
+
+    if(rslRay == NULL) {
+        fprintf(stderr, "Warning: RSL first ray of volume %i not found by PolarScanParam_RSL2Rave...\n",RSL_INDEX);
+        return param;
+    }
     
     if(ABS(rslSweep->h.elev-elev)>ELEVTOL){
         fprintf(stderr,"Warning: elevation angle mistmatch in PolarScanParam_RSL2Rave (requested %f, found %f)...\n",elev,rslSweep->h.elev);
@@ -2353,6 +2366,16 @@ PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDE
             break;
         case KD_INDEX :
             name = KDP;
+            offset = 1;
+            gain = 1;
+            break;
+        case V2_INDEX :
+            name = VRAD2;
+            offset = 1;
+            gain = 1;
+            break;
+        case V3_INDEX :
+            name = VRAD3;
             offset = 1;
             gain = 1;
             break;
