@@ -4,9 +4,9 @@
 
 #include <float.h>
 
-// when analyzing cells, AREAMIN determines the minimum size of a
-// cell to be considered in the rest of the analysis
-#define AREACELL 4
+// when analyzing cells, AREACELL determines the minimum size of a
+// cell to be considered in the rest of the analysis [km^2]
+#define AREACELL 0.5
 // minimum standard deviation of the fit
 #define CHISQMIN 1e-5
 // cells with clutter fractions above this value are likely not birds
@@ -96,9 +96,9 @@
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
-#define VERSION "0.3.7"
+#define VERSION "0.3.8"
 // Date of latest version of the program
-#define VERSIONDATE "19-Jan-2017"
+#define VERSIONDATE "20-Jan-2017"
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //
@@ -183,4 +183,4 @@
 // whether to use dual-pol moments for filtering meteorological echoes
 #define DUALPOL 1
 // correlation coefficients higher than this threshold will be classified as precipitation
-#define RHOHVMIN 0.95
+#define RHOHVMIN 0.97
