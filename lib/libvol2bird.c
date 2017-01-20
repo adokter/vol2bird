@@ -103,8 +103,6 @@ const char* PolarVolume_getStartTime(PolarVolume_t* pvol);
 double PolarVolume_getWavelength(PolarVolume_t* pvol);
 
 #ifdef RSL
-PolarVolume_t* PolarVolume_RSL2RaveOLD(Radar* radar, float rangeMax);
-
 PolarVolume_t* PolarVolume_vol2bird_RSL2Rave(Radar* radar, float rangeMax);
 
 PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax);
@@ -1631,6 +1629,8 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
     int iAzim;
     long nAzim;
     long nRang;
+    double rScale;
+    double aScale;
     float nGatesValid;
     double dbzValue;
     double texValue = 0;
@@ -1647,6 +1647,8 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
     nRang = PolarScan_getNbins(scan);
     nAzim = PolarScan_getNrays(scan);
     nGlobal = nAzim*nRang;
+    rScale = PolarScan_getRscale(scan);
+    aScale = (360.0/nAzim)*PI/180; // in radials
     
     // Allocating and initializing memory for cell properties.
     CELLPROP* cellProp;
@@ -1662,6 +1664,7 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
         cellProp[iCell].iAzimOfMax = -1;
         cellProp[iCell].nGates = 0;
         cellProp[iCell].nGatesClutter = 0;
+        cellProp[iCell].area = 0;
         cellProp[iCell].dbzAvg = NAN;
         cellProp[iCell].texAvg = NAN;
         cellProp[iCell].dbzMax = NAN;
@@ -1696,6 +1699,7 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
             #endif
 
             cellProp[iCell].nGates += 1;
+            cellProp[iCell].area += rScale * rScale * iRang * sin(aScale)/(1000*1000);
             cellProp[iCell].drop = FALSE;
 
             // low radial velocities are treated as clutter, not included in calculation cell properties
@@ -1741,6 +1745,8 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
                 cellProp[iCell].dbzAvg = dbzValue;
             } 
             else {
+                // note that we average logarithmic values - done like this
+                // to limit the contribution of high reflectivity outliers to the average
                 cellProp[iCell].dbzAvg += dbzValue;
             }
             
@@ -2331,52 +2337,52 @@ PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDE
     switch (RSL_INDEX) {
         case DZ_INDEX : 
             name = DBZH;
-            offset = 1;
+            offset = 0;
             gain = 1;
             break;
         case VR_INDEX :
             name = VRADH;
-            offset = 1;
+            offset = 0;
             gain = 1;
             break;        
         case RH_INDEX :
             name = RHOHV;
-            offset = 1;
+            offset = 0;
             gain = 1;
             break;
         case SW_INDEX :
             name = WRADH;
-            offset = 1;
+            offset = 0;
             gain = 1;
             break;
         case ZT_INDEX :
             name = TH;
-            offset = 1;
+            offset = 0;
             gain = 1;
             break;
         case DR_INDEX :
             name = ZDR;
-            offset = 1;
+            offset = 0;
             gain = 1;
             break;
         case PH_INDEX :
             name = PHIDP;
-            offset = 1;
+            offset = 0;
             gain = 1;
             break;
         case KD_INDEX :
             name = KDP;
-            offset = 1;
+            offset = 0;
             gain = 1;
             break;
         case V2_INDEX :
             name = VRAD2;
-            offset = 1;
+            offset = 0;
             gain = 1;
             break;
         case V3_INDEX :
             name = VRAD3;
-            offset = 1;
+            offset = 0;
             gain = 1;
             break;
         default :
@@ -2641,277 +2647,6 @@ PolarVolume_t* PolarVolume_vol2bird_RSL2Rave(Radar* radar, float rangeMax){
         return volume;
 }
 
-
-
-// maps a RSL polar volume to a RAVE polar volume OLD OLD OLD
-PolarVolume_t* PolarVolume_RSL2RaveOLD(Radar* radar, float rangeMax){
-    
-    // the RAVE polar volume to be returned by this function
-    PolarVolume_t* volume = NULL;
-    
-    // flag indicating whether we are dealing with dual-pol data
-    int dualpol = FALSE;
-
-    if(radar == NULL) {
-        fprintf(stderr, "Error: RSL radar object is empty...\n");
-        goto done;
-    }
-
-    // sort the scans (sweeps) and rays
-    if(RSL_sort_radar(radar) == NULL) {
-        fprintf(stderr, "Error: failed to sort RSL radar object...\n");
-        goto done;
-    }
-    
-    // pointers to RSL polar volumes of reflectivity, velocity and correlation coefficient, respectively.
-    Volume *rslVolZ,*rslVolV,*rslVolRho;
-    // pointer to a RSL ray
-    Ray* rslRay;
-    
-    // retrieve the polar volumes from the Radar object
-    rslVolZ = radar->v[DZ_INDEX];
-    rslVolV = radar->v[VR_INDEX];
-    rslVolRho = radar->v[RH_INDEX];
-    
-    // several checks that the volumes contain data
-    if (rslVolZ == NULL){
-        fprintf(stderr, "Error: RSL radar object contains no reflectivity volume...\n");
-        goto done;
-    }
-    else if (rslVolV == NULL){
-        fprintf(stderr, "Error: RSL radar object contains no radial velocity volume...\n");
-        goto done;
-    }
-    if (rslVolRho){
-        dualpol=TRUE;
-    }
-    
-    // retrieve the first ray, for extracting some metadata
-    rslRay = RSL_get_first_ray_of_volume(rslVolZ);
-    if (rslRay == NULL){
-        fprintf(stderr, "Error: RSL radar object contains no rays...\n");
-        goto done;
-    }
-    
-    // all checks on RSL object passed
-    // make a new rave polar volume object
-    volume = RAVE_OBJECT_NEW(&PolarVolume_TYPE);
-    
-    if (volume == NULL) {
-        RAVE_CRITICAL0("Error: failed to create polarvolume instance");
-        goto done;
-    }
-
-    // add attribute data to RAVE polar volume
-    // first, copy metadata stored in radar header
-    char pvtime[7];
-    char pvdate[9];
-    char *pvsource = malloc(strlen(radar->h.name)+strlen(radar->h.city)+strlen(radar->h.state)+strlen(radar->h.radar_name)+30);
-    sprintf(pvtime, "%02i%02i%02i",radar->h.hour,radar->h.minute,ROUND(radar->h.sec));
-    sprintf(pvdate, "%04i%02i%02i",radar->h.year,radar->h.month,radar->h.day);
-    sprintf(pvsource, "RAD:%s,PLC:%s,state:%s,radar_name:%s",radar->h.name,radar->h.city,radar->h.state,radar->h.radar_name);
-    fprintf(stderr,"Reading RSL polar volume with nominal time %s-%s, source: %s\n",pvdate,pvtime,pvsource);    
-    PolarVolume_setTime(volume,pvtime);
-    PolarVolume_setDate(volume,pvdate);
-    PolarVolume_setSource(volume,pvsource);
-    PolarVolume_setLongitude(volume,(double) (radar->h.lond + radar->h.lonm/60.0 + radar->h.lons/3600.0)*PI/180);
-    PolarVolume_setLatitude(volume,(double) (radar->h.latd + radar->h.latm/60.0 + radar->h.lats/3600.0)*PI/180);
-    PolarVolume_setHeight(volume, (double) radar->h.height);
-
-    // second, copy metadata stored in ray header; assume attributes of first ray applies to entire volume
-    float wavelength = rslRay->h.wavelength*100;
-    RaveAttribute_t* attr_wavelength = RaveAttributeHelp_createDouble("how/wavelength", (double) wavelength);
-    if (attr_wavelength == NULL && wavelength > 0){
-        fprintf(stderr, "warning: no valid wavelength found in RSL polar volume\n");
-    }
-    else{    
-        PolarVolume_addAttribute(volume, attr_wavelength);
-    }
-
-    // optional print which scans (sweeps) will be read for this RSL file
-    #ifdef FPRINTFON
-    for (int iVol=0; iVol<MAX_RADAR_VOLUMES; iVol++) {
-        Sweep* rslSweep;
-        rslSweep = radar->v[iVol]->sweep[0];
-        rslRay   = rslSweep->ray[0];
-        fprintf(stderr, "Scans to be read from RSL file:\n");
-        if (rslSweep && rslRay) {
-            for(int iScan=0; iScan<radar->v[iVol]->h.nsweeps; iScan++){
-                rslSweep = radar->v[iVol]->sweep[iScan];
-                rslRay   = rslSweep->ray[0];
-                sprintf(pvtime, "%02i%02i%02i",rslRay->h.hour,rslRay->h.minute,ROUND(rslRay->h.sec));
-                sprintf(pvdate, "%04i%02i%02i",rslRay->h.year,rslRay->h.month,rslRay->h.day);
-
-                fprintf(stderr, "%s-%s,%s,elev=%f,vol=%i,scan=%i,nrays=%i,nbins=%i,rscale=%i\n",pvdate,pvtime,radar->v[iVol]->h.type_str,rslSweep->h.elev,iVol,iScan,rslSweep->h.nrays, rslRay->h.nbins,rslRay->h.gate_size);
-            }
-        }
-    }
-    #endif
-    
-    // read the RSL scans (sweeps) and add them to RAVE polar volume
-    for (int iScan = 0; iScan < rslVolZ->h.nsweeps; iScan++){
-        Sweep *rslSweepZ, *rslSweepV, *rslSweepRho;
-        Ray *rslRayZ, *rslRayV, *rslRayRho;
-        PolarScan_t* scan;
-        float elev,nyq_vel;
-        int nrays,nbins,rscale;
-        
-        // retrieve the reflectivity sweep
-        rslSweepZ = rslVolZ->sweep[iScan];
-        elev = rslSweepZ->h.elev;
-        // retrieve radial velocity and correlation coeffient sweeps at the same elevation
-        rslSweepV = RSL_get_sweep(rslVolV, elev);
-        rslSweepRho = RSL_get_sweep(rslVolRho, elev);
-
-        // retrieve first rays of the reflectivity, radial velocity
-        // and correlation coeffient volumes, respectively        
-        rslRayZ = RSL_get_first_ray_of_sweep(rslSweepZ);
-        rslRayV = RSL_get_first_ray_of_sweep(rslSweepV);
-        rslRayRho = RSL_get_first_ray_of_sweep(rslSweepRho);
-        
-        // check that we have data and that the elevations of the sweeps of each quantity match
-        if(rslSweepV == NULL){
-            fprintf(stderr,"Warning: no velocity (VRAD) data found, dropping sweep %i...\n",iScan);
-            continue;
-        }
-        if(ABS(rslSweepV->h.elev-elev)>ELEVTOL){
-            fprintf(stderr,"Warning: elevation angle of radial velocity scan does not match reflectivity scan, dropping sweep %i...\n",iScan);
-            continue;
-        }
-        if(rslRayZ == NULL){
-            fprintf(stderr,"Warning: no reflectivity ray data found, dropping sweep %i...\n",iScan);
-            continue;
-        }
-        if(rslRayV == NULL){
-            fprintf(stderr,"Warning: no radial velocity ray data found, dropping sweep %i...\n",iScan);
-            continue;
-        }
-        if(dualpol){
-            if(rslSweepRho == NULL){
-                fprintf(stderr,"Warning: no correlation coefficient (RhoHV) data found, dropping sweep %i...\n",iScan);
-                continue;
-            }
-            if(rslRayRho == NULL){
-                fprintf(stderr,"Warning: no correlation coefficient ray data found, dropping sweep %i...\n",iScan);
-                continue;
-            }
-            if(ABS(rslSweepRho->h.elev-elev)>ELEVTOL){
-                fprintf(stderr,"Warning: elevation angle of correlation coefficient (RhoHV) scan does not match reflectivity scan, dropping sweep %i...\n",iScan);
-                continue;
-            }
-        }
-
-        // all checks on sweep passed
-        // start a new scan object
-        scan = RAVE_OBJECT_NEW(&PolarScan_TYPE);
-                
-        // add attribute Elevation to scan
-        PolarScan_setElangle(scan, (double) elev*PI/180);
-
-        // add attribute Beamwidth to scan
-        PolarScan_setBeamwidth(scan, (double) rslSweepZ->h.beam_width);
-
-        // add attribute Nyquist velocity to scan
-        nyq_vel = rslRayV->h.nyq_vel;
-        RaveAttribute_t* attr_NI = RaveAttributeHelp_createDouble("how/NI", (double) nyq_vel);
-        if (attr_NI == NULL && nyq_vel > 0){
-            fprintf(stderr, "warning: no valid Nyquist velocity found in RSL polar volume\n");
-        }
-        else{    
-            PolarScan_addAttribute(scan, attr_NI);
-        }
-
-        // add range scale Atribute to scan
-        rscale = rslRayZ->h.gate_size;
-        PolarScan_setRscale(scan, rscale);
-
-        // get the number of range bins
-        nbins = 1+rslRayZ->h.nbins+rslRayZ->h.range_bin1/rscale;
-        nbins = MIN(nbins, ROUND(rangeMax/rscale));
-        
-        // estimate the number of azimuth bins
-        // early WSR88D scans have somewhat variable azimuth spacing
-        // therefore we reproject the data onto a regular azimuth grid
-        // azimuth bin size is round off to 1/n with n positive integer
-        // i.e. either 1, 0.5, 0.25 degrees etc.
-        nrays = 360*ROUND((float) rslSweepZ->h.nrays/360.0);
-        if (nrays != rslSweepZ->h.nrays){
-            fprintf(stderr, "Warning: reprojecting DBZH sweep %i (%i rays into %i azimuth-bins) ...\n", iScan,rslSweepZ->h.nrays,nrays);
-        }
-        if (nrays != rslSweepV->h.nrays){
-            fprintf(stderr, "Warning: reprojecting VRADH sweep %i (%i rays into %i azimuth-bins) ...\n", iScan,rslSweepZ->h.nrays,nrays);
-        }
-        if (dualpol && nrays != rslSweepRho->h.nrays){
-            fprintf(stderr, "Warning: reprojecting RHOHV sweep %i (%i rays into %i azimuth-bins) ...\n", iScan,rslSweepZ->h.nrays,nrays);
-        }
-
-        // make new PolarScanParam_t objects with attributes
-        PolarScanParam_t *scanparamZ, *scanparamV, *scanparamRho;
-        scanparamZ = RAVE_OBJECT_NEW(&PolarScanParam_TYPE);
-        scanparamV = RAVE_OBJECT_NEW(&PolarScanParam_TYPE);
-        scanparamRho = RAVE_OBJECT_NEW(&PolarScanParam_TYPE);
-
-        // set the attributes needed for encoding
-        PolarScanParam_setQuantity(scanparamZ, "DBZH");
-        PolarScanParam_setQuantity(scanparamV, "VRADH");
-        PolarScanParam_createData(scanparamZ,nbins,nrays,RaveDataType_DOUBLE);
-        PolarScanParam_createData(scanparamV,nbins,nrays,RaveDataType_DOUBLE);
-        PolarScanParam_setOffset(scanparamZ,RSL_OFFSET_DBZ);
-        PolarScanParam_setOffset(scanparamV,RSL_OFFSET_VRAD);
-        PolarScanParam_setGain(scanparamZ,RSL_GAIN_DBZ);
-        PolarScanParam_setGain(scanparamV,RSL_GAIN_VRAD);
-        PolarScanParam_setNodata(scanparamZ,RSL_NODATA);
-        PolarScanParam_setNodata(scanparamV,RSL_NODATA);
-        PolarScanParam_setUndetect(scanparamZ,RSL_UNDETECT);
-        PolarScanParam_setUndetect(scanparamV,RSL_UNDETECT);
-        if (dualpol){
-            PolarScanParam_createData(scanparamRho,nbins,nrays,RaveDataType_DOUBLE);
-            PolarScanParam_setQuantity(scanparamRho, "RHOHV");
-            PolarScanParam_setOffset(scanparamRho,RSL_OFFSET_RHOHV);
-            PolarScanParam_setGain(scanparamRho,RSL_GAIN_RHOHV);
-            PolarScanParam_setNodata(scanparamRho,RSL_NODATA);
-            PolarScanParam_setUndetect(scanparamRho,RSL_UNDETECT);
-        }
-        
-        // initialize the data fields
-        for(int iRay=0; iRay<nrays; iRay++){
-            for(int iBin=0; iBin<nbins; iBin++){
-                PolarScanParam_setValue(scanparamZ, iBin, iRay, PolarScanParam_getNodata(scanparamZ));
-                PolarScanParam_setValue(scanparamV, iBin, iRay, PolarScanParam_getNodata(scanparamV));
-                PolarScanParam_setValue(scanparamRho, iBin, iRay, PolarScanParam_getNodata(scanparamRho));
-            }
-        }
-        
-        // Fill the PolarScanParam_t objects with corresponding RSL data
-        rslCopy2Rave(rslSweepZ,scanparamZ);
-        rslCopy2Rave(rslSweepV,scanparamV);
-        if (dualpol){
-            rslCopy2Rave(rslSweepRho,scanparamRho);
-        }
-               
-        // Add the scan parameters to the scan
-        PolarScan_addParameter(scan, scanparamZ);
-        PolarScan_addParameter(scan, scanparamV);
-        if(dualpol){
-            PolarScan_addParameter(scan, scanparamRho);
-        }
-                
-        // Add the scan to the volume
-        PolarVolume_addScan(volume,scan);
-        
-        // clean up before continuing with next scan/sweep
-        RAVE_OBJECT_RELEASE(scan);
-        RAVE_OBJECT_RELEASE(scanparamZ);
-        RAVE_OBJECT_RELEASE(scanparamV);
-        RAVE_OBJECT_RELEASE(scanparamRho);
-        RAVE_OBJECT_RELEASE(attr_NI);
-    }
-    
-    free(pvsource);
-    
-    done:
-        return volume;
-}
 #endif
 
 static int hasAzimuthGap(const float* points_local, const int nPoints, vol2bird_t* alldata) {
@@ -3492,19 +3227,20 @@ static void printCellProp(CELLPROP* cellProp, float elev, int nCells, int nCells
     // ---------------------------------------------------------- //
     
     fprintf(stderr,"#Cell analysis for elevation %f:\n",elev*RAD2DEG);
-    fprintf(stderr,"#Minimum cell area in pixels   : %i\n",alldata->constants.nGatesCellMin);
+    fprintf(stderr,"#Minimum cell area in km^2     : %d\n",alldata->constants.areaCellMin);
     fprintf(stderr,"#Threshold for mean dBZ cell   : %g dBZ\n",alldata->misc.cellDbzMin);
     fprintf(stderr,"#Threshold for mean stdev cell : %g dBZ\n",alldata->options.cellStdDevMax);
     fprintf(stderr,"#Valid cells                   : %i/%i\n#\n",nCellsValid,nCells);
-    fprintf(stderr,"cellProp: .index .nGates .nGatesClutter .dbzAvg .texAvg .cv   .dbzMax .iRangOfMax .iAzimOfMax .drop\n");
+    fprintf(stderr,"cellProp: .index .nGates .nGatesClutter   .Area .dbzAvg .texAvg .cv   .dbzMax .iRangOfMax .iAzimOfMax .drop\n");
     for (int iCell = 0; iCell < nCells; iCell++) {
         if (cellProp[iCell].drop == TRUE) {
             continue;
         }
-        fprintf(stderr,"cellProp: %6d %7d %14d %7.2f %7.2f %5.2f %7.2f %11d %11d %5c\n",
+        fprintf(stderr,"cellProp: %6d %7d %14d %7.2f %7.2f %7.2f %5.2f %7.2f %11d %11d %5c\n",
             cellProp[iCell].index,
             cellProp[iCell].nGates,
             cellProp[iCell].nGatesClutter,
+            cellProp[iCell].area,
             cellProp[iCell].dbzAvg,
             cellProp[iCell].texAvg,
             cellProp[iCell].cv,
@@ -3743,7 +3479,7 @@ static int selectCellsToDrop_singlePol(CELLPROP *cellProp, int nCells, vol2bird_
     // determine which blobs to drop from map based on low mean dBZ / high stdev /
     // small area / high percentage clutter
     for (int iCell = 0; iCell < nCells; iCell++) {
-        int notEnoughGates = cellProp[iCell].nGates < alldata->constants.nGatesCellMin;
+        int notEnoughGates = cellProp[iCell].area < alldata->constants.areaCellMin;
         int dbzTooLow = cellProp[iCell].dbzAvg < alldata->misc.cellDbzMin;
         int texTooHigh = cellProp[iCell].texAvg > alldata->options.cellStdDevMax;
         int tooMuchClutter = ((float) cellProp[iCell].nGatesClutter / cellProp[iCell].nGates) > alldata->constants.cellClutterFractionMax;
@@ -3792,8 +3528,8 @@ static int selectCellsToDrop_singlePol(CELLPROP *cellProp, int nCells, vol2bird_
 static int selectCellsToDrop_dualPol(CELLPROP *cellProp, int nCells, vol2bird_t* alldata){
     // determine which blobs to drop from map based on small area
     for (int iCell = 0; iCell < nCells; iCell++) {
-        int notEnoughGates = cellProp[iCell].nGates < alldata->constants.nGatesCellMin;
-        
+        int notEnoughGates = cellProp[iCell].area < alldata->constants.areaCellMin;
+
         if (notEnoughGates) {
             
             // this blob is too small too be a weather cell, more likely 
@@ -3801,7 +3537,6 @@ static int selectCellsToDrop_dualPol(CELLPROP *cellProp, int nCells, vol2bird_t*
             // weather cells 
 
             cellProp[iCell].drop = TRUE;
-            
             continue;
         }
     }
@@ -4003,7 +3738,7 @@ static int updateMap(PolarScan_t* scan, CELLPROP *cellProp, const int nCells, vo
 
     // label small cells so that 'removeDroppedCells()' will remove them (below)
     for (iCell = 0; iCell < nCells; iCell++) {
-        if (cellProp[iCell].nGates < alldata->constants.nGatesCellMin) {
+        if (cellProp[iCell].area < alldata->constants.areaCellMin) {
             cellProp[iCell].drop = TRUE;
         }
     }
@@ -4579,7 +4314,7 @@ void vol2birdPrintOptions(vol2bird_t* alldata) {
     fprintf(stderr,"%-25s = %f\n","fringeDist",alldata->constants.fringeDist);
     fprintf(stderr,"%-25s = %f\n","layerThickness",alldata->options.layerThickness);
     fprintf(stderr,"%-25s = %f\n","minNyquist",alldata->options.minNyquist);
-    fprintf(stderr,"%-25s = %d\n","nGatesCellMin",alldata->constants.nGatesCellMin);
+    fprintf(stderr,"%-25s = %d\n","areaCellMin",alldata->constants.areaCellMin);
     fprintf(stderr,"%-25s = %d\n","nAzimNeighborhood",alldata->constants.nAzimNeighborhood);
     fprintf(stderr,"%-25s = %d\n","nBinsGap",alldata->constants.nBinsGap);
     fprintf(stderr,"%-25s = %d\n","nCountMin",alldata->constants.nCountMin);
@@ -4867,7 +4602,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     //              vol2bird options from constants.h                //
     // ------------------------------------------------------------- //
 
-    alldata->constants.nGatesCellMin = AREACELL;
+    alldata->constants.areaCellMin = AREACELL;
     alldata->constants.cellClutterFractionMax = CLUTPERCCELL;
     alldata->constants.chisqMin = CHISQMIN;
     alldata->constants.clutterValueMin = DBZCLUTTER;
@@ -4965,7 +4700,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         "cellEtaMin=%f,etaMax=%f,dbzType=%s,requireVrad=%i,"
         "dealiasVrad=%i,dealiasRecycle=%i,dualPol=%i,rhohvThresMin=%f,"
     
-        "nGatesCellMin=%i,cellClutterFractionMax=%f,"
+        "areaCellMin=%f,cellClutterFractionMax=%f,"
         "chisqMin=%f,clutterValueMin=%f,dbzThresMin=%f,"
         "fringeDist=%f,nBinsGap=%i,nPointsIncludedMin=%i,nNeighborsMin=%i,"
         "nObsGapMin=%i,nAzimNeighborhood=%i,nRangNeighborhood=%i,nCountMin=%i,"
@@ -4996,7 +4731,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         alldata->options.dualPol,
         alldata->options.rhohvThresMin,
 
-        alldata->constants.nGatesCellMin,
+        alldata->constants.areaCellMin,
         alldata->constants.cellClutterFractionMax,
         alldata->constants.chisqMin,
         alldata->constants.clutterValueMin,
