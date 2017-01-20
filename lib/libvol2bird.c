@@ -2489,8 +2489,11 @@ PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax){
         if(radar->v[iParam] == NULL) continue;
         
         param = PolarScanParam_RSL2Rave(radar, elev, iParam, rangeMax);
+        if(param == NULL){
+           fprintf(stderr, "PolarScanParam_RSL2Rave returned empty object for parameter %i\n",iParam); 
+        }
+
         result = PolarScan_addParameter(scan, param);
-        
         if(result == 0){
            fprintf(stderr, "PolarScan_RSL2Rave failed to add parameter %i to RAVE polar scan\n",iParam); 
         }
