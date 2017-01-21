@@ -109,7 +109,9 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax);
 
 PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax);
 
-PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDEX,float rangeMax);
+PolarScanParam_t* PolarScanParam_project(PolarScanParam_t* param, PolarScan_t* scan, double rscale);
+
+PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDEX,float rangeMax, double *scale);
     
 int rslCopy2Rave(Sweep *rslSweep,PolarScanParam_t* scanparam);
 #endif
@@ -2282,7 +2284,46 @@ int rslCopy2Rave(Sweep *rslSweep,PolarScanParam_t* scanparam){
     return 1;
 }
 
-PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDEX,float rangeMax){
+PolarScanParam_t* PolarScanParam_project(PolarScanParam_t* param, PolarScan_t* scan, double rscale){
+    PolarScanParam_t* param_proj = NULL;
+    long nbins_proj = PolarScan_getNbins(scan);
+    long nrays_proj = PolarScan_getNrays(scan);
+    long nrays = PolarScanParam_getNrays(param);
+    
+    double bin_scaling = PolarScan_getRscale(scan)/rscale;
+    double ray_scaling = nrays/nrays_proj;
+    
+    param_proj = RAVE_OBJECT_NEW(&PolarScanParam_TYPE);
+    
+    // copy the metadata
+    PolarScanParam_setQuantity(param_proj, PolarScanParam_getQuantity(param));
+    PolarScanParam_createData(param_proj,nbins_proj,nrays_proj,RaveDataType_DOUBLE);
+    PolarScanParam_setOffset(param_proj,PolarScanParam_getOffset(param));
+    PolarScanParam_setGain(param_proj,PolarScanParam_getGain(param));
+    PolarScanParam_setNodata(param_proj,PolarScanParam_getNodata(param));
+    PolarScanParam_setUndetect(param_proj,PolarScanParam_getUndetect(param));
+    
+    double value;
+    RaveValueType valueType;
+    
+    // project onto new grid
+    for(int iRay=0; iRay<nrays_proj; iRay++){
+        for(int iBin=0; iBin<nbins_proj; iBin++){
+            // initialize to nodata
+            PolarScanParam_setValue(param_proj, iBin, iRay, PolarScanParam_getNodata(param));
+            // read data from the scan parameter
+            valueType = PolarScanParam_getValue(param, round(iBin*bin_scaling), round(iRay*ray_scaling), &value);
+            // write data from the source scan parameter, to the newly projected scan paramter
+            if (valueType != RaveValueType_UNDEFINED){
+                PolarScanParam_setValue(param_proj, iBin, iRay, value);
+            }
+        }
+    }
+
+    return param_proj;
+}
+
+PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDEX,float rangeMax, double *scale){
     Volume *rslVolume;
     Sweep *rslSweep;
     Ray *rslRay;
@@ -2395,6 +2436,8 @@ PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDE
     rscale = rslRay->h.gate_size;
     nbins = 1+rslRay->h.nbins+rslRay->h.range_bin1/rscale;
     nbins = MIN(nbins, ROUND(rangeMax/rscale));
+    // return rscale through the scale parameter
+    *scale = (double) rscale;
         
     // estimate the number of azimuth bins
     // early WSR88D scans have somewhat variable azimuth spacing
@@ -2475,6 +2518,12 @@ PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax){
     // add attribute Nyquist velocity to scan
     rslRay = RSL_get_first_ray_of_volume(rslVol);
     nyq_vel = rslRay->h.nyq_vel;
+    
+    // if no nyquist velocity found, try it with the native RSL function
+    if(nyq_vel == 0){
+        nyq_vel = RSL_get_nyquist_from_radar(radar);
+    }
+    
     RaveAttribute_t* attr_NI = RaveAttributeHelp_createDouble("how/NI", (double) nyq_vel);
     if (attr_NI == NULL || nyq_vel == 0){
         fprintf(stderr, "warning: no valid Nyquist velocity found in RSL polar volume\n");
@@ -2489,24 +2538,43 @@ PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax){
 
     // loop through the volume pointers
     // iParam gives you the XX_INDEX flag, i.e. scan parameter type
-    int result;
+    int result = 0;
+    double scale = 0;
     for (int iParam = 0; iParam < radar->h.nvolumes; iParam++){
         
         if(radar->v[iParam] == NULL) continue;
         
-        param = PolarScanParam_RSL2Rave(radar, elev, iParam, rangeMax);
+        param = PolarScanParam_RSL2Rave(radar, elev, iParam, rangeMax, &scale);
         if(param == NULL){
-           fprintf(stderr, "PolarScanParam_RSL2Rave returned empty object for parameter %i\n",iParam); 
+            fprintf(stderr, "PolarScanParam_RSL2Rave returned empty object for parameter %i\n",iParam); 
+            goto done;
         }
-
+        
+        // add the scan parameter to the scan, assuming their dimensions fit
+        // for NEXRAD legacy data this will not work, as dimensions differ
         result = PolarScan_addParameter(scan, param);
+        
         if(result == 0){
-           fprintf(stderr, "PolarScan_RSL2Rave failed to add parameter %i to RAVE polar scan\n",iParam); 
+            fprintf(stderr, "Warning: dimensions of scan parameter %i does not match scan dimensions, reprojecting ...\n",iParam);
+            
+            PolarScanParam_t *param_proj;
+            // project the scan parameter on the grid of the scan
+            param_proj = PolarScanParam_project(param, scan, scale);
+            // try to add it again
+            result = PolarScan_addParameter(scan, param_proj);
+            
+            if(result == 0){
+                fprintf(stderr, "PolarScan_RSL2Rave failed to add parameter %i to RAVE polar scan\n",iParam); 
+                RAVE_OBJECT_RELEASE(param_proj);
+            }
+ 
+            RAVE_OBJECT_RELEASE(param);
         }
         
     }
 
-    return scan;
+    done:
+        return scan;
 }
 
 // maps a RSL polar volume to a RAVE polar volume NEW NEW NEW
@@ -3227,7 +3295,7 @@ static void printCellProp(CELLPROP* cellProp, float elev, int nCells, int nCells
     // ---------------------------------------------------------- //
     
     fprintf(stderr,"#Cell analysis for elevation %f:\n",elev*RAD2DEG);
-    fprintf(stderr,"#Minimum cell area in km^2     : %d\n",alldata->constants.areaCellMin);
+    fprintf(stderr,"#Minimum cell area in km^2     : %f\n",alldata->constants.areaCellMin);
     fprintf(stderr,"#Threshold for mean dBZ cell   : %g dBZ\n",alldata->misc.cellDbzMin);
     fprintf(stderr,"#Threshold for mean stdev cell : %g dBZ\n",alldata->options.cellStdDevMax);
     fprintf(stderr,"#Valid cells                   : %i/%i\n#\n",nCellsValid,nCells);
@@ -4314,7 +4382,7 @@ void vol2birdPrintOptions(vol2bird_t* alldata) {
     fprintf(stderr,"%-25s = %f\n","fringeDist",alldata->constants.fringeDist);
     fprintf(stderr,"%-25s = %f\n","layerThickness",alldata->options.layerThickness);
     fprintf(stderr,"%-25s = %f\n","minNyquist",alldata->options.minNyquist);
-    fprintf(stderr,"%-25s = %d\n","areaCellMin",alldata->constants.areaCellMin);
+    fprintf(stderr,"%-25s = %f\n","areaCellMin",alldata->constants.areaCellMin);
     fprintf(stderr,"%-25s = %d\n","nAzimNeighborhood",alldata->constants.nAzimNeighborhood);
     fprintf(stderr,"%-25s = %d\n","nBinsGap",alldata->constants.nBinsGap);
     fprintf(stderr,"%-25s = %d\n","nCountMin",alldata->constants.nCountMin);
