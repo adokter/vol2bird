@@ -58,6 +58,7 @@ struct cellprop {
     float cv;
     int nGates;
     int nGatesClutter;
+    double area;
     float dbzMax;
     int index;
     int drop;
@@ -139,9 +140,9 @@ struct vol2birdConstants {
     // after fitting the vrad data, throw out any vrad observations that are more that VDIFMAX away
     // from the fitted value, since these are likely outliers
     float absVDifMax;
-    // when analyzing cells, AREAMIN determines the minimum size of a
-    // cell to be considered in the rest of the analysis
-    int nGatesCellMin;
+    // when analyzing cells, areaCellMin determines the minimum size of a
+    // cell in km^2 to be considered in the rest of the analysis
+    float areaCellMin;
     // cells with clutter fractions above this value are likely not birds
     float cellClutterFractionMax;
     // minimum standard deviation of the VVP fit
