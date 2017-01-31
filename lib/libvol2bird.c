@@ -2555,7 +2555,7 @@ PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax){
         result = PolarScan_addParameter(scan, param);
         
         if(result == 0){
-            fprintf(stderr, "Warning: dimensions of scan parameter %i does not match scan dimensions, reprojecting ...\n",iParam);
+            fprintf(stderr, "Warning: dimensions of scan parameter %i do not match scan dimensions, reprojecting ...\n",iParam);
             
             PolarScanParam_t *param_proj;
             // project the scan parameter on the grid of the scan
