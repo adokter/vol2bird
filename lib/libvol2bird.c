@@ -109,7 +109,9 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax);
 
 PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax);
 
-PolarScanParam_t* PolarScanParam_project(PolarScanParam_t* param, PolarScan_t* scan, double rscale);
+PolarScanParam_t* PolarScanParam_project_on_scan(PolarScanParam_t* param, PolarScan_t* scan, double rscale);
+
+PolarScanParam_t* PolarScanParam_reproject(PolarScanParam_t* param, double rscale, double rscale_proj, long nbins_proj, long nrays_proj);
 
 PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDEX,float rangeMax, double *scale);
     
@@ -154,7 +156,6 @@ static int analyzeCells(PolarScan_t *scan, vol2birdScanUse_t scanUse, const int 
     // ----------------------------------------------------------------------------------- //
 
     CELLPROP *cellProp;
-    int nGlobal;
     int nCellsValid;
     long nAzim;
     long nRang;
@@ -162,7 +163,6 @@ static int analyzeCells(PolarScan_t *scan, vol2birdScanUse_t scanUse, const int 
     nCellsValid = nCells;
     nRang = PolarScan_getNbins(scan);
     nAzim = PolarScan_getNrays(scan);
-    nGlobal = nAzim*nRang;
     nCellsValid = 0;
     
     if(!PolarScan_hasParameter(scan, scanUse.cellName)){
@@ -1626,7 +1626,6 @@ static void fringeCells(PolarScan_t* scan, vol2bird_t* alldata) {
 CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const int nCells, vol2bird_t* alldata){    
     int iCell;
     int iGlobal;
-    int nGlobal;
     int iRang;
     int iAzim;
     long nAzim;
@@ -1648,7 +1647,6 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
 
     nRang = PolarScan_getNbins(scan);
     nAzim = PolarScan_getNrays(scan);
-    nGlobal = nAzim*nRang;
     rScale = PolarScan_getRscale(scan);
     aScale = (360.0/nAzim)*PI/180; // in radials
     
@@ -1788,7 +1786,6 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
 
     int iAzim;
     int iRang;
-    int iGlobal;
     int nRang;
     int nAzim;
     int nPointsWritten_local;
@@ -1849,7 +1846,6 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
 
         for (iAzim = 0; iAzim < nAzim; iAzim++) {
 
-            iGlobal = iRang + iAzim * nRang;
             gateAzim = ((float) iAzim + 0.5f) * azimuthScale;
             vradValueType = PolarScanParam_getConvertedValue(vradParam, iRang, iAzim, &vradValue);
             dbzValueType = PolarScanParam_getConvertedValue(dbzParam, iRang, iAzim, &dbzValue);
@@ -1918,9 +1914,8 @@ PolarScanParam_t* PolarScan_newParam(PolarScan_t *scan, const char *quantity, Ra
         return NULL;
     }
     
-    int result;
-    result = PolarScanParam_createData(scanParam, PolarScan_getNbins(scan), PolarScan_getNrays(scan), type);
-    result=PolarScanParam_setQuantity(scanParam,quantity);
+    PolarScanParam_createData(scanParam, PolarScan_getNbins(scan), PolarScan_getNrays(scan), type);
+    PolarScanParam_setQuantity(scanParam,quantity);
     PolarScanParam_setNodata(scanParam,NODATA);
     PolarScanParam_setUndetect(scanParam,UNDETECT);
     PolarScanParam_setOffset(scanParam,0);
@@ -2284,13 +2279,24 @@ int rslCopy2Rave(Sweep *rslSweep,PolarScanParam_t* scanparam){
     return 1;
 }
 
-PolarScanParam_t* PolarScanParam_project(PolarScanParam_t* param, PolarScan_t* scan, double rscale){
+PolarScanParam_t* PolarScanParam_project_on_scan(PolarScanParam_t* param, PolarScan_t* scan, double rscale){
     PolarScanParam_t* param_proj = NULL;
+    
+    double rscale_proj = PolarScan_getRscale(scan);
     long nbins_proj = PolarScan_getNbins(scan);
     long nrays_proj = PolarScan_getNrays(scan);
+    
+    param_proj = PolarScanParam_reproject(param, rscale, rscale_proj, nbins_proj, nrays_proj);
+    
+    return param_proj;
+}
+
+PolarScanParam_t* PolarScanParam_reproject(PolarScanParam_t* param, double rscale, double rscale_proj, long nbins_proj, long nrays_proj){
+    PolarScanParam_t* param_proj = NULL;
+    
     long nrays = PolarScanParam_getNrays(param);
     
-    double bin_scaling = PolarScan_getRscale(scan)/rscale;
+    double bin_scaling = rscale_proj/rscale;
     double ray_scaling = nrays/nrays_proj;
     
     param_proj = RAVE_OBJECT_NEW(&PolarScanParam_TYPE);
@@ -2559,7 +2565,7 @@ PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax){
             
             PolarScanParam_t *param_proj;
             // project the scan parameter on the grid of the scan
-            param_proj = PolarScanParam_project(param, scan, scale);
+            param_proj = PolarScanParam_project_on_scan(param, scan, scale);
             // try to add it again
             result = PolarScan_addParameter(scan, param_proj);
             
@@ -2683,16 +2689,13 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax){
 
 // has extra checks in place ... XXX
 PolarVolume_t* PolarVolume_vol2bird_RSL2Rave(Radar* radar, float rangeMax){
-    // pointers to RSL polar volumes of reflectivity, velocity and correlation coefficient, respectively.
-    Volume *rslVolZ,*rslVolV,*rslVolRho;
+    // pointers to RSL polar volumes of reflectivity, velocity, respectively.
+    Volume *rslVolZ,*rslVolV;
     // pointer to a RSL ray
 
-    int dualpol;
-    
     // retrieve the polar volumes from the Radar object
     rslVolZ = radar->v[DZ_INDEX];
     rslVolV = radar->v[VR_INDEX];
-    rslVolRho = radar->v[RH_INDEX];
     
     PolarVolume_t* volume = NULL;
     
@@ -2704,9 +2707,6 @@ PolarVolume_t* PolarVolume_vol2bird_RSL2Rave(Radar* radar, float rangeMax){
     else if (rslVolV == NULL){
         fprintf(stderr, "Error: RSL radar object contains no radial velocity volume...\n");
         goto done;
-    }
-    if (rslVolRho){
-        dualpol=TRUE;
     }
     
     volume = PolarVolume_RSL2Rave(radar, rangeMax);
@@ -3210,7 +3210,7 @@ static int profileArray2RaveField(vol2bird_t* alldata, int idx_profile, int idx_
             break;
         default:
             fprintf(stderr, "Something is wrong this should not happen.\n");
-            break;
+            goto done;
     }
     
     int iRowProfile;
@@ -3221,9 +3221,10 @@ static int profileArray2RaveField(vol2bird_t* alldata, int idx_profile, int idx_
     
     result = verticalProfile_AddCustomField(alldata->vp, field, quantity);
     
-    RAVE_OBJECT_RELEASE(field);
+    done:
+        RAVE_OBJECT_RELEASE(field);
     
-    return result;
+        return result;
 }
 
 
@@ -3372,7 +3373,6 @@ void printImage(PolarScan_t* scan, const char* quantity) {
     int nRang = PolarScan_getNbins(scan);
     int iRang;
     int iAzim;
-    int iGlobal;
     int needsSignChar;
     int needsFloat;
     int maxValue;
@@ -3389,7 +3389,6 @@ void printImage(PolarScan_t* scan, const char* quantity) {
     char* formatStr;
     char* naStr;
     
-    iGlobal = 0;
     maxValue = 0;
     needsSignChar = FALSE;
     needsFloat = FALSE;
