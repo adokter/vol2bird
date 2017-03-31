@@ -2228,7 +2228,7 @@ PolarVolume_t* PolarVolume_resample(PolarVolume_t* volume, double rscale_proj, l
 
     // copy the volume
     PolarVolume_t* volume_proj = RAVE_OBJECT_CLONE(volume);
-
+        
     // empty the scans in the copied volume
     for (iScan = nScans-1; iScan>=0 ; iScan--) { 
         PolarVolume_removeScan(volume_proj,iScan);
@@ -2259,7 +2259,7 @@ PolarScan_t* PolarScan_resample(PolarScan_t* scan, double rscale_proj, long nbin
 
     scan_proj = RAVE_OBJECT_CLONE(scan);
     PolarScan_removeAllParameters(scan_proj);
-    
+        
     double rscale = PolarScan_getRscale(scan);
     long nbins = PolarScan_getNbins(scan);
     long nrays = PolarScan_getNrays(scan);
@@ -2279,6 +2279,9 @@ PolarScan_t* PolarScan_resample(PolarScan_t* scan, double rscale_proj, long nbin
         fprintf(stderr, "Warning: requested number of azimuth rays (Nrays=%li) too large for %3.1f degree scan, using %li rays\n", nrays_proj, elev, nrays);
         nrays_proj = nrays;
     }
+    
+    // update scan object with new rscale
+    PolarScan_setRscale(scan_proj, rscale_proj);
     
     // iterate over the parameters in scan
     for (iParam = 0; iParam < nParams; iParam++) {
