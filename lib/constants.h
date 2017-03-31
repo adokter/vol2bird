@@ -96,9 +96,9 @@
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
-#define VERSION "0.3.8"
+#define VERSION "0.3.9"
 // Date of latest version of the program
-#define VERSIONDATE "20-Jan-2017"
+#define VERSIONDATE "31-Mar-2017"
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //
@@ -159,7 +159,7 @@
 // when analyzing cells, only cells for which the stddev of vrad
 // (aka the texture) is less than cellStdDevMax are considered in the
 // rest of the analysis
-#define STDEV_CELL 5.0
+#define STDEV_CELL 5.0f
 // VVP Radial velocity standard deviation threshold
 #define STDEV_BIRD 2.0f
 // Bird radar cross section [cm^2]
@@ -183,4 +183,12 @@
 // whether to use dual-pol moments for filtering meteorological echoes
 #define DUALPOL 1
 // correlation coefficients higher than this threshold will be classified as precipitation
-#define RHOHVMIN 0.97
+#define RHOHVMIN 0.97f
+// whether to resample the input polar volume
+#define RESAMPLE 0
+// resampled range gate length in m
+#define RESAMPLE_RSCALE 500.0f
+// resampled number of range bins
+#define RESAMPLE_NBINS 100
+// resampled number of azimuth bins
+#define RESAMPLE_NRAYS 360
