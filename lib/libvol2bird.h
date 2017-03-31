@@ -129,6 +129,10 @@ struct vol2birdOptions {
     int dualPol;                    /* whether to use dual-polarization moments for filtering meteorological echoes */
     float dbzThresMin;              /* reflectivities above this threshold will be checked as potential precipitation */
     float rhohvThresMin;            /* correlation coefficients above this threshold will be removed as precipitation */
+    int resample;                   /* whether to resample the input polar volume */
+    float resampleRscale;           /* resampled range gate length in km */
+    int resampleNbins;              /* resampled number of range bins */
+    int resampleNrays;              /* resampled number of azimuth bins */
 };
 typedef struct vol2birdOptions vol2birdOptions_t;
 
@@ -375,6 +379,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata);
 float* vol2birdGetProfile(int iProfileType, vol2bird_t* alldata);
 
 PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax, int small);
+
+PolarVolume_t* PolarVolume_resample(PolarVolume_t* volume, double rscale_proj, long nbins_proj, long nrays_proj);
 
 int vol2birdGetNColsProfile(vol2bird_t* alldata);
 

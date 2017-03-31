@@ -104,114 +104,126 @@ int main(int argc, char** argv) {
     // read in data up to a distance of alldata.misc.rCellMax
     // we do not read in the full volume for speed/memory
     PolarVolume_t* volume = NULL;
-    volume = vol2birdGetVolume(fileVolIn, alldata.misc.rCellMax,1);
     
+    volume = vol2birdGetVolume(fileVolIn, alldata.misc.rCellMax,1);
+     
     if (volume == NULL) {
         fprintf(stderr,"Error: failed to read radar volume\n");
         return -1;
     }
-    else {
 
-        // initialize volbird library
-        int initSuccessful = vol2birdSetUp(volume, &alldata) == 0;
-        
-        // output (optionally de-aliased) volume
-        if (fileVolOut != NULL){
-            saveToODIM((RaveCoreObject*) volume, fileVolOut);
-        }
-        
-        if (initSuccessful == FALSE) {
-            fprintf(stderr,"Error: failed to initialize vol2bird\n");
+    // resample the volume upon request
+    if (alldata.options.resample) {
+        PolarVolume_t* volume_orig = volume;
+        volume = PolarVolume_resample(volume,alldata.options.resampleRscale,
+                 alldata.options.resampleNbins,alldata.options.resampleNrays);
+        if (volume == NULL) {
+            fprintf(stderr,"Error: volume resampling failed\n");
             return -1;
         }
-
-        // call vol2bird's main routine
-        vol2birdCalcProfiles(&alldata);
-        
-        
-        // ------------------------------------------------------------------- //
-        //  example of how the getters can be used to get at the profile data  //
-        // ------------------------------------------------------------------- //
-        const char* date;
-        const char* time;
-        const char* source;
-
-        date = PolarVolume_getDate(volume);
-        time = PolarVolume_getTime(volume);
-        source = PolarVolume_getSource(volume);
-
-        {  // getter example scope begin
-
-                int nRowsProfile = vol2birdGetNRowsProfile(&alldata);
-                int nColsProfile = vol2birdGetNColsProfile(&alldata);
-				
-                fprintf(stdout, "# vol2bird Vertical Profile of Birds (VPB)\n");
-                fprintf(stdout, "# source: %s\n",source);
-                fprintf(stdout, "# ODIM HDF5 input: %s\n",fileVolIn);
-                printf("# date   time HGHT    u      v       w     ff    dd  sd_vvp gap dbz     eta   dens   DBZH   n   n_dbz n_all n_dbz_all\n");
-               
-                float *profileBio;
-                float *profileAll;
-
-                profileBio = vol2birdGetProfile(1, &alldata);
-                profileAll = vol2birdGetProfile(3, &alldata);
-                
-                int iRowProfile;
-                int iCopied = 0;
-                
-                for (iRowProfile = 0; iRowProfile < nRowsProfile; iRowProfile++) {
-                    iCopied=iRowProfile*nColsProfile;
-                    printf("%8s %.4s ",date,time);
-                    printf("%4.f %6.2f %6.2f %7.2f %5.2f %5.1f %6.2f %1c %6.2f %6.1f %6.2f %6.2f %5.f %5.f %5.f %5.f\n",
-                    profileBio[0+iCopied],
-                    nanify(profileBio[2+iCopied]),nanify(profileBio[3+iCopied]),
-                    nanify(profileBio[4+iCopied]),nanify(profileBio[5+iCopied]),
-                    nanify(profileBio[6+iCopied]),nanify(profileAll[7+iCopied]),
-                    profileBio[8+iCopied] == TRUE ? 'T' : 'F',
-                    nanify(profileBio[9+iCopied]),nanify(profileBio[11+iCopied]),
-                    nanify(profileBio[12+iCopied]),nanify(profileAll[9+iCopied]),
-                    nanify(profileBio[10+iCopied]),nanify(profileBio[13+iCopied]),
-                    nanify(profileAll[10+iCopied]),nanify(profileAll[13+iCopied]));
-                }
-                
-                profileAll = NULL;
-                profileBio = NULL;
-                free((void*) profileAll);
-                free((void*) profileBio);
-
-            //}
-        } // getter example scope end
-
-
-
-        // ------------------------------------------------------------------- //
-        //                 end of the getter example section                   //
-        // ------------------------------------------------------------------- //            
-            
-        //map vol2bird profile data to Rave profile object
-        mapDataToRave(volume, &alldata);
-        
-        //save rave profile to ODIM hdf5 file
-        if (fileVpOut != NULL){
-            int result;
-            result = saveToODIM((RaveCoreObject*) alldata.vp, fileVpOut); 
-            if (result == FALSE){
-                fprintf(stderr, "critical error, cannot write file %s\n", fileVpOut);
-                return -1;
-            }
-        }
-        
-        // tear down vol2bird, give memory back
-        vol2birdTearDown(&alldata);
-        RAVE_OBJECT_RELEASE(volume);
- 
-
-        // output some performance data
-        //clock_gettime(CLOCK_REALTIME, &ts);
-        //double nSeconds = ((double) ts.tv_nsec)/1e9;
-        //fprintf(stderr, "Processing done in %.2f seconds\n",nSeconds);
-
+        RAVE_OBJECT_RELEASE(volume_orig);
     }
+
+    // initialize volbird library
+    int initSuccessful = vol2birdSetUp(volume, &alldata) == 0;
+    
+    // output (optionally de-aliased) volume
+    if (fileVolOut != NULL){
+        saveToODIM((RaveCoreObject*) volume, fileVolOut);
+    }
+    
+    if (initSuccessful == FALSE) {
+        fprintf(stderr,"Error: failed to initialize vol2bird\n");
+        return -1;
+    }
+
+    // call vol2bird's main routine
+    vol2birdCalcProfiles(&alldata);
+    
+    
+    // ------------------------------------------------------------------- //
+    //  example of how the getters can be used to get at the profile data  //
+    // ------------------------------------------------------------------- //
+    const char* date;
+    const char* time;
+    const char* source;
+
+    date = PolarVolume_getDate(volume);
+    time = PolarVolume_getTime(volume);
+    source = PolarVolume_getSource(volume);
+
+    {  // getter example scope begin
+
+            int nRowsProfile = vol2birdGetNRowsProfile(&alldata);
+            int nColsProfile = vol2birdGetNColsProfile(&alldata);
+            
+            fprintf(stdout, "# vol2bird Vertical Profile of Birds (VPB)\n");
+            fprintf(stdout, "# source: %s\n",source);
+            fprintf(stdout, "# ODIM HDF5 input: %s\n",fileVolIn);
+            printf("# date   time HGHT    u      v       w     ff    dd  sd_vvp gap dbz     eta   dens   DBZH   n   n_dbz n_all n_dbz_all\n");
+           
+            float *profileBio;
+            float *profileAll;
+
+            profileBio = vol2birdGetProfile(1, &alldata);
+            profileAll = vol2birdGetProfile(3, &alldata);
+            
+            int iRowProfile;
+            int iCopied = 0;
+            
+            for (iRowProfile = 0; iRowProfile < nRowsProfile; iRowProfile++) {
+                iCopied=iRowProfile*nColsProfile;
+                printf("%8s %.4s ",date,time);
+                printf("%4.f %6.2f %6.2f %7.2f %5.2f %5.1f %6.2f %1c %6.2f %6.1f %6.2f %6.2f %5.f %5.f %5.f %5.f\n",
+                profileBio[0+iCopied],
+                nanify(profileBio[2+iCopied]),nanify(profileBio[3+iCopied]),
+                nanify(profileBio[4+iCopied]),nanify(profileBio[5+iCopied]),
+                nanify(profileBio[6+iCopied]),nanify(profileAll[7+iCopied]),
+                profileBio[8+iCopied] == TRUE ? 'T' : 'F',
+                nanify(profileBio[9+iCopied]),nanify(profileBio[11+iCopied]),
+                nanify(profileBio[12+iCopied]),nanify(profileAll[9+iCopied]),
+                nanify(profileBio[10+iCopied]),nanify(profileBio[13+iCopied]),
+                nanify(profileAll[10+iCopied]),nanify(profileAll[13+iCopied]));
+            }
+            
+            profileAll = NULL;
+            profileBio = NULL;
+            free((void*) profileAll);
+            free((void*) profileBio);
+
+        //}
+    } // getter example scope end
+
+
+
+    // ------------------------------------------------------------------- //
+    //                 end of the getter example section                   //
+    // ------------------------------------------------------------------- //            
+        
+    //map vol2bird profile data to Rave profile object
+    mapDataToRave(volume, &alldata);
+    
+    //save rave profile to ODIM hdf5 file
+    if (fileVpOut != NULL){
+        int result;
+        result = saveToODIM((RaveCoreObject*) alldata.vp, fileVpOut); 
+        if (result == FALSE){
+            fprintf(stderr, "critical error, cannot write file %s\n", fileVpOut);
+            return -1;
+        }
+    }
+    
+    // tear down vol2bird, give memory back
+    vol2birdTearDown(&alldata);
+    RAVE_OBJECT_RELEASE(volume);
+
+
+    // output some performance data
+    //clock_gettime(CLOCK_REALTIME, &ts);
+    //double nSeconds = ((double) ts.tv_nsec)/1e9;
+    //fprintf(stderr, "Processing done in %.2f seconds\n",nSeconds);
+
+
     
     return 0;
 
