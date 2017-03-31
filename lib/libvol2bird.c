@@ -109,9 +109,13 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax);
 
 PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax);
 
-PolarScanParam_t* PolarScanParam_project_on_scan(PolarScanParam_t* param, PolarScan_t* scan, double rscale);
+PolarVolume_t* PolarVolume_reproject(PolarVolume_t* volume, double rscale_proj, long nbins_proj, long nrays_proj);
+
+PolarScan_t* PolarScan_reproject(PolarScan_t* scan, double rscale_proj, long nbins_proj, long nrays_proj);
 
 PolarScanParam_t* PolarScanParam_reproject(PolarScanParam_t* param, double rscale, double rscale_proj, long nbins_proj, long nrays_proj);
+
+PolarScanParam_t* PolarScanParam_project_on_scan(PolarScanParam_t* param, PolarScan_t* scan, double rscale);
 
 PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDEX,float rangeMax, double *scale);
     
@@ -1939,82 +1943,6 @@ PolarScanParam_t* PolarScan_newParam(PolarScan_t *scan, const char *quantity, Ra
 }
 
 
-/*
-int PolarVolume_dealias(PolarVolume_t* pvol){
-    
-    fprintf(stderr,"Dealiasing scans: ");
-    
-    int iScan, nScans;
-    int result;
-    PolarScan_t* scan;
-    PolarScanParam_t* param, *param_clone, *param_dealiased;
-    
-    // Read number of scans
-    nScans = PolarVolume_getNumberOfScans(pvol);
-    
-    for (iScan = 0; iScan < nScans; iScan++){
-                        
-        scan = PolarVolume_getScan(pvol, iScan);        
-
-        // continue if already dealiased velocity available
-        if (PolarScan_hasParameter(scan, "VRADDH")){
-            continue;
-        }
-
-        // continue if no radial velocity present
-        if (!(PolarScan_hasParameter(scan, "VRAD") || PolarScan_hasParameter(scan, "VRADH"))){
-            continue;
-        }
-        
-        // dealiase VRAD or VRADH quantities
-        if (PolarScan_hasParameter(scan, "VRAD")){
-            param = PolarScan_getParameter(scan, "VRAD");
-            param_clone = RAVE_OBJECT_CLONE(param);
-            //rename the parameter to VRADH and store it as a copy in the polar volume
-            result = PolarScanParam_setQuantity (param_clone, "VRADH");
-            //add the copy
-            result = PolarScan_addParameter(scan, param_clone);
-            //RAVE_OBJECT_RELEASE(param_clone);
-        }
-        else{
-            param = PolarScan_getParameter(scan, "VRADH");
-            param_clone = RAVE_OBJECT_CLONE(param);
-            //rename the parameter to VRAD, as dealias function only works on VRAD quantity
-            result = PolarScanParam_setQuantity (param_clone, "VRAD");
-            //add a copy
-            result = PolarScan_addParameter(scan, param_clone);
-            //RAVE_OBJECT_RELEASE(param_clone);
-        }
-        
-        // dealias the radial velocity parameter (stored as VRAD) of the scan
-        result = dealias_scan_by_quantity(scan,"VRAD",90);
-     
-        // if dealiasing successful
-        if (result == 1){
-            // print to stderr that this scan was dealiased
-            fprintf(stderr,"%i,",iScan+1);
-
-            // remove and extract the dealiased VRAD parameter
-            param_dealiased = PolarScan_removeParameter(scan, "VRAD");
-            
-            // rename the dealiased VRAD parameter to VRADDH
-            result = PolarScanParam_setQuantity (param_dealiased, "VRADDH");
-        
-            // add the dealised VRADHD parameter to the scan
-            result = PolarScan_addParameter(scan, param_dealiased);            
-        }
-        else{
-            // remove the unsuccessfully dealiased VRAD parameter
-            param_dealiased = PolarScan_removeParameter(scan, "VRAD");
-            // and release it
-            RAVE_OBJECT_RELEASE(param_dealiased);
-        }
-    }
-    fprintf(stderr," done.\n");
-    return 1;
-}
-*/
-
 long datetime2long(char* date, char* time){
 
     //concatenate date and time into a datetime string
@@ -2289,6 +2217,66 @@ PolarScanParam_t* PolarScanParam_project_on_scan(PolarScanParam_t* param, PolarS
     param_proj = PolarScanParam_reproject(param, rscale, rscale_proj, nbins_proj, nrays_proj);
     
     return param_proj;
+}
+
+PolarVolume_t* PolarVolume_reproject(PolarVolume_t* volume, double rscale_proj, long nbins_proj, long nrays_proj){
+    int iScan;
+    int nScans;
+    
+    nScans = PolarVolume_getNumberOfScans(volume);
+    
+    PolarScan_t* scan = NULL;
+    PolarScan_t* scan_proj = NULL;
+
+    // copy the volume
+    PolarVolume_t* volume_proj = RAVE_OBJECT_CLONE(volume);
+
+    // empty the scans in the copied volume
+    for (iScan = nScans-1; iScan>=0 ; iScan--) { 
+        PolarVolume_removeScan(volume_proj,iScan);
+    }
+   
+    // iterate over the scans in source volume
+    for (iScan = 0; iScan < nScans; iScan++) {
+        scan = PolarVolume_getScan(volume, iScan);
+        scan_proj = PolarScan_reproject(scan, rscale_proj, nbins_proj, nrays_proj);
+        PolarVolume_addScan(volume_proj, scan_proj);
+        RAVE_OBJECT_RELEASE(scan_proj);
+    }
+    
+    return volume_proj;
+}
+
+PolarScan_t* PolarScan_reproject(PolarScan_t* scan, double rscale_proj, long nbins_proj, long nrays_proj){
+    int iParam;
+    
+    // determine how many parameters the scan contains
+    RaveList_t* ParamNames = PolarScan_getParameterNames(scan);
+    int nParams = RaveList_size(ParamNames);
+
+    // initialize the scan object
+    PolarScan_t* scan_proj = NULL;
+    PolarScanParam_t* param = NULL;
+    PolarScanParam_t* param_proj = NULL;
+
+    scan_proj = RAVE_OBJECT_CLONE(scan);
+    PolarScan_removeAllParameters(scan_proj);
+    
+    double rscale = PolarScan_getRscale(scan);
+    
+    // iterate over the parameters in scan
+    for (iParam = 0; iParam < nParams; iParam++) {
+        // extract the scan object from the volume object
+        param = PolarScan_getParameter(scan, RaveList_get(ParamNames,iParam));
+        // reproject the parameter
+        param_proj = PolarScanParam_reproject(param, rscale, rscale_proj, nbins_proj, nrays_proj);
+        // add parameter to scan
+        PolarScan_addParameter(scan_proj, param_proj);
+        // release the parameter
+        RAVE_OBJECT_RELEASE(param_proj);
+    }
+    
+    return scan_proj;
 }
 
 PolarScanParam_t* PolarScanParam_reproject(PolarScanParam_t* param, double rscale, double rscale_proj, long nbins_proj, long nrays_proj){
