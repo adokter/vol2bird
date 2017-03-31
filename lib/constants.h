@@ -186,7 +186,7 @@
 #define RHOHVMIN 0.97f
 // whether to resample the input polar volume
 #define RESAMPLE 0
-// resampled range gate length in km
+// resampled range gate length in m
 #define RESAMPLE_RSCALE 500.0f
 // resampled number of range bins
 #define RESAMPLE_NBINS 100

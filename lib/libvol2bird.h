@@ -130,7 +130,7 @@ struct vol2birdOptions {
     float dbzThresMin;              /* reflectivities above this threshold will be checked as potential precipitation */
     float rhohvThresMin;            /* correlation coefficients above this threshold will be removed as precipitation */
     int resample;                   /* whether to resample the input polar volume */
-    float resampleRscale;           /* resampled range gate length in km */
+    float resampleRscale;           /* resampled range gate length in m */
     int resampleNbins;              /* resampled number of range bins */
     int resampleNrays;              /* resampled number of azimuth bins */
 };
