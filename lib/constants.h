@@ -96,9 +96,9 @@
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
-#define VERSION "0.3.9"
+#define VERSION "0.3.10"
 // Date of latest version of the program
-#define VERSIONDATE "31-Mar-2017"
+#define VERSIONDATE "08-Apr-2017"
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //
@@ -123,7 +123,9 @@
 // the wavelength [cm] of the radar
 #define RADAR_WAVELENGTH_CM 5.3f
 // whether a static clutter map is used
-#define USE_STATIC_CLUTTER_DATA 0
+#define USE_CLUTTERMAP 0
+// clutter map path and filename
+#define CLUTTERMAP ""
 // print options to stderr
 #define PRINT_OPTIONS 0
 // FIXME: add description

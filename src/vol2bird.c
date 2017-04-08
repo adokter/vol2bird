@@ -106,12 +106,16 @@ int main(int argc, char** argv) {
     PolarVolume_t* volume = NULL;
     
     volume = vol2birdGetVolume(fileVolIn, alldata.misc.rCellMax,1);
-     
+         
     if (volume == NULL) {
         fprintf(stderr,"Error: failed to read radar volume\n");
         return -1;
     }
 
+    if (alldata.options.useClutterMap){
+        vol2birdLoadClutterMap(volume, alldata.options.clutterMap,alldata.misc.rCellMax);
+    }
+    
     // resample the volume upon request
     if (alldata.options.resample) {
         PolarVolume_t* volume_orig = volume;
