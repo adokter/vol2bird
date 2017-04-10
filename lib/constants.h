@@ -91,7 +91,7 @@
 #define TEXNAME "VTEX"
 // name under which the calculated raincell masking quantity will be stored
 #define CELLNAME "CELL"
-// name under which the static cluttermap will be stored
+// name of the parameter containing the static cluttermap
 #define CLUTNAME "OCCULT"
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
