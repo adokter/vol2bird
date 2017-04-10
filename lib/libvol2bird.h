@@ -100,6 +100,7 @@ struct vol2birdOptions {
     float radarWavelength;    /* the default wavelength [cm] of the radar if it is not included in the metadata */
     int useClutterMap;        /* whether a static clutter map is used */
     char clutterMap[1000];    /* path and filename of static cluttermap / beam occultation map to use */
+    float clutterValueMin;    /* positions in static clutter map with value above this value are excluded as clutter */
     int printOptions;         /* print options to stderr */
     int printDbz;             /* print dbz to stderr */
     int printDealias;         /* print aliased and dealiased vrad pairs to stderr */
@@ -225,6 +226,8 @@ struct vol2birdPoints {
 	int nyquistCol;
     // the psuedo-column in 'points' that holds the dealiased vrad value
 	int vraddValueCol;
+    // the psuedo-column in 'points' that holds the static clutter map value
+	int clutValueCol;
     // the 'points' array itself
     float* points; // Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
     // for a given altitude layer in the profile, only part of the 'points'

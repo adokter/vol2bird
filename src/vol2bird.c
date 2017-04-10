@@ -142,7 +142,7 @@ int main(int argc, char** argv) {
         fprintf(stderr,"Error: failed to initialize vol2bird\n");
         return -1;
     }
-    
+
     // output (optionally de-aliased) volume
     if (fileVolOut != NULL){
         saveToODIM((RaveCoreObject*) volume, fileVolOut);
