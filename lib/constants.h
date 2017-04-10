@@ -11,8 +11,8 @@
 #define CHISQMIN 1e-5
 // cells with clutter fractions above this value are likely not birds
 #define CLUTPERCCELL 0.5
-// threshold dbz value (on the external static clutter map!) above which gates are excluded as clutter
-#define DBZCLUTTER -10.0
+// threshold value (on the external static clutter map!) above which gates are excluded as clutter
+#define CLUTTERVALUEMIN 0.1
 // each weather cell identified by findWeatherCells() is grown by a distance
 // equal to 'fringeDist' using a region-growing approach
 #define FRINGEDIST 5000.0
@@ -98,7 +98,7 @@
 // Version of the program, to be stored as task_version attribute in ODIM
 #define VERSION "0.3.10"
 // Date of latest version of the program
-#define VERSIONDATE "08-Apr-2017"
+#define VERSIONDATE "10-Apr-2017"
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //

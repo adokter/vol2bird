@@ -1900,14 +1900,14 @@ int vol2birdLoadClutterMap(PolarVolume_t* volume, char* file, float rangeMax){
     clutVol = vol2birdGetVolume(file, rangeMax,1);
             
     if(clutVol == NULL){
-        fprintf(stderr, "Error in loadClutterMap: failed to load file %s\n",file); 
+        fprintf(stderr, "Error: function loadClutterMap: failed to load file '%s'\n",file); 
         return -1;
     }
     
     int nClutScans = PolarVolume_getNumberOfScans(clutVol);
 
     if(nClutScans < 1){
-        fprintf(stderr, "Error in loadClutterMap: no clutter map data found in file %s\n",file); 
+        fprintf(stderr, "Error: function loadClutterMap: no clutter map data found in file '%s'\n",file); 
         RAVE_OBJECT_RELEASE(clutVol);
         return -1;
     }
@@ -3062,6 +3062,7 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_FLOAT("RADAR_WAVELENGTH_CM",RADAR_WAVELENGTH_CM,CFGF_NONE),
         CFG_BOOL("USE_CLUTTERMAP",USE_CLUTTERMAP,CFGF_NONE),
         CFG_STR("CLUTTERMAP",CLUTTERMAP,CFGF_NONE),
+        CFG_FLOAT("CLUTTERVALUEMIN",CLUTTERVALUEMIN, CFGF_NONE),
         CFG_BOOL("VERBOSE_OUTPUT_REQUIRED",VERBOSE_OUTPUT_REQUIRED,CFGF_NONE),
         CFG_BOOL("PRINT_DBZ",PRINT_DBZ,CFGF_NONE),
         CFG_BOOL("PRINT_DEALIAS",PRINT_DEALIAS,CFGF_NONE),
@@ -4741,7 +4742,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->constants.areaCellMin = AREACELL;
     alldata->constants.cellClutterFractionMax = CLUTPERCCELL;
     alldata->constants.chisqMin = CHISQMIN;
-    alldata->constants.clutterValueMin = DBZCLUTTER;
+    alldata->constants.clutterValueMin = CLUTTERVALUEMIN;
     alldata->constants.fringeDist = FRINGEDIST;
     alldata->constants.nBinsGap = NBINSGAP;
     alldata->constants.nPointsIncludedMin = NDBZMIN;

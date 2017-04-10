@@ -111,9 +111,16 @@ int main(int argc, char** argv) {
         fprintf(stderr,"Error: failed to read radar volume\n");
         return -1;
     }
-
+    
+    // loading static clutter map upon request
     if (alldata.options.useClutterMap){
-        vol2birdLoadClutterMap(volume, alldata.options.clutterMap,alldata.misc.rCellMax);
+        int clutterSuccessful = vol2birdLoadClutterMap(volume, alldata.options.clutterMap,alldata.misc.rCellMax) == 0;
+        
+        if (clutterSuccessful == FALSE) {
+            fprintf(stderr,"Error: failed to load static clutter map '%s', aborting\n",alldata.options.clutterMap);
+            return -1;
+        }
+
     }
     
     // resample the volume upon request
@@ -130,15 +137,15 @@ int main(int argc, char** argv) {
 
     // initialize volbird library
     int initSuccessful = vol2birdSetUp(volume, &alldata) == 0;
+
+    if (initSuccessful == FALSE) {
+        fprintf(stderr,"Error: failed to initialize vol2bird\n");
+        return -1;
+    }
     
     // output (optionally de-aliased) volume
     if (fileVolOut != NULL){
         saveToODIM((RaveCoreObject*) volume, fileVolOut);
-    }
-    
-    if (initSuccessful == FALSE) {
-        fprintf(stderr,"Error: failed to initialize vol2bird\n");
-        return -1;
     }
 
     // call vol2bird's main routine
