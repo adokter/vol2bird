@@ -384,10 +384,11 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
         const float dbzValue = alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.dbzValueCol];        
         const float vradValue = alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.vradValueCol];
         const int cellValue = (int) alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.cellValueCol];
+        const float clutValue = alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.clutValueCol];
 
         unsigned int gateCode = 0;
         
-        if (FALSE) {
+        if (alldata->options.useClutterMap && clutValue > alldata->options.clutterValueMin) {
             // this gate is true in the static clutter map (which we don't have yet TODO)
             gateCode |= 1<<(alldata->flags.flagPositionStaticClutter);
         }
@@ -469,12 +470,6 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 
                 PolarScanParam_t *cellScanParam = PolarScan_newParam(scan, scanUse->cellName, RaveDataType_INT);
                 PolarScanParam_t *texScanParam = NULL;
-                PolarScanParam_t *clutScanParam = NULL;                
-
-                // only when static cluttermap data is available, initialize cluttermap field                
-                if(alldata->options.useStaticClutterData){
-                    clutScanParam = PolarScan_newParam(scan, scanUse->clutName, RaveDataType_DOUBLE);
-                }
                 
                 // only when dealing with normal (non-dual pol) data, initialize a vrad texture field
                 if(!alldata->options.dualPol){
@@ -596,7 +591,6 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 RAVE_OBJECT_RELEASE(scan);
                 RAVE_OBJECT_RELEASE(texScanParam);
                 RAVE_OBJECT_RELEASE(cellScanParam);
-                RAVE_OBJECT_RELEASE(clutScanParam);
                 
             }
         } // endfor (iScan = 0; iScan < nScans; iScan++)
@@ -1638,14 +1632,14 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
     double dbzValue;
     double texValue = 0;
     double vradValue;
-    double clutterValue = alldata->constants.clutterValueMin;
+    double clutterValue = alldata->options.clutterValueMin;
     double cellValue;
     
     PolarScanParam_t *dbzParam = PolarScan_getParameter(scan,scanUse.dbzName);
     PolarScanParam_t *vradParam = PolarScan_getParameter(scan,scanUse.vradName);
     PolarScanParam_t *texParam = PolarScan_getParameter(scan,scanUse.texName);
-    PolarScanParam_t *clutParam = PolarScan_getParameter(scan,scanUse.clutName);
     PolarScanParam_t *cellParam = PolarScan_getParameter(scan,scanUse.cellName);
+    PolarScanParam_t *clutParam = PolarScan_getParameter(scan,scanUse.clutName);
 
     nRang = PolarScan_getNbins(scan);
     nAzim = PolarScan_getNrays(scan);
@@ -1725,8 +1719,8 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
 
 
             // pixels in clutter map not included in calculation cell properties
-            if (alldata->options.useStaticClutterData == TRUE){
-                if (clutterValue > alldata->constants.clutterValueMin){
+            if (alldata->options.useClutterMap == TRUE){
+                if (clutterValue > alldata->options.clutterValueMin){
                     cellProp[iCell].nGatesClutter += 1;
                     continue;
                 }
@@ -1802,6 +1796,7 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
     double vradValue;
     double dbzValue;
     double cellValue;
+    double clutValue = NAN;
     double nyquist = 0;
     
     nPointsWritten_local = 0;
@@ -1822,6 +1817,10 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
     PolarScanParam_t* vradParam = PolarScan_getParameter(scan,scanUse.vradName);
     PolarScanParam_t* dbzParam = PolarScan_getParameter(scan,scanUse.dbzName);
     PolarScanParam_t* cellParam = PolarScan_getParameter(scan,scanUse.cellName);
+    PolarScanParam_t* clutParam = NULL;
+    if (alldata->options.useClutterMap){
+        clutParam = PolarScan_getParameter(scan,scanUse.clutName);
+    }
 
     for (iRang = 0; iRang < nRang; iRang++) {
 
@@ -1852,6 +1851,9 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
             vradValueType = PolarScanParam_getConvertedValue(vradParam, iRang, iAzim, &vradValue);
             dbzValueType = PolarScanParam_getConvertedValue(dbzParam, iRang, iAzim, &dbzValue);
             PolarScanParam_getValue(cellParam, iRang, iAzim, &cellValue);
+            if (alldata->options.useClutterMap){
+                PolarScanParam_getValue(clutParam, iRang, iAzim, &clutValue);
+            }
 
             // in the points array, store missing reflectivity values as the lowest possible reflectivity
             // this is to treat undetects as absence of scatterers
@@ -1887,6 +1889,9 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
             // store the corresponding observed vrad value for now (to be dealiased later)
             points_local[iRowPoints * nColsPoints_local + 7] = (float) vradValue;
 
+            // store the corresponding observed vrad value for now (to be dealiased later)
+            points_local[iRowPoints * nColsPoints_local + 8] = (float) clutValue;
+
             // raise the row counter by 1
             iRowPoints += 1;
             
@@ -1900,6 +1905,73 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
 
 
 } // getListOfSelectedGates
+
+
+int vol2birdLoadClutterMap(PolarVolume_t* volume, char* file, float rangeMax){
+    PolarVolume_t* clutVol = NULL;
+    clutVol = vol2birdGetVolume(file, rangeMax,1);
+            
+    if(clutVol == NULL){
+        fprintf(stderr, "Error: function loadClutterMap: failed to load file '%s'\n",file); 
+        return -1;
+    }
+    
+    int nClutScans = PolarVolume_getNumberOfScans(clutVol);
+
+    if(nClutScans < 1){
+        fprintf(stderr, "Error: function loadClutterMap: no clutter map data found in file '%s'\n",file); 
+        RAVE_OBJECT_RELEASE(clutVol);
+        return -1;
+    }
+
+    // iterate over the scans in 'volume'
+    int iScan;
+    int nScans;
+    
+    // determine how many scan elevations the volume object contains
+    nScans = PolarVolume_getNumberOfScans(volume);
+
+    for (iScan = 0; iScan < nScans; iScan++) {
+        // initialize the scan object
+        PolarScan_t* scan = NULL;
+        PolarScan_t* clutScan = NULL;
+        PolarScanParam_t* param = NULL;
+        PolarScanParam_t* param_proj = NULL;
+        
+        int result;
+        double elev, rscale;
+        
+        // extract the scan object from the volume object
+        scan = PolarVolume_getScan(volume, iScan);
+        
+        // extract the cluttermap scan parameter closest in elevation
+        elev = PolarScan_getElangle(scan); 	
+        clutScan = PolarVolume_getScanClosestToElevation(clutVol,elev,0);
+        param = PolarScan_getParameter(clutScan,CLUTNAME);
+        
+        if(param == NULL){
+            fprintf(stderr, "Error in loadClutterMap: no scan parameter %s found in file %s\n", CLUTNAME,file);
+            RAVE_OBJECT_RELEASE(clutVol);
+            return -1;
+        }
+        
+        // project the clutter map scan parameter to the correct dimensions
+        rscale = PolarScan_getRscale(clutScan);
+        param_proj = PolarScanParam_project_on_scan(param, scan, rscale);
+        
+        // add the clutter map scan parameter to the polar volume
+        result = PolarScan_addParameter(scan, param_proj);
+        if(result == 0){
+            fprintf(stderr, "Warning in loadClutterMap: failed to add cluttermap for scan %i\n",iScan); 
+        }
+        
+        RAVE_OBJECT_RELEASE(param_proj);
+    }
+    
+    RAVE_OBJECT_RELEASE(clutVol);
+    
+    return 0;
+}
 
 
 // adds a scan parameter to the scan
@@ -3006,7 +3078,9 @@ static int readUserConfigOptions(cfg_t** cfg) {
         CFG_FLOAT("ELEVMIN",ELEVMIN, CFGF_NONE),
         CFG_FLOAT("ELEVMAX",ELEVMAX, CFGF_NONE),
         CFG_FLOAT("RADAR_WAVELENGTH_CM",RADAR_WAVELENGTH_CM,CFGF_NONE),
-        CFG_BOOL("USE_STATIC_CLUTTER_DATA",USE_STATIC_CLUTTER_DATA,CFGF_NONE),
+        CFG_BOOL("USE_CLUTTERMAP",USE_CLUTTERMAP,CFGF_NONE),
+        CFG_STR("CLUTTERMAP",CLUTTERMAP,CFGF_NONE),
+        CFG_FLOAT("CLUTTERVALUEMIN",CLUTTERVALUEMIN, CFGF_NONE),
         CFG_BOOL("VERBOSE_OUTPUT_REQUIRED",VERBOSE_OUTPUT_REQUIRED,CFGF_NONE),
         CFG_BOOL("PRINT_DBZ",PRINT_DBZ,CFGF_NONE),
         CFG_BOOL("PRINT_DEALIAS",PRINT_DEALIAS,CFGF_NONE),
@@ -4382,7 +4456,7 @@ void vol2birdPrintOptions(vol2bird_t* alldata) {
     fprintf(stderr,"%-25s = %f\n","cellEtaMin",alldata->options.cellEtaMin);
     fprintf(stderr,"%-25s = %f\n","cellStdDevMax",alldata->options.cellStdDevMax);
     fprintf(stderr,"%-25s = %f\n","chisqMin",alldata->constants.chisqMin);
-    fprintf(stderr,"%-25s = %f\n","clutterValueMin",alldata->constants.clutterValueMin);
+    fprintf(stderr,"%-25s = %f\n","clutterValueMin",alldata->options.clutterValueMin);
     fprintf(stderr,"%-25s = %f\n","etaMax",alldata->options.etaMax);
     fprintf(stderr,"%-25s = %f\n","dbzThresMin",alldata->options.dbzThresMin);
     fprintf(stderr,"%-25s = %s\n","dbzType",alldata->options.dbzType);
@@ -4407,7 +4481,7 @@ void vol2birdPrintOptions(vol2bird_t* alldata) {
     fprintf(stderr,"%-25s = %f\n","refracIndex",alldata->constants.refracIndex);
     fprintf(stderr,"%-25s = %d\n","requireVrad",alldata->options.requireVrad);
     fprintf(stderr,"%-25s = %f\n","stdDevMinBird",alldata->options.stdDevMinBird);
-    fprintf(stderr,"%-25s = %c\n","useStaticClutterData",alldata->options.useStaticClutterData == TRUE ? 'T' : 'F');
+    fprintf(stderr,"%-25s = %c\n","useClutterMap",alldata->options.useClutterMap == TRUE ? 'T' : 'F');
     fprintf(stderr,"%-25s = %f\n","vradMin",alldata->constants.vradMin);
     
     fprintf(stderr,"\n\n");
@@ -4431,7 +4505,7 @@ void vol2birdPrintPointsArray(vol2bird_t* alldata) {
 
     int iPoint;
     
-    fprintf(stderr, "iPoint  azim    elev    dbz         vrad        cell    gateCode  flags     nyquist vradd\n");
+    fprintf(stderr, "iPoint  azim    elev    dbz         vrad        cell    gateCode  flags     nyquist vradd clut\n");
     
     for (iPoint = 0; iPoint < alldata->points.nRowsPoints * alldata->points.nColsPoints; iPoint+=alldata->points.nColsPoints) {
         
@@ -4447,8 +4521,9 @@ void vol2birdPrintPointsArray(vol2bird_t* alldata) {
             fprintf(stderr, "  %6.0f",  alldata->points.points[iPoint + alldata->points.cellValueCol]);
             fprintf(stderr, "  %8.0f",  alldata->points.points[iPoint + alldata->points.gateCodeCol]);
             fprintf(stderr, "  %12s",   gateCodeStr);
-			fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.nyquistCol]);
-			fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.vraddValueCol]);
+            fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.nyquistCol]);
+            fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.vraddValueCol]);
+            fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.clutValueCol]);
             fprintf(stderr, "\n");
     }    
 } // vol2birdPrintPointsArray
@@ -4552,10 +4627,8 @@ PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax, int small){
     else{
         Radar *radar;
 
-        // only read reflectivity, velocity, Rho_HV        
-        // select all scans
-        // XXXX FIXME: make here full selection OR vol2bird limited selection!
-        // XXXX hier INDEX array opstellen??
+        // if small, only read reflectivity, velocity, Rho_HV        
+        // else select all scans
         if(small) RSL_select_fields("dz","vr","rh", NULL);
         else RSL_select_fields("dz","vr","sw","zt","dr","rh","ph","kd", NULL);
         
@@ -4647,7 +4720,9 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.elevMax = cfg_getfloat(*cfg, "ELEVMAX");
     alldata->options.elevMin = cfg_getfloat(*cfg, "ELEVMIN");
     alldata->options.radarWavelength = cfg_getfloat(*cfg, "RADAR_WAVELENGTH_CM");
-    alldata->options.useStaticClutterData = cfg_getbool(*cfg,"USE_STATIC_CLUTTER_DATA");
+    alldata->options.useClutterMap = cfg_getbool(*cfg,"USE_CLUTTERMAP");
+    alldata->options.clutterValueMin = cfg_getfloat(*cfg, "CLUTTERVALUEMIN");
+    strcpy(alldata->options.clutterMap,cfg_getstr(*cfg,"CLUTTERMAP"));
     alldata->options.printDbz = cfg_getbool(*cfg,"PRINT_DBZ");
     alldata->options.printDealias = cfg_getbool(*cfg,"PRINT_DEALIAS");
     alldata->options.printVrad = cfg_getbool(*cfg,"PRINT_VRAD");
@@ -4687,7 +4762,6 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->constants.areaCellMin = AREACELL;
     alldata->constants.cellClutterFractionMax = CLUTPERCCELL;
     alldata->constants.chisqMin = CHISQMIN;
-    alldata->constants.clutterValueMin = DBZCLUTTER;
     alldata->constants.fringeDist = FRINGEDIST;
     alldata->constants.nBinsGap = NBINSGAP;
     alldata->constants.nPointsIncludedMin = NDBZMIN;
@@ -4777,7 +4851,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     sprintf(alldata->misc.task_args,
         "azimMax=%f,azimMin=%f,layerThickness=%f,nLayers=%i,rangeMax=%f,"
         "rangeMin=%f,elevMax=%f,elevMin=%f,radarWavelength=%f,"
-        "useStaticClutterData=%i,fitVrad=%i,exportBirdProfileAsJSONVar=%i,"
+        "useClutterMap=%i,clutterMap=%s,fitVrad=%i,exportBirdProfileAsJSONVar=%i,"
         "minNyquist=%f,maxNyquistDealias=%f,birdRadarCrossSection=%f,stdDevMinBird=%f,"
         "cellEtaMin=%f,etaMax=%f,dbzType=%s,requireVrad=%i,"
         "dealiasVrad=%i,dealiasRecycle=%i,dualPol=%i,rhohvThresMin=%f,"
@@ -4798,7 +4872,8 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         alldata->options.elevMax,
         alldata->options.elevMin,
         alldata->options.radarWavelength,
-        alldata->options.useStaticClutterData,
+        alldata->options.useClutterMap,
+        alldata->options.clutterMap,
         alldata->options.fitVrad,
         alldata->options.exportBirdProfileAsJSONVar,
         alldata->options.minNyquist,
@@ -4821,7 +4896,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         alldata->constants.areaCellMin,
         alldata->constants.cellClutterFractionMax,
         alldata->constants.chisqMin,
-        alldata->constants.clutterValueMin,
+        alldata->options.clutterValueMin,
         alldata->options.dbzThresMin,
         alldata->constants.fringeDist,
         alldata->constants.nBinsGap,
@@ -4908,7 +4983,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     //               information about the 'points' array            //
     // ------------------------------------------------------------- //
 
-    alldata->points.nColsPoints = 8;
+    alldata->points.nColsPoints = 9;
     alldata->points.nRowsPoints = detSvdfitArraySize(volume, scanUse, alldata);
 
     alldata->points.azimAngleCol = 0;
@@ -4919,6 +4994,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->points.gateCodeCol = 5;
 	alldata->points.nyquistCol = 6;
 	alldata->points.vraddValueCol = 7;
+	alldata->points.clutValueCol = 8;
 
     // pre-allocate the 'points' array (note it has 'nColsPoints'
     // pseudo-columns)

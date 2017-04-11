@@ -11,8 +11,8 @@
 #define CHISQMIN 1e-5
 // cells with clutter fractions above this value are likely not birds
 #define CLUTPERCCELL 0.5
-// threshold dbz value (on the external static clutter map!) above which gates are excluded as clutter
-#define DBZCLUTTER -10.0
+// threshold value (on the external static clutter map!) above which gates are excluded as clutter
+#define CLUTTERVALUEMIN 0.1
 // each weather cell identified by findWeatherCells() is grown by a distance
 // equal to 'fringeDist' using a region-growing approach
 #define FRINGEDIST 5000.0
@@ -91,14 +91,14 @@
 #define TEXNAME "VTEX"
 // name under which the calculated raincell masking quantity will be stored
 #define CELLNAME "CELL"
-// name under which the static cluttermap will be stored
-#define CLUTNAME "CLUT"
+// name of the parameter containing the static cluttermap
+#define CLUTNAME "OCCULT"
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
-#define VERSION "0.3.9"
+#define VERSION "0.3.10"
 // Date of latest version of the program
-#define VERSIONDATE "31-Mar-2017"
+#define VERSIONDATE "10-Apr-2017"
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //
@@ -123,7 +123,9 @@
 // the wavelength [cm] of the radar
 #define RADAR_WAVELENGTH_CM 5.3f
 // whether a static clutter map is used
-#define USE_STATIC_CLUTTER_DATA 0
+#define USE_CLUTTERMAP 0
+// clutter map path and filename
+#define CLUTTERMAP ""
 // print options to stderr
 #define PRINT_OPTIONS 0
 // FIXME: add description

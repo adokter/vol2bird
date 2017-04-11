@@ -98,7 +98,9 @@ struct vol2birdOptions {
     float elevMin;            /* the minimum scan elevation [degrees] used for constructing the bird density profile */
     float elevMax;            /* the maximum scan elevation [degrees] used for constructing the bird density profile */
     float radarWavelength;    /* the default wavelength [cm] of the radar if it is not included in the metadata */
-    int useStaticClutterData; /* whether a static clutter map is used */
+    int useClutterMap;        /* whether a static clutter map is used */
+    char clutterMap[1000];    /* path and filename of static cluttermap / beam occultation map to use */
+    float clutterValueMin;    /* positions in static clutter map with value above this value are excluded as clutter */
     int printOptions;         /* print options to stderr */
     int printDbz;             /* print dbz to stderr */
     int printDealias;         /* print aliased and dealiased vrad pairs to stderr */
@@ -224,6 +226,8 @@ struct vol2birdPoints {
 	int nyquistCol;
     // the psuedo-column in 'points' that holds the dealiased vrad value
 	int vraddValueCol;
+    // the psuedo-column in 'points' that holds the static clutter map value
+	int clutValueCol;
     // the 'points' array itself
     float* points; // Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
     // for a given altitude layer in the profile, only part of the 'points'
@@ -385,6 +389,8 @@ PolarVolume_t* PolarVolume_resample(PolarVolume_t* volume, double rscale_proj, l
 int vol2birdGetNColsProfile(vol2bird_t* alldata);
 
 int vol2birdGetNRowsProfile(vol2bird_t* alldata);
+
+int vol2birdLoadClutterMap(PolarVolume_t* volume, char* file, float rangeMax);
 
 void vol2birdPrintIndexArrays(vol2bird_t* alldata);
 
