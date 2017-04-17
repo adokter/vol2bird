@@ -185,7 +185,7 @@
 // whether to use dual-pol moments for filtering meteorological echoes
 #define DUALPOL 1
 // correlation coefficients higher than this threshold will be classified as precipitation
-#define RHOHVMIN 0.97f
+#define RHOHVMIN 0.95f
 // whether to resample the input polar volume
 #define RESAMPLE 0
 // resampled range gate length in m
