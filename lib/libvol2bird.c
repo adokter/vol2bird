@@ -1746,8 +1746,7 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
                 // to limit the contribution of high reflectivity outliers to the average
                 cellProp[iCell].dbzAvg += dbzValue;
             }
-            if (texValue<0){
-            }
+
             if (isnan(cellProp[iCell].texAvg)) {
                 cellProp[iCell].texAvg = texValue;
             } 
