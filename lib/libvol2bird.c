@@ -1671,6 +1671,7 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
 
     // Calculation of cell properties.
     RaveValueType typeDbz, typeVrad, typeTex, typeCell;
+    typeTex = RaveValueType_DATA;
     for (iAzim = 0; iAzim < nAzim; iAzim++) {
         for (iRang = 0; iRang < nRang; iRang++) {
 
