@@ -362,7 +362,7 @@ static void calcTexture(PolarScan_t *scan, vol2birdScanUse_t scanUse, vol2bird_t
 
                 #ifdef FPRINTFON
                 fprintf(stderr,
-                        "\n(C) count = %d; nCountMin = %d; vmoment1 = %f; vmoment2 = %f; tex = %f; texBody[%d] = %d\n",
+                        "\n(C) count = %d; nCountMin = %d; vmoment1 = %f; vmoment2 = %f; tex = %f; texBody[%d] = %f\n",
                         count, alldata->constants.nCountMin, vmoment1, vmoment2, tex,
                         iGlobal, tmpTex);
                 #endif
@@ -1670,7 +1670,7 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
     }
 
     // Calculation of cell properties.
-    RaveValueType typeDbz, typeVrad;
+    RaveValueType typeDbz, typeVrad, typeTex, typeCell;
     for (iAzim = 0; iAzim < nAzim; iAzim++) {
         for (iRang = 0; iRang < nRang; iRang++) {
 
@@ -1679,13 +1679,13 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
             typeDbz=PolarScanParam_getConvertedValue(dbzParam, iRang, iAzim, &dbzValue);
             typeVrad=PolarScanParam_getConvertedValue(vradParam, iRang, iAzim, &vradValue);
             if (clutParam != NULL) PolarScanParam_getConvertedValue(clutParam, iRang, iAzim, &clutterValue);
-            if (texParam != NULL) PolarScanParam_getConvertedValue(texParam, iRang, iAzim, &texValue);
-            PolarScanParam_getConvertedValue(cellParam, iRang, iAzim, &cellValue);
+            if (texParam != NULL) typeTex=PolarScanParam_getConvertedValue(texParam, iRang, iAzim, &texValue);
+            typeCell = PolarScanParam_getConvertedValue(cellParam, iRang, iAzim, &cellValue);
 	    
             iCell = (int) cellValue;
 
             // Note: this also throws out all nodata/undetect values for dbzValue
-            if (iCell<0) {
+            if (iCell<0 || typeCell != RaveValueType_DATA) {
                 continue;
             }
 
@@ -1710,7 +1710,7 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
                 continue;
             }
 
-            if (typeVrad != RaveValueType_DATA || typeDbz != RaveValueType_DATA){
+            if (typeVrad != RaveValueType_DATA || typeDbz != RaveValueType_DATA || typeTex != RaveValueType_DATA){
 
                 cellProp[iCell].nGatesClutter += 1;
 
@@ -1745,7 +1745,8 @@ CELLPROP* getCellProperties(PolarScan_t* scan, vol2birdScanUse_t scanUse, const 
                 // to limit the contribution of high reflectivity outliers to the average
                 cellProp[iCell].dbzAvg += dbzValue;
             }
-            
+            if (texValue<0){
+            }
             if (isnan(cellProp[iCell].texAvg)) {
                 cellProp[iCell].texAvg = texValue;
             } 
