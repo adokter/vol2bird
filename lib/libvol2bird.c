@@ -803,7 +803,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
                     else{	
                         scanUse[iScan].useScan = FALSE;
                     }
-		        }
+	        }
             }
             if (scanUse[iScan].useScan == FALSE){
                 fprintf(stderr,"Warning: reflectivity factor missing, dropping scan %i ...\n",iScan);
@@ -3069,7 +3069,7 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
 
 
 
-static int readUserConfigOptions(cfg_t** cfg) {
+static int readUserConfigOptions(cfg_t** cfg, const char * optsConfFilename) {
 
 
     cfg_opt_t opts[] = {
@@ -3121,8 +3121,7 @@ static int readUserConfigOptions(cfg_t** cfg) {
     };
     
     (*cfg) = cfg_init(opts, CFGF_NONE);
-    
-    if (cfg_parse((*cfg), "options.conf") == CFG_PARSE_ERROR) {
+    if (cfg_parse((*cfg), optsConfFilename) == CFG_PARSE_ERROR) {
         return 1;
     }
    
@@ -4704,8 +4703,13 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
 
     alldata->misc.loadConfigSuccessful = FALSE;
 
-    if (readUserConfigOptions(&(alldata->cfg)) != 0) {
-        fprintf(stderr, "An error occurred while reading the user configuration file 'options.conf'.\n");
+    const char * optsConfFilename = getenv("OPTIONS_CONF");
+    if (optsConfFilename == NULL) {
+        optsConfFilename = "options.conf";
+    }
+
+    if (readUserConfigOptions(&(alldata->cfg), optsConfFilename) != 0) {
+        fprintf(stderr, "An error occurred while reading the user configuration file '%s'.\n", optsConfFilename);
         return -1; 
     }
    
