@@ -109,8 +109,6 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax);
 
 PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax);
 
-PolarScan_t* PolarScan_resample(PolarScan_t* scan, double rscale_proj, long nbins_proj, long nrays_proj);
-
 PolarScanParam_t* PolarScanParam_resample(PolarScanParam_t* param, double rscale, double rscale_proj, long nbins_proj, long nrays_proj);
 
 PolarScanParam_t* PolarScanParam_project_on_scan(PolarScanParam_t* param, PolarScan_t* scan, double rscale);
@@ -119,6 +117,8 @@ PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDE
     
 int rslCopy2Rave(Sweep *rslSweep,PolarScanParam_t* scanparam);
 #endif
+
+PolarScan_t* PolarScan_resample(PolarScan_t* scan, double rscale_proj, long nbins_proj, long nrays_proj);
 
 static void printCellProp(CELLPROP* cellProp, float elev, int nCells, int nCellsValid, vol2bird_t *alldata);
 
