@@ -109,14 +109,14 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax);
 
 PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax);
 
-PolarScanParam_t* PolarScanParam_resample(PolarScanParam_t* param, double rscale, double rscale_proj, long nbins_proj, long nrays_proj);
-
-PolarScanParam_t* PolarScanParam_project_on_scan(PolarScanParam_t* param, PolarScan_t* scan, double rscale);
-
 PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDEX,float rangeMax, double *scale);
     
 int rslCopy2Rave(Sweep *rslSweep,PolarScanParam_t* scanparam);
 #endif
+
+PolarScanParam_t* PolarScanParam_resample(PolarScanParam_t* param, double rscale, double rscale_proj, long nbins_proj, long nrays_proj);
+
+PolarScanParam_t* PolarScanParam_project_on_scan(PolarScanParam_t* param, PolarScan_t* scan, double rscale);
 
 PolarScan_t* PolarScan_resample(PolarScan_t* scan, double rscale_proj, long nbins_proj, long nrays_proj);
 
