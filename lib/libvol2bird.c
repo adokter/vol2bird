@@ -3121,8 +3121,16 @@ static int readUserConfigOptions(cfg_t** cfg, const char * optsConfFilename) {
     };
     
     (*cfg) = cfg_init(opts, CFGF_NONE);
-    fprintf(stderr, "loading options from %s\n", optsConfFilename);
-    if (cfg_parse((*cfg), optsConfFilename) == CFG_PARSE_ERROR) {
+    int result = cfg_parse((*cfg), optsConfFilename);
+
+    if (result == CFG_FILE_ERROR){
+       fprintf(stderr, "Warning: no user configuration file '%s' found. Using default settings ...\n", optsConfFilename);
+    }
+    else{
+       fprintf(stderr, "Loaded user configuration file '%s' ...\n", optsConfFilename);
+    }
+
+    if (result == CFG_PARSE_ERROR) {
         return 1;
     }
    
@@ -4704,9 +4712,12 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
 
     alldata->misc.loadConfigSuccessful = FALSE;
 
-    const char * optsConfFilename = getenv("OPTIONS_CONF");
+    const char * optsConfFilename = getenv(OPTIONS_CONF);
     if (optsConfFilename == NULL) {
-        optsConfFilename = "options.conf";
+        optsConfFilename = OPTIONS_FILE;
+    }
+    else{
+        fprintf(stderr, "Searching user configuration file '%s' specified in environmental variable '%s'\n",optsConfFilename,OPTIONS_CONF);
     }
 
     if (readUserConfigOptions(&(alldata->cfg), optsConfFilename) != 0) {

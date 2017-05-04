@@ -128,6 +128,10 @@
 #define CLUTTERMAP ""
 // print options to stderr
 #define PRINT_OPTIONS 0
+// name of (optional) environmental variable containing path to user configuration file
+#define OPTIONS_CONF "OPTIONS_CONF"
+// default user configuration file name to search for in working directory
+#define OPTIONS_FILE "options.conf"
 // FIXME: add description
 #define VERBOSE_OUTPUT_REQUIRED 0
 // print dbz to stderr
