@@ -3121,6 +3121,7 @@ static int readUserConfigOptions(cfg_t** cfg, const char * optsConfFilename) {
     };
     
     (*cfg) = cfg_init(opts, CFGF_NONE);
+    fprintf(stderr, "loading options from %s\n", optsConfFilename);
     if (cfg_parse((*cfg), optsConfFilename) == CFG_PARSE_ERROR) {
         return 1;
     }
