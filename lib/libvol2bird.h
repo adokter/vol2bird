@@ -386,6 +386,8 @@ PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax, int small);
 
 PolarVolume_t* PolarVolume_resample(PolarVolume_t* volume, double rscale_proj, long nbins_proj, long nrays_proj);
 
+PolarScanParam_t* PolarScanParam_project_on_scan(PolarScanParam_t* param, PolarScan_t* scan, double rscale);
+
 int vol2birdGetNColsProfile(vol2bird_t* alldata);
 
 int vol2birdGetNRowsProfile(vol2bird_t* alldata);

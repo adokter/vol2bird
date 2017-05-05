@@ -25,7 +25,13 @@ LDFLAGS += -L../lib
 #SRC_VOL2BIRD_DIR         = /Users/adriaan/git/vol2bird/lib
 SRC_VOL2BIRD_DIR         = ./
 
+all :
+
+ifeq ($(RSL_CFLAG),-DRSL)
 all : vol2bird rsl2odim
+else
+all : vol2bird
+endif
 
 ../lib/libvol2bird.so :
 	make -C ../lib libvol2bird.so
@@ -72,7 +78,9 @@ install :
 	# ------------------------------------
 	install -d ${prefix}/bin
 	install -m 755 vol2bird ${prefix}/bin/vol2bird
-	install -m 755 rsl2odim ${prefix}/bin/rsl2odim
+	@if [ -f "./rsl2odim" ]; then \
+	        \install -m 755 rsl2odim ${prefix}/bin/rsl2odim; \
+	fi
 
 .PHONY : clean
 clean : 
@@ -89,8 +97,10 @@ clean :
 
 .PHONY : distclean
 distclean:
+	@if [ -f "./vol2bird" ]; then \
+		\rm vol2bird; \
+	fi
+	@if [ -f "./rsl2odim" ]; then \
+		\rm rsl2odim; \
+	fi
 	@\rm -f *~
-	@\rm vol2bird
-	@\rm rsl2odim
-
-
