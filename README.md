@@ -13,7 +13,7 @@ DOI: [10.1098/rsif.2010.0116](https://doi.org/10.1098/rsif.2010.0116)
 * `data` contains two polar volume radar files for testing
 * `doc` documentation on ODIM hdf5 data format
 * `docker` scripts for generating and running a Docker container for vol2bird
-* `etc` contains the configuration file `options.conf`. Put a copy in your working directory to load it on runtime
+* `etc` contains the user configuration file `options.conf`. Put your own modified copy in your working directory to run vol2bird with non-default settings.
 * `lib` contains the main library
 * `pgfplugin` product generation framework (PGF) plugin for the BALTRAD system
 * `pyvol2bird` is a python wrapper for the library
