@@ -268,7 +268,7 @@ static void calcTexture(PolarScan_t *scan, vol2birdScanUse_t scanUse, vol2bird_t
     vradScale = PolarScanParam_getGain(vradImage);
     vradMissingValue = PolarScanParam_getNodata(vradImage);
     vradUndetectValue = PolarScanParam_getUndetect(vradImage);
-    
+
     texOffset = PolarScanParam_getOffset(texImage);
     texScale = PolarScanParam_getGain(texImage);
     texMissingValue = PolarScanParam_getNodata(texImage);
@@ -445,19 +445,18 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
         for (iScan = 0; iScan < nScans; iScan++) {
             if (scanUse[iScan].useScan == 1)
             {
-
                 // initialize the scan object
                 PolarScan_t* scan = NULL;
             
                 // extract the scan object from the volume object
                 scan = PolarVolume_getScan(volume, iScan);
                 
-                PolarScanParam_t *cellScanParam = PolarScan_newParam(scan, scanUse->cellName, RaveDataType_INT);
+                PolarScanParam_t *cellScanParam = PolarScan_newParam(scan, scanUse[iScan].cellName, RaveDataType_INT);
                 PolarScanParam_t *texScanParam = NULL;
                 
                 // only when dealing with normal (non-dual pol) data, initialize a vrad texture field
                 if(!alldata->options.dualPol){
-                    texScanParam = PolarScan_newParam(scan, scanUse->texName, RaveDataType_DOUBLE);
+                    texScanParam = PolarScan_newParam(scan, scanUse[iScan].texName, RaveDataType_DOUBLE);
                 }
                 
                 int nCells = -1;
@@ -871,7 +870,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
             
             // Set useScan to 0 if no Nyquist interval is available or if it is too low
             // only check for nyquist interval when we are NOT dealiasing the velocities
-            if (!alldata->options.dealiasVrad && nyquist < alldata->options.minNyquist){
+            if (nyquist < alldata->options.minNyquist){
                 scanUse[iScan].useScan = 0;
                 fprintf(stderr,"Warning: Nyquist velocity (%.1f m/s) too low, dropping scan %i ...\n",nyquist,iScan);
             }
@@ -1961,13 +1960,19 @@ int vol2birdLoadClutterMap(PolarVolume_t* volume, char* file, float rangeMax){
 
 // adds a scan parameter to the scan
 PolarScanParam_t* PolarScan_newParam(PolarScan_t *scan, const char *quantity, RaveDataType type){
+    if (scan == NULL){
+        fprintf(stderr, "error in PolarScan_newParam(): cannat create a new polar scan parameter for scan NULL pointer\n");
+        return NULL;        
+    }
+    
     if (PolarScan_hasParameter(scan, quantity)){
         fprintf(stderr, "Parameter %s already exists in polar scan\n", quantity);
         return NULL;
     }
 
-    PolarScanParam_t *scanParam = RAVE_OBJECT_NEW(&PolarScanParam_TYPE);
-    
+    PolarScanParam_t *scanParam = NULL;
+    scanParam = RAVE_OBJECT_NEW(&PolarScanParam_TYPE);
+
     if (scanParam == NULL){
         fprintf(stderr, "failed to allocate memory for new polar scan parameter\n");
         return NULL;
@@ -1987,7 +1992,6 @@ PolarScanParam_t* PolarScan_newParam(PolarScan_t *scan, const char *quantity, Ra
             PolarScanParam_setValue(scanParam, iRang, iAzim, nodata);
         }
     }
-
     PolarScan_addParameter(scan, scanParam);
     
  //   RAVE_OBJECT_RELEASE(scanParam);
