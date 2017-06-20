@@ -39,7 +39,7 @@
 
 // non-public function prototypes (local to this file/translation unit)
 
-static int analyzeCells(PolarScan_t *scan, vol2birdScanUse_t scanUse, const int nCells, vol2bird_t *alldata);
+static int analyzeCells(PolarScan_t *scan, vol2birdScanUse_t scanUse, const int nCells, int dualpol, vol2bird_t *alldata);
 
 static float calcDist(const int range1, const int azim1, const int range2, const int azim2, const float rscale, const float ascale);
 
@@ -59,7 +59,7 @@ static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 static void exportBirdProfileAsJSON(vol2bird_t* alldata);
 
 static int findWeatherCells(PolarScan_t *scan, const char* quantity, float quantityThreshold,
-        int selectAboveThreshold, vol2bird_t* alldata);
+        int selectAboveThreshold, int iCellStart, int initialize, vol2bird_t* alldata);
 
 static int findNearbyGateIndex(const int nAzimParent, const int nRangParent, const int iParent,
                         const int nAzimChild,  const int nRangChild,  const int iChild, int *iAzimReturn, int *iRangReturn);
@@ -116,7 +116,7 @@ static void printProfile(vol2bird_t* alldata);
 
 static int removeDroppedCells(CELLPROP *cellProp, const int nCells);
 
-static int selectCellsToDrop(CELLPROP *cellProp, int nCells, vol2bird_t* alldata);
+static int selectCellsToDrop(CELLPROP *cellProp, int nCells, int dualpol, vol2bird_t* alldata);
 
 static int selectCellsToDrop_singlePol(CELLPROP *cellProp, int nCells, vol2bird_t* alldata);
 
@@ -133,7 +133,7 @@ static int updateMap(PolarScan_t* scan, CELLPROP *cellProp, const int nCells, vo
 
 // non-public function declarations (local to this file/translation unit)
 
-static int analyzeCells(PolarScan_t *scan, vol2birdScanUse_t scanUse, const int nCells, vol2bird_t *alldata) {
+static int analyzeCells(PolarScan_t *scan, vol2birdScanUse_t scanUse, const int nCells, int dualpol, vol2bird_t *alldata) {
 
     // ----------------------------------------------------------------------------------- // 
     //  This function analyzes the cellImage array found by the 'findWeatherCells'         //
@@ -168,7 +168,7 @@ static int analyzeCells(PolarScan_t *scan, vol2birdScanUse_t scanUse, const int 
     
     cellProp = getCellProperties(scan, scanUse, nCells, alldata);
 
-    selectCellsToDrop(cellProp, nCells, alldata);    
+    selectCellsToDrop(cellProp, nCells, dualpol, alldata);    
     
     // sorting cell properties according to cell area. Drop small cells from map
     nCellsValid = updateMap(scan, cellProp, nCells, alldata);
@@ -454,35 +454,46 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 PolarScanParam_t *cellScanParam = PolarScan_newParam(scan, scanUse[iScan].cellName, RaveDataType_INT);
                 PolarScanParam_t *texScanParam = NULL;
                 
-                // only when dealing with normal (non-dual pol) data, initialize a vrad texture field
-                if(!alldata->options.dualPol){
-                    texScanParam = PolarScan_newParam(scan, scanUse[iScan].texName, RaveDataType_DOUBLE);
-                }
-                
-                int nCells = -1;
-                if (alldata->options.dualPol){
-
-                    // ------------------------------------------------------------- //
-                    //        find (weather) cells in the reflectivity image         //
-                    // ------------------------------------------------------------- //
-                    
-                    nCells = findWeatherCells(scan,scanUse[iScan].rhohvName,
-                                    alldata->options.rhohvThresMin,TRUE,alldata);
-
-                }
-                else{
-
+                // only when dealing with normal (non-dual pol) data, generate a vrad texture field
+				if (alldata->options.singlePol){
                     // ------------------------------------------------------------- //
                     //                      calculate vrad texture                   //
                     // ------------------------------------------------------------- //
 
-                    calcTexture(scan, scanUse[iScan], alldata);
-    
-                    // ------------------------------------------------------------- //
-                    //        find (weather) cells in the reflectivity image         //
-                    // ------------------------------------------------------------- //
+                    texScanParam = PolarScan_newParam(scan, scanUse[iScan].texName, RaveDataType_DOUBLE);
+
+                    calcTexture(scan, scanUse[iScan], alldata);					
+				}
+
+                int nCells = -1;
+
+				// ------------------------------------------------------------- //
+				//        find (weather) cells in the reflectivity image         //
+				// ------------------------------------------------------------- //
+				
+                if (alldata->options.dualPol){
                     
-                    nCells = findWeatherCells(scan,scanUse[iScan].dbzName,alldata->options.dbzThresMin,TRUE,alldata);
+					if (alldata->options.singlePol){
+						
+						// first pass: single pol rain filtering
+                         nCells = findWeatherCells(scan,scanUse[iScan].dbzName,alldata->options.dbzThresMin,TRUE,2,TRUE,alldata);
+						// first pass: single pol analysis of precipitation cells
+						analyzeCells(scan, scanUse[iScan], nCells, FALSE, alldata);
+						fprintf(stderr,"pass1:%i cells\n",nCells);
+						// second pass: dual pol rain filtering
+                         nCells = findWeatherCells(scan,scanUse[iScan].rhohvName,
+                                    alldata->options.rhohvThresMin,TRUE,nCells+1,FALSE,alldata);									
+						fprintf(stderr,"pass2:%i cells\n",nCells);
+					}
+					else{
+                         nCells = findWeatherCells(scan,scanUse[iScan].rhohvName,
+                                    alldata->options.rhohvThresMin,TRUE,2,TRUE,alldata);						
+					}
+
+                }
+                else{
+                    
+                    nCells = findWeatherCells(scan,scanUse[iScan].dbzName,alldata->options.dbzThresMin,TRUE,2,TRUE,alldata);
 
                 }
                 
@@ -499,7 +510,7 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 //                      analyze cells                            //
                 // ------------------------------------------------------------- //
     
-                analyzeCells(scan, scanUse[iScan], nCells, alldata);
+                analyzeCells(scan, scanUse[iScan], nCells, alldata->options.dualPol, alldata);
     
                 // ------------------------------------------------------------- //
                 //                     calculate fringe                          //
@@ -1125,7 +1136,7 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
 
 
 static int findWeatherCells(PolarScan_t *scan, const char* quantity, float quantityThreshold,
-        int selectAboveThreshold, vol2bird_t* alldata) {
+        int selectAboveThreshold, int iCellStart, int initialize, vol2bird_t* alldata) {
 
     //  ----------------------------------------------------------------------------- //
     //  This function detects the cells in 'quantityImage' using a threshold value of      //
@@ -1233,11 +1244,13 @@ static int findWeatherCells(PolarScan_t *scan, const char* quantity, float quant
     }
 
     cellImageInitialValue = -1;
-    for (int iAzim = 0; iAzim < nAzim; iAzim++) {
-        for (int iRang = 0; iRang < nRang; iRang++) {
-            PolarScanParam_setValue(cellParam, iRang, iAzim, cellImageInitialValue);
-        }
-    }
+	if(initialize){
+		for (int iAzim = 0; iAzim < nAzim; iAzim++) {
+			for (int iRang = 0; iRang < nRang; iRang++) {
+				PolarScanParam_setValue(cellParam, iRang, iAzim, cellImageInitialValue);
+			}
+		}
+	}
 
     // If threshold value is equal to missing value, produce a warning
     if (quantityThres == quantityMissing) {
@@ -1250,9 +1263,9 @@ static int findWeatherCells(PolarScan_t *scan, const char* quantity, float quant
     // Processing' by Gonzales and Woods published by Addison-Wesley.          //
     // ----------------------------------------------------------------------- //
 
-    // The first cell will have iCellIdentifier = 2, because we reserve 1 for fringe
+    // Typically the first cell will have iCellIdentifier = 2, because we reserve 1 for fringe
     // to be added by function fringeCells
-    iCellIdentifier = 2;
+    iCellIdentifier = iCellStart;
 
     for (iAzim = 0; iAzim < nAzim; iAzim++) {
         for (iRang = 0; iRang < nRang; iRang++) {
@@ -2082,7 +2095,7 @@ int PolarVolume_getStartDateTime(PolarVolume_t* pvol, char** StartDate, char** S
     int result = -1;
     
     // Initialize datetimes
-    long StartDateTime = 99999999999999;
+    long StartDateTime = (long) 99999999999999;
     
     int nScans;
     char* date;
@@ -2661,6 +2674,7 @@ static int readUserConfigOptions(cfg_t** cfg, const char * optsConfFilename) {
 		CFG_BOOL("DEALIAS_RECYCLE",DEALIAS_RECYCLE,CFGF_NONE),
         CFG_BOOL("EXPORT_BIRD_PROFILE_AS_JSON",FALSE,CFGF_NONE),
         CFG_BOOL("DUALPOL",DUALPOL,CFGF_NONE),
+		CFG_BOOL("SINGLEPOL",SINGLEPOL,CFGF_NONE),
         CFG_FLOAT("DBZMIN",DBZMIN,CFGF_NONE),
         CFG_FLOAT("RHOHVMIN",RHOHVMIN,CFGF_NONE),
         CFG_BOOL("RESAMPLE",RESAMPLE,CFGF_NONE),
@@ -3176,9 +3190,9 @@ static int printMeta(PolarScan_t* scan, const char* quantity) {
 
 
 
-static int selectCellsToDrop(CELLPROP *cellProp, int nCells, vol2bird_t* alldata){
+static int selectCellsToDrop(CELLPROP *cellProp, int nCells, int dualpol, vol2bird_t* alldata){
     int output = 0;
-    if(alldata->options.dualPol){
+    if(dualpol){
         output = selectCellsToDrop_dualPol(cellProp, nCells, alldata);
     }
     else{
@@ -4290,6 +4304,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.dealiasVrad = cfg_getbool(*cfg,"DEALIAS_VRAD");
     alldata->options.dealiasRecycle = cfg_getbool(*cfg,"DEALIAS_RECYCLE");
     alldata->options.dualPol = cfg_getbool(*cfg,"DUALPOL");
+	alldata->options.singlePol = cfg_getbool(*cfg,"SINGLEPOL");
     alldata->options.dbzThresMin = cfg_getfloat(*cfg,"DBZMIN");
     alldata->options.rhohvThresMin = cfg_getfloat(*cfg,"RHOHVMIN");
     alldata->options.resample = cfg_getbool(*cfg,"RESAMPLE");
@@ -4396,7 +4411,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         "useClutterMap=%i,clutterMap=%s,fitVrad=%i,exportBirdProfileAsJSONVar=%i,"
         "minNyquist=%f,maxNyquistDealias=%f,birdRadarCrossSection=%f,stdDevMinBird=%f,"
         "cellEtaMin=%f,etaMax=%f,dbzType=%s,requireVrad=%i,"
-        "dealiasVrad=%i,dealiasRecycle=%i,dualPol=%i,rhohvThresMin=%f,"
+        "dealiasVrad=%i,dealiasRecycle=%i,dualPol=%i,singlePol=%i,rhohvThresMin=%f,"
         "resample=%i,resampleRscale=%f,resampleNbins=%i,resampleNrays=%i,"
     
         "areaCellMin=%f,cellClutterFractionMax=%f,"
@@ -4429,6 +4444,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         alldata->options.dealiasVrad,
         alldata->options.dealiasRecycle,
         alldata->options.dualPol,
+	    alldata->options.singlePol,
         alldata->options.rhohvThresMin,
         alldata->options.resample,
         alldata->options.resampleRscale,
@@ -4464,7 +4480,12 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     if(alldata->options.radarWavelength > 7.5 && !alldata->options.dualPol){
         fprintf(stderr,"Warning: using experimental SINGLE polarization mode on S-band data, results may be unreliable!\n");
     }
-
+	
+    // Print warning for S-band in single pol mode
+    if(!alldata->options.singlePol && !alldata->options.dualPol){
+        fprintf(stderr,"Warning: neither single- nor dual-polarization precipitation filtering selected by user, continuing in SINGLE polarization mode\n");
+		alldata->options.singlePol = TRUE;
+    }
 
     // ------------------------------------------------------------- //
     //             lists of indices into the 'points' array:         //
