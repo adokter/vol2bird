@@ -98,7 +98,7 @@
 // Version of the program, to be stored as task_version attribute in ODIM
 #define VERSION "0.3.16"
 // Date of latest version of the program
-#define VERSIONDATE "20-Jun-2017"
+#define VERSIONDATE "23-Jun-2017"
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //
