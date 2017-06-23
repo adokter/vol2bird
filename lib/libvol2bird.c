@@ -473,22 +473,20 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
 				
                 if (alldata->options.dualPol){
                     
-					if (alldata->options.singlePol){
+                    if (alldata->options.singlePol){
 						
-						// first pass: single pol rain filtering
-                         nCells = findWeatherCells(scan,scanUse[iScan].dbzName,alldata->options.dbzThresMin,TRUE,2,TRUE,alldata);
-						// first pass: single pol analysis of precipitation cells
-						analyzeCells(scan, scanUse[iScan], nCells, FALSE, alldata);
-						fprintf(stderr,"pass1:%i cells\n",nCells);
-						// second pass: dual pol rain filtering
-                         nCells = findWeatherCells(scan,scanUse[iScan].rhohvName,
+                        // first pass: single pol rain filtering
+                        nCells = findWeatherCells(scan,scanUse[iScan].dbzName,alldata->options.dbzThresMin,TRUE,2,TRUE,alldata);
+                        // first pass: single pol analysis of precipitation cells
+                        analyzeCells(scan, scanUse[iScan], nCells, FALSE, alldata);
+                        // second pass: dual pol precipitation filtering
+                        nCells = findWeatherCells(scan,scanUse[iScan].rhohvName,
                                     alldata->options.rhohvThresMin,TRUE,nCells+1,FALSE,alldata);									
-						fprintf(stderr,"pass2:%i cells\n",nCells);
-					}
-					else{
-                         nCells = findWeatherCells(scan,scanUse[iScan].rhohvName,
+                    }
+                    else{
+                        nCells = findWeatherCells(scan,scanUse[iScan].rhohvName,
                                     alldata->options.rhohvThresMin,TRUE,2,TRUE,alldata);						
-					}
+                    }
 
                 }
                 else{
@@ -510,7 +508,7 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 //                      analyze cells                            //
                 // ------------------------------------------------------------- //
     
-                analyzeCells(scan, scanUse[iScan], nCells, alldata->options.dualPol, alldata);
+                nCells=analyzeCells(scan, scanUse[iScan], nCells, alldata->options.dualPol, alldata);
     
                 // ------------------------------------------------------------- //
                 //                     calculate fringe                          //
