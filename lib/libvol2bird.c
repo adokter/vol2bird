@@ -4474,17 +4474,23 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         return -1;
     }
 
+    // Print warning missing rain specification
+    if(!alldata->options.singlePol && !alldata->options.dualPol){
+        fprintf(stderr,"Warning: neither single- nor dual-polarization precipitation filter selected by user, continuing in SINGLE polarization mode\n");
+		alldata->options.singlePol = TRUE;
+    }
+
+    // Disable single pol rain filtering for S-band data when dual-pol moments are available
+    if(alldata->options.radarWavelength > 7.5 && alldata->options.singlePol && alldata->options.dualPol){
+        fprintf(stderr,"Warning: disabling single-polarization precipitation filter for S-band data, continuing in DUAL polarization mode\n");
+		alldata->options.singlePol = FALSE;
+    }
+
     // Print warning for S-band in single pol mode
     if(alldata->options.radarWavelength > 7.5 && !alldata->options.dualPol){
         fprintf(stderr,"Warning: using experimental SINGLE polarization mode on S-band data, results may be unreliable!\n");
     }
 	
-    // Print warning for S-band in single pol mode
-    if(!alldata->options.singlePol && !alldata->options.dualPol){
-        fprintf(stderr,"Warning: neither single- nor dual-polarization precipitation filtering selected by user, continuing in SINGLE polarization mode\n");
-		alldata->options.singlePol = TRUE;
-    }
-
     // ------------------------------------------------------------- //
     //             lists of indices into the 'points' array:         //
     //          where each altitude layer's data starts and ends     //
