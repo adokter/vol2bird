@@ -133,12 +133,12 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
     double min1, esum, u1, v1, min2, dmy;
     
     // number of rows
-    m = VAF;
+    m = DEALIAS_VAF;
     // number of columns
-    n = NF;
+    n = DEALIAS_NF;
     
     // max number of folds of nyquist interval to test for
-    double MVA=2*ceil(VMAX/(2*NI_MIN));
+    double MVA=2*ceil(DEALIAS_VMAX/(2*NI_MIN));
 
     // polarscan matrix, torus projected x coordinate, eq. 6 Haase et al. 2004 jaot
     double *x = RAVE_CALLOC ((size_t)nPoints, sizeof(double));
@@ -167,12 +167,12 @@ int dealias_points(const float *points, const int nDims, const float nyquist[],
     }
 
     // Setting up the u and v component of the test velocity fields:
-    // index n=NF gives number of azimuthal directions (default n=40, i.e. steps of 360/40=9 degrees)
-    // index m=VAF/NI_MIN*VMAX gives number of speeds (maximum speed is VMAX, steps of NI_MIN/VAF)
+    // index n=DEALIAS_NF gives number of azimuthal directions (default n=40, i.e. steps of 360/40=9 degrees)
+    // index m=DEALIAS_VAF/NI_MIN*DEALIAS_VMAX gives number of speeds (maximum speed is DEALIAS_VMAX, steps of NI_MIN/DEALIAS_VAF)
     for (i=0; i<n; i++) {
         for (j=0; j<m; j++) {
-            *(uh+i*m+j) = VMAX/VAF*(j+1) * sin(2*M_PI/NF*i);
-            *(vh+i*m+j) = VMAX/VAF*(j+1) * cos(2*M_PI/NF*i);
+            *(uh+i*m+j) = DEALIAS_VMAX/DEALIAS_VAF*(j+1) * sin(2*M_PI/DEALIAS_NF*i);
+            *(vh+i*m+j) = DEALIAS_VMAX/DEALIAS_VAF*(j+1) * cos(2*M_PI/DEALIAS_NF*i);
         }
     }
 

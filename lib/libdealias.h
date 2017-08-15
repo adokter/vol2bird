@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "rave_alloc.h"
+#include "constants.h"
 
 /******************************************************************************/
 /*Definition of standard parameters.                                          */
