@@ -2734,7 +2734,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     VerticalProfile_setMinheight(alldata->vp, 0);
     VerticalProfile_setMaxheight(alldata->vp, alldata->options.nLayers * alldata->options.layerThickness);
     
-    //intialize attributes for /how
+    //intialize attributes for /how and /what
     RaveAttribute_t* attr_beamwidth = RaveAttributeHelp_createDouble("how/beamwidth", PolarVolume_getBeamwidth(volume)*180/PI);
     RaveAttribute_t* attr_wavelength = RaveAttributeHelp_createDouble("how/wavelength", alldata->options.radarWavelength);
     RaveAttribute_t* attr_rcs_bird = RaveAttributeHelp_createDouble("how/rcs_bird", alldata->options.birdRadarCrossSection);
@@ -2749,8 +2749,9 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     RaveAttribute_t* attr_minazim = RaveAttributeHelp_createDouble("how/minazim", alldata->options.azimMin);
     RaveAttribute_t* attr_maxazim = RaveAttributeHelp_createDouble("how/maxazim", alldata->options.azimMax);
     RaveAttribute_t* attr_cluttermap = RaveAttributeHelp_createString("how/clutterMap", "");
+    RaveAttribute_t* attr_filename = RaveAttributeHelp_createString("how/filename", alldata->misc.filename);
 
-    //add /how attributes to the vertical profile object
+    //add /how and /what attributes to the vertical profile object
     VerticalProfile_addAttribute(alldata->vp, attr_beamwidth);
     VerticalProfile_addAttribute(alldata->vp, attr_wavelength);
     VerticalProfile_addAttribute(alldata->vp, attr_rcs_bird);
@@ -2765,6 +2766,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     VerticalProfile_addAttribute(alldata->vp, attr_minazim);
     VerticalProfile_addAttribute(alldata->vp, attr_maxazim);
     VerticalProfile_addAttribute(alldata->vp, attr_cluttermap);
+    VerticalProfile_addAttribute(alldata->vp, attr_filename);
       
     //-------------------------------------------//
     //   map the profile data to rave fields     //
@@ -2822,6 +2824,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     RAVE_OBJECT_RELEASE(attr_minazim);
     RAVE_OBJECT_RELEASE(attr_maxazim);
     RAVE_OBJECT_RELEASE(attr_cluttermap);
+    RAVE_OBJECT_RELEASE(attr_filename);
 
     RAVE_OBJECT_RELEASE(attr_startdate);
     RAVE_OBJECT_RELEASE(attr_starttime);

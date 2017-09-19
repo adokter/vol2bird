@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 
+ * Copyright 2017 Adriaan Dokter
  *
  * This program calculates Vertical Profiles of Birds (VPBs) as described in
  *
@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
         fprintf(stderr,"   n_dbz     - number of points bird density estimate (dbz,eta,dens)\n");
         fprintf(stderr,"   n_all     - number of points VVP st.dev. estimate (sd_vvp)\n");
         fprintf(stderr,"   n_dbz_all - number of points total reflectivity estimate (DBZH)\n\n");
-        fprintf(stderr,"   Report bugs to: a.m.dokter@uva.nl\n");
+        fprintf(stderr,"   Report bugs to: a.m.dokter@uva.nl or on http://github.com/adokter/vol2bird/issues \n");
         fprintf(stderr,"   vol2bird home page: <http://github.com/adokter/vol2bird>\n");
         return -1;
     }
@@ -92,6 +92,9 @@ int main(int argc, char** argv) {
         fileVpOut = NULL;
         fileVolOut = NULL;
     }
+
+    // store the input filename
+    strcpy(alldata.misc.filename,fileVolIn);
     
     // read configuration options
     int configSuccessful = vol2birdLoadConfig(&alldata) == 0;
