@@ -340,8 +340,10 @@ struct vol2birdMisc {
     int* scatterersAreNotBirds; // Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
     // this string contains all the user options and constants, for storage in ODIM task_args attribute
     char task_args[3000];
-    // the input polar volume file name
-    char filename[1000]; 
+    // the polar volume input file name
+    char filename_pvol[1000]; 
+    // the vertical profile output file name
+    char filename_vp[1000]; 
 };
 typedef struct vol2birdMisc vol2birdMisc_t;
 

@@ -2749,7 +2749,8 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     RaveAttribute_t* attr_minazim = RaveAttributeHelp_createDouble("how/minazim", alldata->options.azimMin);
     RaveAttribute_t* attr_maxazim = RaveAttributeHelp_createDouble("how/maxazim", alldata->options.azimMax);
     RaveAttribute_t* attr_cluttermap = RaveAttributeHelp_createString("how/clutterMap", "");
-    RaveAttribute_t* attr_filename = RaveAttributeHelp_createString("how/pvol_filename", alldata->misc.filename);
+    RaveAttribute_t* attr_filename_pvol = RaveAttributeHelp_createString("how/filename_pvol", alldata->misc.filename_pvol);
+    RaveAttribute_t* attr_filename_vp = RaveAttributeHelp_createString("how/filename_vp", alldata->misc.filename_vp);
 
     //add /how and /what attributes to the vertical profile object
     VerticalProfile_addAttribute(alldata->vp, attr_beamwidth);
@@ -2766,7 +2767,8 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     VerticalProfile_addAttribute(alldata->vp, attr_minazim);
     VerticalProfile_addAttribute(alldata->vp, attr_maxazim);
     VerticalProfile_addAttribute(alldata->vp, attr_cluttermap);
-    VerticalProfile_addAttribute(alldata->vp, attr_filename);
+    VerticalProfile_addAttribute(alldata->vp, attr_filename_pvol);
+    VerticalProfile_addAttribute(alldata->vp, attr_filename_vp);
       
     //-------------------------------------------//
     //   map the profile data to rave fields     //
@@ -2824,7 +2826,8 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     RAVE_OBJECT_RELEASE(attr_minazim);
     RAVE_OBJECT_RELEASE(attr_maxazim);
     RAVE_OBJECT_RELEASE(attr_cluttermap);
-    RAVE_OBJECT_RELEASE(attr_filename);
+    RAVE_OBJECT_RELEASE(attr_filename_pvol);
+    RAVE_OBJECT_RELEASE(attr_filename_vp);
 
     RAVE_OBJECT_RELEASE(attr_startdate);
     RAVE_OBJECT_RELEASE(attr_starttime);

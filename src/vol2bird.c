@@ -94,7 +94,8 @@ int main(int argc, char** argv) {
     }
 
     // store the input filename
-    strcpy(alldata.misc.filename,fileVolIn);
+    strcpy(alldata.misc.filename_pvol,fileVolIn);
+    strcpy(alldata.misc.filename_vp,fileVolOut);
     
     // read configuration options
     int configSuccessful = vol2birdLoadConfig(&alldata) == 0;
