@@ -184,6 +184,12 @@
 #define DEALIAS_VRAD 1
 // whether we should dealias all data once (default), or dealias for each profile individually
 #define DEALIAS_RECYCLE 1
+// Test dealiasing field velocities up to VMAX m/s 
+#define DEALIAS_VMAX 50.0
+// Test field velocities increase in steps VMAX/VAF
+#define DEALIAS_VAF 15.0
+// Test field directions increase by 360/NF degrees
+#define DEALIAS_NF 12.0
 // whether you want to export the vertical bird profile as JSON
 #define EXPORT_BIRD_PROFILE_AS_JSON 0
 // whether to use dual-pol moments for filtering meteorological echoes
