@@ -418,3 +418,5 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata);
 float nanify(float value);
 
 int saveToODIM(RaveCoreObject* object, const char* filename);
+
+const char* libvol2bird_version();

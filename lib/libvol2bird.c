@@ -76,6 +76,8 @@ static int hasAzimuthGap(const float *points_local, const int nPoints, vol2bird_
 
 static int includeGate(const int iProfileType, const int iQuantityType, const unsigned int gateCode, vol2bird_t* alldata);
 
+const char* libvol2bird_version();
+
 static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* field, const char* quantity);
 
 static int profileArray2RaveField(vol2bird_t* alldata, int idx_profile, int idx_quantity, const char* quantity, RaveDataType raveType);
@@ -2400,8 +2402,9 @@ static int hasAzimuthGap(const float* points_local, const int nPoints, vol2bird_
 } // hasAzimuthGap
 
 
-
-
+const char* libvol2bird_version(){
+    return VERSION;
+};
 
 
 static int includeGate(const int iProfileType, const int iQuantityType, const unsigned int gateCode, vol2bird_t* alldata) {

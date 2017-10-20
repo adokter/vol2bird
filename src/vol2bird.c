@@ -33,6 +33,11 @@
 int main(int argc, char** argv) {
 //    cfg_t* cfg;
     vol2bird_t alldata;
+    
+    if (strcmp(VERSION,libvol2bird_version()) != 0){
+        fprintf(stderr,"Error: incorrect vol2bird installation: executable version (%s) has to match shared library version (%s).\n",VERSION,libvol2bird_version());
+        return -1;
+    }
 
     // print default message when no input arguments
     if (argc == 1) {
