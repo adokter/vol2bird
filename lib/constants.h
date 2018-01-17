@@ -170,9 +170,9 @@
 #define STDEV_BIRD 2.0f
 // Bird radar cross section [cm^2]
 #define SIGMA_BIRD 11.0f
-// Maximum mean reflectivity factor for cells containing birds
+// Maximum mean reflectivity [cm^2/km^3] for cells containing birds
 #define ETACELL 11500.0f
-// Maximum reflectivity factor for single gates containing birds
+// Maximum reflectivity [cm^2/km^3] for single gates containing birds
 #define ETAMAX 36000.0f
 // minimum dbz of a gate to be considered for inclusion in a weather cell
 #define DBZMIN 0.0
