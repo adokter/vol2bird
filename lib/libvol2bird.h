@@ -299,6 +299,7 @@ struct vol2birdProfiles {
     float* profile1;
     float* profile2;
     float* profile3;
+    float* profile4;
     // the type of profile that was last calculated
     int iProfileTypeLast;
 };
@@ -423,4 +424,4 @@ float nanify(float value);
 
 int saveToODIM(RaveCoreObject* object, const char* filename);
 
-const char* libvol2bird_version();
+const char* libvol2bird_version(void);

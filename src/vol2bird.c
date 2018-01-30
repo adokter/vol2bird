@@ -182,13 +182,15 @@ int main(int argc, char** argv) {
             fprintf(stdout, "# vol2bird Vertical Profile of Birds (VPB)\n");
             fprintf(stdout, "# source: %s\n",source);
             fprintf(stdout, "# ODIM HDF5 input: %s\n",fileVolIn);
-            printf("# date   time HGHT    u      v       w     ff    dd  sd_vvp gap dbz     eta   dens   DBZH   n   n_dbz n_all n_dbz_all\n");
+            printf("# date   time HGHT    u      v       w     ff    dd  sd_vvp head_bl head_ff head_dd head_sd gap dbz     eta   dens   DBZH   n   n_dbz n_all n_dbz_all\n");
            
             float *profileBio;
             float *profileAll;
+            float *profileHead;
 
             profileBio = vol2birdGetProfile(1, &alldata);
             profileAll = vol2birdGetProfile(3, &alldata);
+            profileHead = vol2birdGetProfile(4, &alldata);
             
             int iRowProfile;
             int iCopied = 0;
@@ -196,11 +198,13 @@ int main(int argc, char** argv) {
             for (iRowProfile = 0; iRowProfile < nRowsProfile; iRowProfile++) {
                 iCopied=iRowProfile*nColsProfile;
                 printf("%8s %.4s ",date,time);
-                printf("%4.f %6.2f %6.2f %7.2f %5.2f %5.1f %6.2f %1c %6.2f %6.1f %6.2f %6.2f %5.f %5.f %5.f %5.f\n",
+                printf("%4.f %6.2f %6.2f %7.2f %5.2f %5.1f %6.2f %7.2f %5.2f %5.1f %6.2f %1c %6.2f %6.1f %6.2f %6.2f %5.f %5.f %5.f %5.f\n",
                 profileBio[0+iCopied],
                 nanify(profileBio[2+iCopied]),nanify(profileBio[3+iCopied]),
                 nanify(profileBio[4+iCopied]),nanify(profileBio[5+iCopied]),
                 nanify(profileBio[6+iCopied]),nanify(profileAll[7+iCopied]),
+                nanify(profileHead[4+iCopied]),nanify(profileHead[5+iCopied]),
+                nanify(profileHead[6+iCopied]),nanify(profileHead[7+iCopied]),
                 profileBio[8+iCopied] == TRUE ? 'T' : 'F',
                 nanify(profileBio[9+iCopied]),nanify(profileBio[11+iCopied]),
                 nanify(profileBio[12+iCopied]),nanify(profileAll[9+iCopied]),
@@ -210,8 +214,11 @@ int main(int argc, char** argv) {
             
             profileAll = NULL;
             profileBio = NULL;
+            profileHead = NULL;
+            
             free((void*) profileAll);
             free((void*) profileBio);
+            free((void*) profileHead);
 
         //}
     } // getter example scope end

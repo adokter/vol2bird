@@ -76,8 +76,6 @@ static int hasAzimuthGap(const float *points_local, const int nPoints, vol2bird_
 
 static int includeGate(const int iProfileType, const int iQuantityType, const unsigned int gateCode, vol2bird_t* alldata);
 
-const char* libvol2bird_version();
-
 static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* field, const char* quantity);
 
 static int profileArray2RaveField(vol2bird_t* alldata, int idx_profile, int idx_quantity, const char* quantity, RaveDataType raveType);
@@ -423,7 +421,7 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
             gateCode |= 1<<(alldata->flags.flagPositionAzimTooHigh);
         }
         
-        if ((isnan(rhohvValue) == TRUE) || (isnan(dbzValue) == TRUE) || (isnan(vradValue) == TRUE)) {
+        if (isnan(rhohvValue) == TRUE) {
             // this gate has no valid correlation coefficient data
             gateCode |= 1<<(alldata->flags.flagPositionRhohvMissing);
         }
@@ -1128,52 +1126,7 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
                 fprintf(f,"    \"%s\":%d,\n",varName,(int) val);
             }
         }
-
-        {
-            char varName[] = "ff_head";
-            float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  14];
-            if (isnan(val) == TRUE) {
-                fprintf(f,"    \"%s\":null,\n",varName);
-            }
-            else {
-                fprintf(f,"    \"%s\":%d,\n",varName,(int) val);
-            }
-        }
-
-        {
-            char varName[] = "dd_head";
-            float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  15];
-            if (isnan(val) == TRUE) {
-                fprintf(f,"    \"%s\":null,\n",varName);
-            }
-            else {
-                fprintf(f,"    \"%s\":%d,\n",varName,(int) val);
-            }
-        }
-
-        {
-            char varName[] = "bl_head";
-            float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  16];
-            if (isnan(val) == TRUE) {
-                fprintf(f,"    \"%s\":null,\n",varName);
-            }
-            else {
-                fprintf(f,"    \"%s\":%d,\n",varName,(int) val);
-            }
-        }
-
-        {
-            char varName[] = "sd_head";
-            float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  17];
-            if (isnan(val) == TRUE) {
-                fprintf(f,"    \"%s\":null,\n",varName);
-            }
-            else {
-                fprintf(f,"    \"%s\":%d,\n",varName,(int) val);
-            }
-        }
-
-
+        
         fprintf(f,"   }");
         if (iLayer < alldata->options.nLayers - 1) {
             fprintf(f,",");
@@ -1908,7 +1861,7 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
                 PolarScanParam_getValue(clutParam, iRang, iAzim, &clutValue);
             }
             if (alldata->options.dualPol && rhohvParam != NULL){
-                PolarScanParam_getValue(rhohvParam, iRang, iAzim, &rhohvValue);
+                rhohvValueType = PolarScanParam_getConvertedValue(rhohvParam, iRang, iAzim, &rhohvValue);
             }
 
             // in the points array, store missing reflectivity values as the lowest possible reflectivity
@@ -2495,6 +2448,9 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
             case 3 : 
                 doInclude = FALSE;
                 break;
+            case 4 :
+                doInclude = FALSE;
+                break;
             default :
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
         }
@@ -2512,6 +2468,9 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
             case 2 : 
                 break;
             case 3 : 
+                break;
+            case 4 :
+                doInclude = FALSE;
                 break;
             default :
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
@@ -2532,6 +2491,9 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
                 break;
             case 3 : 
                 break;
+            case 4 :
+                doInclude = FALSE;
+                break;
             default :
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
         }
@@ -2545,12 +2507,15 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
         
         switch (iProfileType) {
             case 1 : 
-		doInclude = FALSE;
+                doInclude = FALSE;
                 break;
             case 2 : 
                 doInclude = FALSE;
                 break;
             case 3 : 
+                doInclude = FALSE;
+                break;
+            case 4 : 
                 doInclude = FALSE;
                 break;
             default :
@@ -2575,6 +2540,9 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
             case 3 : 
                 doInclude = FALSE;
                 break;
+            case 4 : 
+                doInclude = FALSE;
+                break;
             default :
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
         }
@@ -2595,6 +2563,9 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
                 break;
             case 3 : 
                 break;
+            case 4 : 
+                doInclude = FALSE;
+                break;
             default :
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
         }
@@ -2613,6 +2584,9 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
                 doInclude = FALSE;
                 break;
             case 3 : 
+                doInclude = FALSE;
+                break;
+            case 4 : 
                 doInclude = FALSE;
                 break;
             default :
@@ -2638,6 +2612,8 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
             case 3 : 
                 doInclude = FALSE;
                 break;
+            case 4 :
+                break;
             default :
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
         }
@@ -2648,7 +2624,7 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
     if (!iQuantityType && (gateCode & 1<<(alldata->flags.flagPositionAzimTooLow))) {
 
         // i.e. iQuantityType == 0, we are NOT dealing with a selection for svdfit, but with a selection of reflectivities.
-	// Azimuth selection does not apply to svdfit, because svdfit requires data at all azimuths
+	    // Azimuth selection does not apply to svdfit, because svdfit requires data at all azimuths
         // i.e. flag 7 in gateCode is true
         // the user can specify to exclude gates based on their azimuth;
         // this clause is for gates that have too low azimuth
@@ -2663,6 +2639,9 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
             case 3 : 
                 doInclude = FALSE;
                 break;
+            case 4 : 
+                doInclude = FALSE;
+                break;
             default :
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
         }
@@ -2672,7 +2651,7 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
     if (!iQuantityType && (gateCode & 1<<(alldata->flags.flagPositionAzimTooHigh))) {
 
         // i.e. iQuantityType == 0, we are NOT dealing with a selection for svdfit, but with a selection of reflectivities.
-	// Azimuth selection does not apply to svdfit, because svdfit requires data at all azimuths
+	    // Azimuth selection does not apply to svdfit, because svdfit requires data at all azimuths
         // i.e. flag 8 in gateCode is true
         // the user can specify to exclude gates based on their azimuth;
         // this clause is for gates that have too high azimuth
@@ -2687,11 +2666,35 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
             case 3 : 
                 doInclude = FALSE;
                 break;
+            case 4 : 
+                doInclude = FALSE;
+                break;
             default :
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
         }
     }
 
+
+    if (iQuantityType && (gateCode & 1<<(alldata->flags.flagPositionRhohvMissing))) {
+
+        // i.e. iQuantityType !=0, we are dealing with a selection for svdfit.
+        // i.e. flag 9 in gateCode is true
+        // this gate has no 
+        
+        switch (iProfileType) {
+            case 1 : 
+                break;
+            case 2 : 
+                break;
+            case 3 : 
+                break;
+            case 4 :
+                doInclude = FALSE;
+                break;
+            default :
+                fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
+        }
+    }
 
 
     return doInclude;
@@ -2944,6 +2947,9 @@ static int profileArray2RaveField(vol2bird_t* alldata, int idx_profile, int idx_
             break; 
         case 3 :
             profile=alldata->profiles.profile3;
+            break;
+        case 4 :
+            profile=alldata->profiles.profile4;
             break;
         default:
             fprintf(stderr, "Something is wrong this should not happen.\n");
@@ -3689,7 +3695,6 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 
             // these variables are needed just outside of the iPass loop below 
             float chi = NAN;
-            float sd_head = NAN;
             int hasGap = TRUE;
             float birdDensity = NAN;
  
@@ -3705,17 +3710,13 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 int nPointsIncludedZ;
 
                 float parameterVector[] = {NAN,NAN,NAN};
-                float headingVector[] = {NAN,NAN,NAN};
                 float avar[] = {NAN,NAN,NAN};
-                float headVar[] = {NAN,NAN,NAN};
                 
                 float* pointsSelection = malloc(sizeof(float) * nPointsLayer * alldata->misc.nDims);
                 float* yNyquist = malloc(sizeof(float) * nPointsLayer);
                 float* yDealias = malloc(sizeof(float) * nPointsLayer);
                 float* yObs = malloc(sizeof(float) * nPointsLayer);
                 float* yFitted = malloc(sizeof(float) * nPointsLayer);
-                float* headObs = malloc(sizeof(float) * nPointsLayer);
-                float* headFitted = malloc(sizeof(float) * nPointsLayer);
 
                 int* includedIndex = malloc(sizeof(int) * nPointsLayer);
                 
@@ -3729,11 +3730,6 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 float chisq = NAN;
                 float hSpeed = NAN;
                 float hDir = NAN;
-                float ff_head = NAN;
-                float dd_head = NAN;
-                float bl_head = NAN;
-                float chisq_head = NAN;
-
 
 
                 for (iPointLayer = 0; iPointLayer < nPointsLayer; iPointLayer++) {
@@ -3745,8 +3741,6 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     yDealias[iPointLayer] = 0.0f;                    
                     yObs[iPointLayer] = 0.0f;
                     yFitted[iPointLayer] = 0.0f;
-                    headObs[iPointLayer] = 0.0f;
-                    headFitted[iPointLayer] = 0.0f;
                     
                     includedIndex[iPointLayer] = -1;
 
@@ -3766,10 +3760,6 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = NODATA;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = NODATA;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = NODATA;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 14] = NODATA;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 15] = NODATA;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 16] = NODATA;
-                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 17] = NODATA;
 
 		        //Calculate the average reflectivity Z of the layer
                 iPointIncludedZ = 0;
@@ -3836,16 +3826,17 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         pointsSelection[iPointIncluded * alldata->misc.nDims + 1] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.elevAngleCol];
                         // copy nyquist interval from the 'points' array
                         yNyquist[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.nyquistCol];
-                        // copy the observed vrad value at this [azimuth, elevation] 
-                        yObs[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.vradValueCol];
+                        // copy the observed value at this [azimuth, elevation], rhohv for body orientation (iProfileType==4), vrad otherwise (iProfileType!=4)
+                        if (iProfileType == 4){
+                            yObs[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.rhohvValueCol];
+                        }
+                        else{
+                            yObs[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.vradValueCol];
+                        }
                         // copy the dealiased vrad value at this [azimuth, elevation] 
                         yDealias[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.vraddValueCol];
-                        // copy the dealiased vrad value at this [azimuth, elevation] 
-                        headObs[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.rhohvValueCol];
                         // pre-allocate the fitted vrad value at this [azimuth,elevation]
                         yFitted[iPointIncluded] = 0.0f;
-                        // pre-allocate the fitted heading value at this [azimuth,elevation]
-                        headFitted[iPointIncluded] = 0.0f;
                         // keep a record of which index was just included
                         includedIndex[iPointIncluded] = iPointLayer;
                         // raise the counter
@@ -3860,7 +3851,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 // (as this makes the svdfit result really uncertain)  
                 hasGap = hasAzimuthGap(&pointsSelection[0], nPointsIncluded, alldata);
                 
-                if (alldata->options.fitVrad == TRUE && iPass != 4) {
+                if (alldata->options.fitVrad == TRUE || iPass == 4) {
 
                     if (hasGap==FALSE) {
                         
@@ -3904,9 +3895,18 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         // ------------------------------------------------------------- //
                         //                       do the svdfit                           //
                         // ------------------------------------------------------------- //
-                                                
+                        
+                        //select the right fit function
+                        int (*funcs)(const float points[], const int nDims, float afunc[], const int nParsFitted);
+                        if(iPass == 4){
+                            funcs=svd_align0func;  // for body alignment fit
+                        }
+                        else{
+                            funcs=svd_vvp1func;    // for VVP velocity fit
+                        }
+                        
                         chisq = svdfit(&pointsSelection[0], alldata->misc.nDims, &yObsSvdFit[0], &yFitted[0], 
-                                nPointsIncluded, svd_vvp1func, &parameterVector[0], &avar[0], alldata->misc.nParsFitted);
+                                nPointsIncluded, funcs, &parameterVector[0], &avar[0], alldata->misc.nParsFitted);
 
                         if (chisq < alldata->constants.chisqMin) {
                             // the standard deviation of the fit is too low, as in the case of overfit
@@ -3937,38 +3937,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 						
                     } // endif (hasGap == FALSE)
                     
-                }; // endif (fitVrad == TRUE && iPass != 4)
-                
-                if (iPass == 4 && TRUE) { // FIXME: add option to disable body orientation fit
-
-                    if (hasGap==FALSE) {
-
-                        chisq_head = svdfit(&pointsSelection[0], alldata->misc.nDims, &headObs[0], &headFitted[0], 
-                                nPointsIncluded, svd_align0func, &headingVector[0], &headVar[0], alldata->misc.nParsFitted);
-                                
-                        if (FALSE) {  // FIXME: add option to remove poor fits, as in sd_head < alldata->constants.sdHeadMin
-                            // the standard deviation of the fit is too low, as in the case of overfit
-                            // reset parameter vector array elements to NAN and continue with the next layer
-                            parameterVector[0] = NAN;
-                            parameterVector[1] = NAN;
-                            parameterVector[2] = NAN;
-                            // FIXME: if this happens, profile fields are not updated from UNDETECT to NODATA
-                            // continue; // with for (iPass = 0; iPass < nPasses; iPass++)
-                        } 
-                        else {
-                            
-                            sd_head = sqrt(chisq_head);
-                            ff_head = sqrt(pow(headingVector[0],2) + pow(headingVector[1],2));
-                            dd_head = (atan2(headingVector[0],headingVector[1])*RAD2DEG);
-                            
-                            if (dd_head < 0) {
-                                dd_head += 360.0f;
-                            }
-     
-                    } // endif (hasGap == FALSE)
-                    
-                }; // endif (do a heading estimation == TRUE)
-
+                }; // endif (fitVrad == TRUE)
+\
                 //---------------------------------------------//
                 //         Fill the profile arrays             //
                 //---------------------------------------------//
@@ -4010,8 +3980,6 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 free((void*) yFitted);
                 free((void*) yNyquist);
                 free((void*) yDealias);
-                free((void*) headObs);
-                free((void*) headFitted);
                 free((void*) pointsSelection);
                 free((void*) includedIndex);
         
@@ -4066,6 +4034,9 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     case 3:
                         alldata->profiles.profile3[iCopied] = alldata->profiles.profile[iCopied];
                         break;
+                    case 4:
+                        alldata->profiles.profile4[iCopied] = alldata->profiles.profile[iCopied];
+                        break;
                     default:
                         fprintf(stderr, "Something is wrong this should not happen.\n");
                 }
@@ -4114,6 +4085,8 @@ float* vol2birdGetProfile(int iProfileType, vol2bird_t *alldata) {
             return &(alldata->profiles.profile2[0]);
         case 3 : 
             return &(alldata->profiles.profile3[0]);
+        case 4 : 
+            return &(alldata->profiles.profile4[0]);
         default :
             fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
     }
@@ -4743,7 +4716,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
 
     alldata->profiles.nProfileTypes = 4;
     alldata->profiles.nRowsProfile = alldata->options.nLayers;
-    alldata->profiles.nColsProfile = 18; 
+    alldata->profiles.nColsProfile = 14; 
     
     // pre-allocate the array holding any profiled data (note it has 
     // 'nColsProfile' pseudocolumns):
@@ -4769,6 +4742,11 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         fprintf(stderr,"Error pre-allocating array 'profile3'.\n"); 
         return -1;
     }
+    alldata->profiles.profile4 = (float*) malloc(sizeof(float) * alldata->profiles.nRowsProfile * alldata->profiles.nColsProfile);
+    if (alldata->profiles.profile4 == NULL) {
+        fprintf(stderr,"Error pre-allocating array 'profile4'.\n"); 
+        return -1;
+    }
 
     int iRowProfile;
     int iColProfile;
@@ -4779,6 +4757,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
             alldata->profiles.profile1[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODATA;
             alldata->profiles.profile2[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODATA;
             alldata->profiles.profile3[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODATA;
+            alldata->profiles.profile4[iRowProfile*alldata->profiles.nColsProfile + iColProfile] = NODATA;
         }
     }
 
@@ -4832,6 +4811,7 @@ void vol2birdTearDown(vol2bird_t* alldata) {
     free((void*) alldata->profiles.profile1);
     free((void*) alldata->profiles.profile2);
     free((void*) alldata->profiles.profile3);
+    free((void*) alldata->profiles.profile4);
     free((void*) alldata->points.indexFrom);
     free((void*) alldata->points.indexTo);
     free((void*) alldata->points.nPointsWritten);
