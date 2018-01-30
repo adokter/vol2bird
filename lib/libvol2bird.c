@@ -2966,7 +2966,7 @@ static void printCellProp(CELLPROP* cellProp, float elev, int nCells, int nCells
     fprintf(stderr,"#Cell analysis for elevation %f:\n",elev*RAD2DEG);
     fprintf(stderr,"#Minimum cell area in km^2     : %f\n",alldata->constants.areaCellMin);
     fprintf(stderr,"#Threshold for mean dBZ cell   : %g dBZ\n",alldata->misc.cellDbzMin);
-    fprintf(stderr,"#Threshold for mean stdev cell : %g dBZ\n",alldata->options.cellStdDevMax);
+    fprintf(stderr,"#Threshold for mean stdev cell : %g m/s\n",alldata->options.cellStdDevMax);
     fprintf(stderr,"#Valid cells                   : %i/%i\n#\n",nCellsValid,nCells);
     fprintf(stderr,"cellProp: .index .nGates .nGatesClutter   .Area .dbzAvg .texAvg .cv   .dbzMax .iRangOfMax .iAzimOfMax .drop\n");
     for (int iCell = 0; iCell < nCells; iCell++) {
