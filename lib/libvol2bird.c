@@ -3630,17 +3630,18 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 int nPointsIncludedZ;
 
                 float parameterVector[] = {NAN,NAN,NAN};
+                float headingVector[] = {NAN,NAN,NAN};
                 float avar[] = {NAN,NAN,NAN};
                 
                 float* pointsSelection = malloc(sizeof(float) * nPointsLayer * alldata->misc.nDims);
                 float* yNyquist = malloc(sizeof(float) * nPointsLayer);
-				float* yDealias = malloc(sizeof(float) * nPointsLayer);
-				float* yObs = malloc(sizeof(float) * nPointsLayer);
+                float* yDealias = malloc(sizeof(float) * nPointsLayer);
+                float* yObs = malloc(sizeof(float) * nPointsLayer);
                 float* yFitted = malloc(sizeof(float) * nPointsLayer);
                 int* includedIndex = malloc(sizeof(int) * nPointsLayer);
                 
                 float* yObsSvdFit = yObs;
-				float dbzValue = NAN;
+                float dbzValue = NAN;
                 float undbzValue = NAN;
                 double undbzSum = 0.0;
                 float undbzAvg = NAN;
@@ -3656,8 +3657,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     pointsSelection[iPointLayer * alldata->misc.nDims + 0] = 0.0f;
                     pointsSelection[iPointLayer * alldata->misc.nDims + 1] = 0.0f;
 
-					yNyquist[iPointLayer] = 0.0f;
-					yDealias[iPointLayer] = 0.0f;                    
+                    yNyquist[iPointLayer] = 0.0f;
+                    yDealias[iPointLayer] = 0.0f;                    
                     yObs[iPointLayer] = 0.0f;
                     yFitted[iPointLayer] = 0.0f;
                     
@@ -3811,7 +3812,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         // ------------------------------------------------------------- //
                                                 
                         chisq = svdfit(&pointsSelection[0], alldata->misc.nDims, &yObsSvdFit[0], &yFitted[0], 
-                                nPointsIncluded, &parameterVector[0], &avar[0], alldata->misc.nParsFitted);
+                                nPointsIncluded, svd_vvp1func, &parameterVector[0], &avar[0], alldata->misc.nParsFitted);
 
                         if (chisq < alldata->constants.chisqMin) {
                             // the standard deviation of the fit is too low, as in the case of overfit
@@ -3825,7 +3826,6 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         else {
                             
                             chi = sqrt(chisq);
-                            //hSpeed = sqrt(pow(parameterVector[0],2) + pow(parameterVector[1],2));
                             hSpeed = sqrt(pow(parameterVector[0],2) + pow(parameterVector[1],2));
                             hDir = (atan2(parameterVector[0],parameterVector[1])*RAD2DEG);
                             
@@ -3884,8 +3884,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
   
                 free((void*) yObs);
                 free((void*) yFitted);
-				free((void*) yNyquist);
-				free((void*) yDealias);
+                free((void*) yNyquist);
+                free((void*) yDealias);
                 free((void*) pointsSelection);
                 free((void*) includedIndex);
         

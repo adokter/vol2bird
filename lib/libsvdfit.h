@@ -38,9 +38,12 @@
 // *****************************************************************************
 
 int svd_vvp1func(const float points[], const int nDims, float afunc[], const int nParsFitted);
+int svd_align0func(const float points[], const int nDims, float afunc[], const int nParsFitted);
+int svd_align1func(const float points[], const int nDims, float afunc[], const int nParsFitted);
 int svbksb(float *u, float w[], float *v, int m, int n, const float b[], float x[]);
 int svdcmp(float *a, int m, int n, float w[], float *v);
 float svdfit(const float *points, const int nDims, const float yObs[], float yFitted[], const int nPoints,
+             int (*svd_func)(const float points[], const int nDims, float afunc[], const int nParsFitted),
              float parameterVector[], float avar[], const int nParsFitted);
 
 

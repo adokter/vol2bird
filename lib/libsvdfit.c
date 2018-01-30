@@ -76,6 +76,62 @@ int svd_vvp1func(const float points[], const int nDims, float afunc[], const int
 
 
 
+int svd_align0func(const float points[], const int nDims, float afunc[], const int nParsFitted){
+    float sinAlpha;
+    float cosAlpha;
+
+    if (nDims != 1) {
+        fprintf(stderr, "Number of dimensions is wrong!\n");
+        return -1;
+    }
+    if (nParsFitted != 3) {
+        fprintf(stderr, "Number of parameters is wrong!\n");
+        return -1;
+    }
+
+    sinAlpha = sin(points[0] * DEG2RAD);
+    cosAlpha = cos(points[0] * DEG2RAD);
+    
+    afunc[0] = sinAlpha;   // x
+    afunc[1] = cosAlpha;   // y
+    afunc[2] = 1;          // offset
+
+    return 0;
+    
+} //svd_align0func;
+
+
+
+
+
+int svd_align1func(const float points[], const int nDims, float afunc[], const int nParsFitted){
+    float sinAlpha;
+    float cosAlpha;
+
+    if (nDims != 1) {
+        fprintf(stderr, "Number of dimensions is wrong!\n");
+        return -1;
+    }
+    if (nParsFitted != 3) {
+        fprintf(stderr, "Number of parameters is wrong!\n");
+        return -1;
+    }
+
+    sinAlpha = sin(points[0] * 2 * DEG2RAD);
+    cosAlpha = cos(points[0] * 2 * DEG2RAD);
+    
+    afunc[0] = sinAlpha;   // x
+    afunc[1] = cosAlpha;   // y
+    afunc[2] = 1;          // offset
+
+    return 0;
+    
+} //svd_align1func
+
+
+
+
+
 int svdcmp(float *a,int m,int n,float w[],float *v) {
 
     // ************************************************************************************
@@ -418,6 +474,7 @@ int svdcmp(float *a,int m,int n,float w[],float *v) {
 
 
 float svdfit(const float *points, const int nDims, const float vradObs[], float vradFitted[], const int nPoints,
+             int (*svd_func)(const float points[], const int nDims, float afunc[], const int nParsFitted),
              float parameterVector[], float avar[], const int nParsFitted) {
 
 
@@ -474,7 +531,7 @@ float svdfit(const float *points, const int nDims, const float vradObs[], float 
     for (iPoint = 0; iPoint < nPoints; iPoint++) {
 
         // note pointer arithmetic in this next statement:
-        if (svd_vvp1func(points+nDims*iPoint,nDims,afunc,nParsFitted)) {
+        if (svd_func(points+nDims*iPoint,nDims,afunc,nParsFitted)) {
             return -1.0;
         }
 
@@ -537,7 +594,7 @@ float svdfit(const float *points, const int nDims, const float vradObs[], float 
     for (iPoint = 0; iPoint < nPoints; iPoint++) {
 
         // note pointer arithmetic in this next statement:
-        if (svd_vvp1func(points+nDims*iPoint,nDims,afunc,nParsFitted)) {
+        if (svd_func(points+nDims*iPoint,nDims,afunc,nParsFitted)) {
             return -1.0;
         }
         sum = 0.0;
