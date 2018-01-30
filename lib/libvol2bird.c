@@ -371,6 +371,7 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
         const float vradValue = alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.vradValueCol];
         const int cellValue = (int) alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.cellValueCol];
         const float clutValue = alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.clutValueCol];
+        const float rhohvValue = alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.rhohvValueCol];
 
         unsigned int gateCode = 0;
         
@@ -420,6 +421,11 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
             // the user can specify to exclude gates based on their azimuth;
             // this clause is for gates that have too high azimuth
             gateCode |= 1<<(alldata->flags.flagPositionAzimTooHigh);
+        }
+        
+        if ((isnan(rhohvValue) == TRUE) || (isnan(dbzValue) == TRUE) || (isnan(vradValue) == TRUE)) {
+            // this gate has no valid correlation coefficient data
+            gateCode |= 1<<(alldata->flags.flagPositionRhohvMissing);
         }
 
         alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.gateCodeCol] = (float) gateCode;
@@ -1123,6 +1129,51 @@ static void exportBirdProfileAsJSON(vol2bird_t *alldata) {
             }
         }
 
+        {
+            char varName[] = "ff_head";
+            float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  14];
+            if (isnan(val) == TRUE) {
+                fprintf(f,"    \"%s\":null,\n",varName);
+            }
+            else {
+                fprintf(f,"    \"%s\":%d,\n",varName,(int) val);
+            }
+        }
+
+        {
+            char varName[] = "dd_head";
+            float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  15];
+            if (isnan(val) == TRUE) {
+                fprintf(f,"    \"%s\":null,\n",varName);
+            }
+            else {
+                fprintf(f,"    \"%s\":%d,\n",varName,(int) val);
+            }
+        }
+
+        {
+            char varName[] = "bl_head";
+            float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  16];
+            if (isnan(val) == TRUE) {
+                fprintf(f,"    \"%s\":null,\n",varName);
+            }
+            else {
+                fprintf(f,"    \"%s\":%d,\n",varName,(int) val);
+            }
+        }
+
+        {
+            char varName[] = "sd_head";
+            float val = alldata->profiles.profile[iLayer * alldata->profiles.nColsProfile +  17];
+            if (isnan(val) == TRUE) {
+                fprintf(f,"    \"%s\":null,\n",varName);
+            }
+            else {
+                fprintf(f,"    \"%s\":%d,\n",varName,(int) val);
+            }
+        }
+
+
         fprintf(f,"   }");
         if (iLayer < alldata->options.nLayers - 1) {
             fprintf(f,",");
@@ -1794,11 +1845,12 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
     double dbzValue;
     double cellValue;
     double clutValue = NAN;
+    double rhohvValue = NAN;
     double nyquist = 0;
     
     nPointsWritten_local = 0;
     
-    RaveValueType vradValueType, dbzValueType;
+    RaveValueType vradValueType, dbzValueType, rhohvValueType;
     
     nRang = (int) PolarScan_getNbins(scan);
     nAzim = (int) PolarScan_getNrays(scan);
@@ -1815,8 +1867,12 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
     PolarScanParam_t* dbzParam = PolarScan_getParameter(scan,scanUse.dbzName);
     PolarScanParam_t* cellParam = PolarScan_getParameter(scan,scanUse.cellName);
     PolarScanParam_t* clutParam = NULL;
+    PolarScanParam_t* rhohvParam = NULL;
     if (alldata->options.useClutterMap){
         clutParam = PolarScan_getParameter(scan,scanUse.clutName);
+    }
+    if (alldata->options.dualPol){
+        rhohvParam = PolarScan_getParameter(scan,scanUse.rhohvName);
     }
 
     for (iRang = 0; iRang < nRang; iRang++) {
@@ -1851,6 +1907,9 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
             if (alldata->options.useClutterMap){
                 PolarScanParam_getValue(clutParam, iRang, iAzim, &clutValue);
             }
+            if (alldata->options.dualPol && rhohvParam != NULL){
+                PolarScanParam_getValue(rhohvParam, iRang, iAzim, &rhohvValue);
+            }
 
             // in the points array, store missing reflectivity values as the lowest possible reflectivity
             // this is to treat undetects as absence of scatterers
@@ -1863,6 +1922,13 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
             if (vradValueType != RaveValueType_DATA){
                 vradValue = NAN;
             }
+
+            // in the points array, store missing vrad values as NAN
+            // this is necessary because different scans may have different missing values
+            if (rhohvValueType != RaveValueType_DATA){
+                rhohvValue = NAN;
+            }
+
 
             // store the location as an azimuth angle, elevation angle combination
             points_local[iRowPoints * nColsPoints_local + 0] = gateAzim;
@@ -1888,6 +1954,9 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
 
             // store the corresponding observed vrad value for now (to be dealiased later)
             points_local[iRowPoints * nColsPoints_local + 8] = (float) clutValue;
+
+            // store the corresponding observed rhohv value
+            points_local[iRowPoints * nColsPoints_local + 9] = (float) rhohvValue;
 
             // raise the row counter by 1
             iRowPoints += 1;
@@ -3575,6 +3644,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 		// iProfileType == 1: birds                                      //
 		// iProfileType == 2: non-birds                                  //
 		// iProfileType == 3: birds+non-birds                            //
+		// iProfileType == 4: birds body alignment                       //
         // ------------------------------------------------------------- //
 
         // FIXME: we better get rid of ProfileType==2 altogether, instead of
@@ -3585,10 +3655,14 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 
         // if the user does not require fitting a model to the observed 
         // vrad values, we don't need a second pass to remove dealiasing outliers
+        // also for the body alignment fit we need a singe pass only
         if (alldata->options.fitVrad == TRUE) {
             nPasses = 2;
         } 
         else {
+            nPasses = 1;
+        }
+        if (iProfileType == 4){
             nPasses = 1;
         }
 			
@@ -3615,6 +3689,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 
             // these variables are needed just outside of the iPass loop below 
             float chi = NAN;
+            float sd_head = NAN;
             int hasGap = TRUE;
             float birdDensity = NAN;
  
@@ -3632,12 +3707,16 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 float parameterVector[] = {NAN,NAN,NAN};
                 float headingVector[] = {NAN,NAN,NAN};
                 float avar[] = {NAN,NAN,NAN};
+                float headVar[] = {NAN,NAN,NAN};
                 
                 float* pointsSelection = malloc(sizeof(float) * nPointsLayer * alldata->misc.nDims);
                 float* yNyquist = malloc(sizeof(float) * nPointsLayer);
                 float* yDealias = malloc(sizeof(float) * nPointsLayer);
                 float* yObs = malloc(sizeof(float) * nPointsLayer);
                 float* yFitted = malloc(sizeof(float) * nPointsLayer);
+                float* headObs = malloc(sizeof(float) * nPointsLayer);
+                float* headFitted = malloc(sizeof(float) * nPointsLayer);
+
                 int* includedIndex = malloc(sizeof(int) * nPointsLayer);
                 
                 float* yObsSvdFit = yObs;
@@ -3650,6 +3729,11 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 float chisq = NAN;
                 float hSpeed = NAN;
                 float hDir = NAN;
+                float ff_head = NAN;
+                float dd_head = NAN;
+                float bl_head = NAN;
+                float chisq_head = NAN;
+
 
 
                 for (iPointLayer = 0; iPointLayer < nPointsLayer; iPointLayer++) {
@@ -3661,6 +3745,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     yDealias[iPointLayer] = 0.0f;                    
                     yObs[iPointLayer] = 0.0f;
                     yFitted[iPointLayer] = 0.0f;
+                    headObs[iPointLayer] = 0.0f;
+                    headFitted[iPointLayer] = 0.0f;
                     
                     includedIndex[iPointLayer] = -1;
 
@@ -3680,6 +3766,10 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = NODATA;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = NODATA;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = NODATA;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 14] = NODATA;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 15] = NODATA;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 16] = NODATA;
+                alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 17] = NODATA;
 
 		        //Calculate the average reflectivity Z of the layer
                 iPointIncludedZ = 0;
@@ -3744,14 +3834,18 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                         pointsSelection[iPointIncluded * alldata->misc.nDims + 0] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.azimAngleCol];
                         // copy elevation angle from the 'points' array
                         pointsSelection[iPointIncluded * alldata->misc.nDims + 1] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.elevAngleCol];
-						// copy nyquist interval from the 'points' array
+                        // copy nyquist interval from the 'points' array
                         yNyquist[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.nyquistCol];
                         // copy the observed vrad value at this [azimuth, elevation] 
                         yObs[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.vradValueCol];
-						// copy the dealiased vrad value at this [azimuth, elevation] 
+                        // copy the dealiased vrad value at this [azimuth, elevation] 
                         yDealias[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.vraddValueCol];
+                        // copy the dealiased vrad value at this [azimuth, elevation] 
+                        headObs[iPointIncluded] = alldata->points.points[iPointLayer * alldata->points.nColsPoints + alldata->points.rhohvValueCol];
                         // pre-allocate the fitted vrad value at this [azimuth,elevation]
                         yFitted[iPointIncluded] = 0.0f;
+                        // pre-allocate the fitted heading value at this [azimuth,elevation]
+                        headFitted[iPointIncluded] = 0.0f;
                         // keep a record of which index was just included
                         includedIndex[iPointIncluded] = iPointLayer;
                         // raise the counter
@@ -3766,7 +3860,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 // (as this makes the svdfit result really uncertain)  
                 hasGap = hasAzimuthGap(&pointsSelection[0], nPointsIncluded, alldata);
                 
-                if (alldata->options.fitVrad == TRUE) {
+                if (alldata->options.fitVrad == TRUE && iPass != 4) {
 
                     if (hasGap==FALSE) {
                         
@@ -3843,8 +3937,38 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 						
                     } // endif (hasGap == FALSE)
                     
-                }; // endif (fitVrad == TRUE)
+                }; // endif (fitVrad == TRUE && iPass != 4)
                 
+                if (iPass == 4 && TRUE) { // FIXME: add option to disable body orientation fit
+
+                    if (hasGap==FALSE) {
+
+                        chisq_head = svdfit(&pointsSelection[0], alldata->misc.nDims, &headObs[0], &headFitted[0], 
+                                nPointsIncluded, svd_align0func, &headingVector[0], &headVar[0], alldata->misc.nParsFitted);
+                                
+                        if (FALSE) {  // FIXME: add option to remove poor fits, as in sd_head < alldata->constants.sdHeadMin
+                            // the standard deviation of the fit is too low, as in the case of overfit
+                            // reset parameter vector array elements to NAN and continue with the next layer
+                            parameterVector[0] = NAN;
+                            parameterVector[1] = NAN;
+                            parameterVector[2] = NAN;
+                            // FIXME: if this happens, profile fields are not updated from UNDETECT to NODATA
+                            // continue; // with for (iPass = 0; iPass < nPasses; iPass++)
+                        } 
+                        else {
+                            
+                            sd_head = sqrt(chisq_head);
+                            ff_head = sqrt(pow(headingVector[0],2) + pow(headingVector[1],2));
+                            dd_head = (atan2(headingVector[0],headingVector[1])*RAD2DEG);
+                            
+                            if (dd_head < 0) {
+                                dd_head += 360.0f;
+                            }
+     
+                    } // endif (hasGap == FALSE)
+                    
+                }; // endif (do a heading estimation == TRUE)
+
                 //---------------------------------------------//
                 //         Fill the profile arrays             //
                 //---------------------------------------------//
@@ -3869,7 +3993,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 11] = reflectivity;
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = birdDensity;
                 }
-                // case of valid fit, fill profile fields with VVP fit parameters
+                // case of valid fit, fill profile fields with VVP (or body alignment) fit parameters
                 if (!hasGap){
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = parameterVector[0];
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  3] = parameterVector[1];
@@ -3886,6 +4010,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 free((void*) yFitted);
                 free((void*) yNyquist);
                 free((void*) yDealias);
+                free((void*) headObs);
+                free((void*) headFitted);
                 free((void*) pointsSelection);
                 free((void*) includedIndex);
         
@@ -4107,6 +4233,7 @@ void vol2birdPrintPointsArray(vol2bird_t* alldata) {
             fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.nyquistCol]);
             fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.vraddValueCol]);
             fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.clutValueCol]);
+            fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.rhohvValueCol]);
             fprintf(stderr, "\n");
     }    
 } // vol2birdPrintPointsArray
@@ -4559,7 +4686,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     //               information about the 'points' array            //
     // ------------------------------------------------------------- //
 
-    alldata->points.nColsPoints = 9;
+    alldata->points.nColsPoints = 10;
     alldata->points.nRowsPoints = detSvdfitArraySize(volume, scanUse, alldata);
 
     alldata->points.azimAngleCol = 0;
@@ -4571,6 +4698,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
 	alldata->points.nyquistCol = 6;
 	alldata->points.vraddValueCol = 7;
 	alldata->points.clutValueCol = 8;
+	alldata->points.rhohvValueCol = 9;
 
     // pre-allocate the 'points' array (note it has 'nColsPoints'
     // pseudo-columns)
@@ -4600,6 +4728,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->flags.flagPositionVDifMax = 6;
     alldata->flags.flagPositionAzimTooLow = 7;
     alldata->flags.flagPositionAzimTooHigh = 8;
+    alldata->flags.flagPositionRhohvMissing = 9;
 
     // construct the 'points' array
     constructPointsArray(volume, scanUse, alldata);
@@ -4612,9 +4741,9 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     //              information about the 'profile' array            //
     // ------------------------------------------------------------- //
 
-    alldata->profiles.nProfileTypes = 3;
+    alldata->profiles.nProfileTypes = 4;
     alldata->profiles.nRowsProfile = alldata->options.nLayers;
-    alldata->profiles.nColsProfile = 14; 
+    alldata->profiles.nColsProfile = 18; 
     
     // pre-allocate the array holding any profiled data (note it has 
     // 'nColsProfile' pseudocolumns):

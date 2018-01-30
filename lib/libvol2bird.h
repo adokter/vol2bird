@@ -229,6 +229,8 @@ struct vol2birdPoints {
 	int vraddValueCol;
     // the psuedo-column in 'points' that holds the static clutter map value
 	int clutValueCol;
+    // the psuedo-column in 'points' that holds the correlation coefficient value
+	int rhohvValueCol;
     // the 'points' array itself
     float* points; // Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
     // for a given altitude layer in the profile, only part of the 'points'
@@ -273,6 +275,8 @@ struct vol2birdFlags {
     int flagPositionAzimTooLow;
     // the bit in 'gateCode' that says whether the gate's azimuth angle was too high
     int flagPositionAzimTooHigh;
+    // the bit in 'gateCode' that says whether this gate has correlation coefficient data
+    int flagPositionRhohvMissing;
 };
 typedef struct vol2birdFlags vol2birdFlags_t;
 

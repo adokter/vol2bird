@@ -80,7 +80,7 @@ int svd_align0func(const float points[], const int nDims, float afunc[], const i
     float sinAlpha;
     float cosAlpha;
 
-    if (nDims != 1) {
+    if (nDims != 2) {
         fprintf(stderr, "Number of dimensions is wrong!\n");
         return -1;
     }
@@ -108,7 +108,7 @@ int svd_align1func(const float points[], const int nDims, float afunc[], const i
     float sinAlpha;
     float cosAlpha;
 
-    if (nDims != 1) {
+    if (nDims != 2) {
         fprintf(stderr, "Number of dimensions is wrong!\n");
         return -1;
     }
