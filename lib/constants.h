@@ -161,7 +161,7 @@
 // Scans with Nyquist velocity lower than this value are excluded
 #define MIN_NYQUIST_VELOCITY 5.0f
 // When all scans have nyquist velocity higher than this value, dealiasing is suppressed
-#define MAX_NYQUIST_DEALIAS 20.0f
+#define MAX_NYQUIST_DEALIAS 30.0f
 // when analyzing cells, only cells for which the stddev of vrad
 // (aka the texture) is less than cellStdDevMax are considered in the
 // rest of the analysis
