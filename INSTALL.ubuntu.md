@@ -19,7 +19,7 @@ mkdir ${RADAR_ROOT_DIR}/src
 # * proj4 library
 # * flex, otherwise configure script of RSL library does not function properly
 sudo apt-get update && apt-get install -y libconfuse-dev \
-    libhdf5-dev gcc make zlib1g-dev python-dev python-numpy libproj-dev flex file git
+    libhdf5-dev gcc make zlib1g-dev python-dev python-numpy libproj-dev flex file git libgsl-dev
 
 # change to the source directory...
 cd ${RADAR_ROOT_DIR}/src
@@ -54,6 +54,7 @@ cd ${RADAR_ROOT_DIR}/src
 git clone https://github.com/adokter/vol2bird.git \
     && cd vol2bird && ./configure --prefix=${RADAR_ROOT_DIR}/opt/vol2bird \
     --with-rave=${RADAR_ROOT_DIR}/opt/rave --with-rsl=${RADAR_ROOT_DIR}/opt/rsl \
+    --with-gsl=/usr/include/gsl,/usr/lib/x86_64-linux-gnu \
     && make
 sudo make install
 
