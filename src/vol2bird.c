@@ -181,7 +181,7 @@ int main(int argc, char** argv) {
             
             fprintf(stdout, "# vol2bird Vertical Profile of Birds (VPB)\n");
             fprintf(stdout, "# source: %s\n",source);
-            fprintf(stdout, "# ODIM HDF5 input: %s\n",fileVolIn);
+            fprintf(stdout, "# polar volume input: %s\n",fileVolIn);
             if (alldata.misc.vcp > 0) fprintf(stdout, "# volume coverage pattern (VCP): %i\n", alldata.misc.vcp);
             printf("# date   time HGHT    u      v       w     ff    dd  sd_vvp head_bl head_ff head_dd head_sd gap dbz     eta   dens   DBZH   n   n_dbz n_all n_dbz_all\n");
            
