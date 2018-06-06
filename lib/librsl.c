@@ -401,7 +401,17 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax){
     PolarVolume_setLatitude(volume,(double) (radar->h.latd + radar->h.latm/60.0 + radar->h.lats/3600.0)*PI/180);
     PolarVolume_setHeight(volume, (double) radar->h.height);
 
-    // second, copy metadata stored in ray header; assume attributes of first ray applies to entire volume
+    // second, copy volume coverage pattern (VCP) information to how/vcp attribute (NEXRAD specific)
+    int vcp = radar->h.vcp;
+    RaveAttribute_t* attr_vcp = RaveAttributeHelp_createLong("how/vcp", (long) vcp);
+    if (attr_vcp == NULL){
+        fprintf(stderr, "warning: no valid VCP value found in RSL polar volume\n");
+    }
+    else{    
+        PolarVolume_addAttribute(volume, attr_vcp);
+    }
+
+    // third, copy metadata stored in ray header; assume attributes of first ray applies to entire volume
     float wavelength = rslRay->h.wavelength*100;
     RaveAttribute_t* attr_wavelength = RaveAttributeHelp_createDouble("how/wavelength", (double) wavelength);
     if (attr_wavelength == NULL && wavelength > 0){

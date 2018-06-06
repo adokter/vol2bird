@@ -2826,6 +2826,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     RaveAttribute_t* attr_cluttermap = RaveAttributeHelp_createString("how/clutterMap", "");
     RaveAttribute_t* attr_filename_pvol = RaveAttributeHelp_createString("how/filename_pvol", alldata->misc.filename_pvol);
     RaveAttribute_t* attr_filename_vp = RaveAttributeHelp_createString("how/filename_vp", alldata->misc.filename_vp);
+    RaveAttribute_t* attr_vcp = RaveAttributeHelp_createLong("how/vcp", alldata->misc.vcp);
 
     //add /how and /what attributes to the vertical profile object
     VerticalProfile_addAttribute(alldata->vp, attr_beamwidth);
@@ -2844,6 +2845,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     VerticalProfile_addAttribute(alldata->vp, attr_cluttermap);
     VerticalProfile_addAttribute(alldata->vp, attr_filename_pvol);
     VerticalProfile_addAttribute(alldata->vp, attr_filename_vp);
+    VerticalProfile_addAttribute(alldata->vp, attr_vcp);
       
     //-------------------------------------------//
     //   map the profile data to rave fields     //
@@ -2903,6 +2905,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     RAVE_OBJECT_RELEASE(attr_cluttermap);
     RAVE_OBJECT_RELEASE(attr_filename_pvol);
     RAVE_OBJECT_RELEASE(attr_filename_vp);
+    RAVE_OBJECT_RELEASE(attr_vcp);
 
     RAVE_OBJECT_RELEASE(attr_startdate);
     RAVE_OBJECT_RELEASE(attr_starttime);
@@ -4486,6 +4489,19 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->misc.dbzFactor = (pow(alldata->constants.refracIndex,2) * 1000 * pow(PI,5))/pow(alldata->options.radarWavelength,4);
     alldata->misc.dbzMax = 10*log(alldata->options.etaMax / alldata->misc.dbzFactor)/log(10);
     alldata->misc.cellDbzMin = 10*log(alldata->options.cellEtaMin / alldata->misc.dbzFactor)/log(10);
+    
+    // Extract the vcp attribute if present (i.e. NEXRAD only)
+    RaveAttribute_t *attr;
+    long vcp;
+    int result = 0;
+    attr = PolarVolume_getAttribute(volume, "how/vcp");
+    if (attr != (RaveAttribute_t *) NULL) result = RaveAttribute_getLong(attr, &vcp);
+    if (result > 0){
+        alldata->misc.vcp = (int) vcp;
+    }
+    else{
+        alldata->misc.vcp = 0;
+    }
  
     // ------------------------------------------------------------- //
     //                 determine which scans to use                  //

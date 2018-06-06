@@ -74,7 +74,7 @@ struct scanmeta {
     float valueOffset;     // Offset value of quantity contained by scan.
     float valueScale;      // Scale of value of quantity contained by scan.
     float missing;         // Missing value of quantity contained by scan.
-	double nyquist;        // Nyquist velocity of the scan
+    double nyquist;        // Nyquist velocity of the scan
 };
 
 typedef struct cellprop CELLPROP;
@@ -127,9 +127,9 @@ struct vol2birdOptions {
     char dbzType[10];               /* Preferred dBZ quantity to use */
     int requireVrad;                /* require range gates to have a valid radial velocity measurement */
     int dealiasVrad;                /* dealias radial velocities using torus mapping method by Haase et al. */
-	int dealiasRecycle;             /* whether we should dealias once, or separately for each profile type */
+    int dealiasRecycle;             /* whether we should dealias once, or separately for each profile type */
     int dualPol;                    /* whether to use dual-polarization moments for filtering meteorological echoes */
-	int singlePol;                  /* whether to use single-polarization moments for filtering meteorological echoes */
+    int singlePol;                  /* whether to use single-polarization moments for filtering meteorological echoes */
     float dbzThresMin;              /* reflectivities above this threshold will be checked as potential precipitation */
     float rhohvThresMin;            /* correlation coefficients above this threshold will be removed as precipitation */
     int resample;                   /* whether to resample the input polar volume */
@@ -223,14 +223,14 @@ struct vol2birdPoints {
     int cellValueCol;
     // the psuedo-column in 'points' that holds the gate classification code
     int gateCodeCol;
-	// the psuedo-column in 'points' that holds the nyquist velocity
-	int nyquistCol;
+    // the psuedo-column in 'points' that holds the nyquist velocity
+    int nyquistCol;
     // the psuedo-column in 'points' that holds the dealiased vrad value
-	int vraddValueCol;
+    int vraddValueCol;
     // the psuedo-column in 'points' that holds the static clutter map value
-	int clutValueCol;
+    int clutValueCol;
     // the psuedo-column in 'points' that holds the correlation coefficient value
-	int rhohvValueCol;
+    int rhohvValueCol;
     // the 'points' array itself
     float* points; // Is allocated in vol2birdSetUp() and freed in vol2birdTearDown()
     // for a given altitude layer in the profile, only part of the 'points'
@@ -331,12 +331,12 @@ struct vol2birdMisc {
     int vol2birdSuccessful;
     // number of scans used to calculate the profile
     int nScansUsed;
-	// lowest Nyquist velocity of scans present
-	double nyquistMin;
-	// lowest Nyquist velocity of scans used
-	double nyquistMinUsed;
-	// highest Nyquist velocity of scans used
-	double nyquistMax;
+    // lowest Nyquist velocity of scans present
+    double nyquistMin;
+    // lowest Nyquist velocity of scans used
+    double nyquistMinUsed;
+    // highest Nyquist velocity of scans used
+    double nyquistMax;
     // whether configuration was loaded successfully
     int loadConfigSuccessful;
     // during calculation of iProfileType == 3, use this array to store the
@@ -349,6 +349,8 @@ struct vol2birdMisc {
     char filename_pvol[1000]; 
     // the vertical profile output file name
     char filename_vp[1000]; 
+    // the volume coverage pattern of the polar volume input file (NEXRAD specific)
+    int vcp;
 };
 typedef struct vol2birdMisc vol2birdMisc_t;
 
