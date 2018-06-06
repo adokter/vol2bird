@@ -127,9 +127,9 @@ struct vol2birdOptions {
     char dbzType[10];               /* Preferred dBZ quantity to use */
     int requireVrad;                /* require range gates to have a valid radial velocity measurement */
     int dealiasVrad;                /* dealias radial velocities using torus mapping method by Haase et al. */
-	int dealiasRecycle;             /* whether we should dealias once, or separately for each profile type */
+    int dealiasRecycle;             /* whether we should dealias once, or separately for each profile type */
     int dualPol;                    /* whether to use dual-polarization moments for filtering meteorological echoes */
-	int singlePol;                  /* whether to use single-polarization moments for filtering meteorological echoes */
+    int singlePol;                  /* whether to use single-polarization moments for filtering meteorological echoes */
     float dbzThresMin;              /* reflectivities above this threshold will be checked as potential precipitation */
     float rhohvThresMin;            /* correlation coefficients above this threshold will be removed as precipitation */
     int resample;                   /* whether to resample the input polar volume */
