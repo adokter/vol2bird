@@ -28,7 +28,8 @@
 #include "polarvolume.h"
 #include "libvol2bird.h"
 #include "constants.h"
-
+#include "hlhdf.h"
+#include "hlhdf_debug.h"
 
 int main(int argc, char** argv) {
 //    cfg_t* cfg;
@@ -97,6 +98,9 @@ int main(int argc, char** argv) {
         fileVpOut = NULL;
         fileVolOut = NULL;
     }
+
+    // Initialize hlhdf library
+    HL_init();
 
     // store the input filename
     strcpy(alldata.misc.filename_pvol,fileVolIn);
