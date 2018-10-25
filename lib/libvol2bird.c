@@ -503,7 +503,7 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 }
                 
                 if (alldata->options.printCellProp == TRUE) {
-                    fprintf(stderr,"(%d/%d): found %d cells.\n",iScan, nScans, nCells);
+                    fprintf(stderr,"(%d/%d): found %d cells.\n",iScan+1, nScans, nCells);
                 }
                 
                 // ------------------------------------------------------------- //
@@ -777,7 +777,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 			}
 		}
 		if (scanUse[iScan].useScan == FALSE){
-			fprintf(stderr,"Warning: radial velocity missing, dropping scan %i ...\n",iScan);
+			fprintf(stderr,"Warning: radial velocity missing, dropping scan %i ...\n",iScan+1);
 		}
 
         // check that reflectivity parameter is present
@@ -800,7 +800,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
 	        }
             }
             if (scanUse[iScan].useScan == FALSE){
-                fprintf(stderr,"Warning: reflectivity factor missing, dropping scan %i ...\n",iScan);
+                fprintf(stderr,"Warning: reflectivity factor missing, dropping scan %i ...\n",iScan+1);
             }
         }
         
@@ -811,7 +811,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
                 scanUse[iScan].useScan = TRUE;
             }
             else{
-                fprintf(stderr,"Warning: correlation coefficient missing, dropping scan %i ...\n",iScan);
+                fprintf(stderr,"Warning: correlation coefficient missing, dropping scan %i ...\n",iScan+1);
                 scanUse[iScan].useScan = FALSE;
             }
         }
@@ -825,7 +825,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
             {
                 scanUse[iScan].useScan = FALSE;
                     fprintf(stderr,"Warning: elevation (%.1f deg) outside valid elevation range (%.1f-%.1f deg), dropping scan %i ...\n",\
-                    elev,alldata->options.elevMin,alldata->options.elevMax,iScan);
+                    elev,alldata->options.elevMin,alldata->options.elevMax,iScan+1);
             }
         }
         
@@ -838,7 +838,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
             {
                 scanUse[iScan].useScan = FALSE;
                     fprintf(stderr,"Warning: range bin size (%.2f metre) too small, dropping scan %i ...\n",\
-                    rscale,iScan);
+                    rscale,iScan+1);
             }
         }
         
@@ -875,7 +875,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
                     param = PolarScan_getParameter(scan, scanUse[iScan].vradName);
                     nyquist = fabs(PolarScanParam_getOffset(param));
                 }
-                fprintf(stderr,"Warning: Nyquist interval attribute not found for scan %i, using radial velocity offset (%.1f m/s) instead \n",iScan,nyquist);
+                fprintf(stderr,"Warning: Nyquist interval attribute not found for scan %i, using radial velocity offset (%.1f m/s) instead \n",iScan+1,nyquist);
                 RAVE_OBJECT_RELEASE(param);
             }
             
@@ -883,7 +883,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
             // only check for nyquist interval when we are NOT dealiasing the velocities
             if (nyquist < alldata->options.minNyquist){
                 scanUse[iScan].useScan = 0;
-                fprintf(stderr,"Warning: Nyquist velocity (%.1f m/s) too low, dropping scan %i ...\n",nyquist,iScan);
+                fprintf(stderr,"Warning: Nyquist velocity (%.1f m/s) too low, dropping scan %i ...\n",nyquist,iScan+1);
             }
             
             // if Nyquist interval (NI) attribute was missing at scan level, add it now
@@ -1959,7 +1959,7 @@ int vol2birdLoadClutterMap(PolarVolume_t* volume, char* file, float rangeMax){
         // add the clutter map scan parameter to the polar volume
         result = PolarScan_addParameter(scan, param_proj);
         if(result == 0){
-            fprintf(stderr, "Warning in loadClutterMap: failed to add cluttermap for scan %i\n",iScan); 
+            fprintf(stderr, "Warning in loadClutterMap: failed to add cluttermap for scan %i\n",iScan+1); 
         }
         
         RAVE_OBJECT_RELEASE(param_proj);
