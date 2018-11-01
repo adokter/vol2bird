@@ -30,6 +30,7 @@
 #include "constants.h"
 #include "hlhdf.h"
 #include "hlhdf_debug.h"
+#include "rave_debug.h"
 
 int main(int argc, char** argv) {
 //    cfg_t* cfg;
@@ -101,6 +102,12 @@ int main(int argc, char** argv) {
 
     // Initialize hlhdf library
     HL_init();
+    //HL_setDebugLevel(HLHDF_SPEWDEBUG);
+
+    // Make rave library print debugging error messages
+    //Rave_initializeDebugger();
+    //Rave_setDebugLevel(RAVE_WARNING);
+    //Rave_setDebugLevel(RAVE_INFO);
 
     // store the input filename
     strcpy(alldata.misc.filename_pvol,fileVolIn);
