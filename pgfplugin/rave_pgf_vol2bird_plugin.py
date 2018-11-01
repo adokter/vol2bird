@@ -76,7 +76,7 @@ def generate(files, arguments):
   v2b = _pyvol2bird.new(obj)
 
   # calculate a vertical profile of birds
-  vpr = v2b.vol2bird(obj, 0.0)
+  vpr = v2b.vol2bird(obj)
 
   fileno, outfile = rave_tempfile.mktemp(suffix='.h5', close="True")
   logger.info("Output file: %s" % outfile)
