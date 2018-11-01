@@ -14,7 +14,7 @@ RUN git clone git://git.baltrad.eu/hlhdf.git \
 RUN git clone https://github.com/adokter/rave.git \
     && cd rave && ./configure --prefix=/opt/radar/rave --with-hlhdf=/opt/radar \
     && make && make install && cd .. && rm -rf rave
-RUN ls
+
 # get a copy of RSL:
 RUN git clone https://github.com/adokter/rsl.git && cd rsl \
     && cd decode_ar2v && ./configure --prefix=/usr && make && make install && cd .. \
