@@ -44,6 +44,7 @@ sudo make install
 cd ${RADAR_ROOT_DIR}/src 
 
 # get a copy of RSL:
+# RSL installation is optional, only required for reading US NEXRAD data
 sudo git clone https://github.com/adokter/rsl.git && cd rsl \
     && cd decode_ar2v && ./configure --prefix=/usr && make && make install && cd .. \
     && ./configure --prefix=${RADAR_ROOT_DIR}/opt/rsl && make AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=: \
@@ -52,6 +53,7 @@ sudo git clone https://github.com/adokter/rsl.git && cd rsl \
 cd ${RADAR_ROOT_DIR}/src 
 
 # get a copy of vol2bird
+# (if not installing RSL, remove --with-rsl flag below)
 git clone https://github.com/adokter/vol2bird.git \
     && cd vol2bird && ./configure --prefix=${RADAR_ROOT_DIR}/opt/vol2bird \
     --with-rave=${RADAR_ROOT_DIR}/opt/rave --with-rsl=${RADAR_ROOT_DIR}/opt/rsl \
