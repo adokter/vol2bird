@@ -45,9 +45,10 @@ cd ${RADAR_ROOT_DIR}/src
 
 # get a copy of RSL:
 sudo git clone https://github.com/adokter/rsl.git && cd rsl \
+    && cd decode_ar2v && ./configure --prefix=/usr && make && make install && cd .. \
     && ./configure --prefix=${RADAR_ROOT_DIR}/opt/rsl && make AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=: \
     && make install AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=: 
-
+    
 cd ${RADAR_ROOT_DIR}/src 
 
 # get a copy of vol2bird
