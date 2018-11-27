@@ -65,6 +65,6 @@ cd ${RADAR_ROOT_DIR}
 
 # set the paths to installed libraries and executables
 # set these each time you run vol2bird, or add to .bashrc
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/hlhdf/lib:${RADAR_ROOT_DIR}/opt/rave/lib:${RADAR_ROOT_DIR}/opt/rsl/lib:${RADAR_ROOT_DIR}/opt/radar/vol2bird/lib
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/hlhdf/lib:${RADAR_ROOT_DIR}/opt/rave/lib:${RADAR_ROOT_DIR}/opt/rsl/lib:${RADAR_ROOT_DIR}/opt/vol2bird/lib
 export PATH=${PATH}:${RADAR_ROOT_DIR}/opt/vol2bird/bin
 ```
