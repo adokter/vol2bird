@@ -1345,7 +1345,7 @@ Optional Packages:
   --with-rsl=DIR	  The RSL root installation directory
   --with-rave=ROOT	  The RAVE root installation directory
   --with-iris		  Add Vaisala IRIS support using iris2odim rave module
-  --with-rainbow		  Add SELEX Rainbow 5 support using rb52odim rave module
+  --with-rainbow	  Add SELEX Rainbow 5 support using rb52odim rave module
 
 Some influential environment variables:
   CC          C compiler command
@@ -4415,6 +4415,9 @@ $as_echo "$HLHDF_SZLIB_LIB" >&6; }
 
 LDFLAGS="$LDFLAGS $RAVE_LIB_FLAG $HLHDF_LIBRARY_FLAG $PROJ_LIBRARY_FLAG"
 CPPFLAGS="$CPPFLAGS $RAVE_INCLUDE_FLAG $HLHDF_INCLUDE_FLAG $PROJ_INCLUDE_FLAG"
+
+echo SHITSHOW
+echo $LDFLAGS
 
 IRIS_CFLAG=
 IRIS_LIB=

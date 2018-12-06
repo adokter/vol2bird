@@ -380,6 +380,9 @@ dnl Update LDFLAGS and CPPFLAGS with those obtained from RAVE
 LDFLAGS="$LDFLAGS $RAVE_LIB_FLAG $HLHDF_LIBRARY_FLAG $PROJ_LIBRARY_FLAG"
 CPPFLAGS="$CPPFLAGS $RAVE_INCLUDE_FLAG $HLHDF_INCLUDE_FLAG $PROJ_INCLUDE_FLAG"
 
+echo PRINTING LDFLAGS:
+echo $LDFLAGS
+
 dnl Check that we have Vaisala IRIS library installed as part of RAVE
 dnl
 IRIS_CFLAG=
@@ -433,7 +436,7 @@ RAINBOW_LIB=
 GOT_RAINBOW_INC=no
 GOT_RAINBOW_LIB=no
 RAINBOW_SUPPRESSED=no
-AC_ARG_WITH(rainbow,[  --with-rainbow		  Add SELEX Rainbow 5 support using rb52odim rave module],
+AC_ARG_WITH(rainbow,[  --with-rainbow	  Add SELEX Rainbow 5 support using rb52odim rave module],
 		,withval=yes)
 case $withval in
 	yes)
