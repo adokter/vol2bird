@@ -3005,7 +3005,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-LIBS=-lm
+LIBS=-lm -liris2odim
 
 CONFUSE_INCLUDE_DIR=
 CONFUSE_LIB_DIR=
@@ -4418,6 +4418,8 @@ CPPFLAGS="$CPPFLAGS $RAVE_INCLUDE_FLAG $HLHDF_INCLUDE_FLAG $PROJ_INCLUDE_FLAG"
 
 echo PRINTING LDFLAGS:
 echo $LDFLAGS
+echo $CPPFLAGS
+echo $LIBS
 
 IRIS_CFLAG=
 IRIS_LIB=

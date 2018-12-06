@@ -382,6 +382,8 @@ CPPFLAGS="$CPPFLAGS $RAVE_INCLUDE_FLAG $HLHDF_INCLUDE_FLAG $PROJ_INCLUDE_FLAG"
 
 echo PRINTING LDFLAGS:
 echo $LDFLAGS
+echo $CPPFLAGS
+echo $LIBS
 
 dnl Check that we have Vaisala IRIS library installed as part of RAVE
 dnl
