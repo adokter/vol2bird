@@ -621,11 +621,12 @@ ac_includes_default="\
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 LD_PRINTOUT
+GOT_RAINBOW_LIB
+RAINBOW_LIB
+RAINBOW_CFLAG
 GOT_IRIS_LIB
 IRIS_LIB
 IRIS_CFLAG
-IRIS_LIBRARY_FLAG
-IRIS_INCLUDE_FLAG
 GOT_RSL_LIB
 RSL_LIB
 RSL_CFLAG
@@ -681,7 +682,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -709,6 +709,7 @@ with_gsl
 with_rsl
 with_rave
 with_iris
+with_rainbow
 '
       ac_precious_vars='build_alias
 host_alias
@@ -757,7 +758,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1010,15 +1010,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1156,7 +1147,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1309,7 +1300,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1342,7 +1332,8 @@ Optional Packages:
   --with-gsl=DIR|INC,LIB  The GSL (GNU Scientific Library) installation directory
   --with-rsl=DIR	  The RSL root installation directory
   --with-rave=ROOT	  The RAVE root installation directory
-  --with-iris=DIR	  The IRIS root installation directory
+  --with-iris		  Add Vaisala IRIS support using iris2odim rave module
+  --with-rainbow		  Add SELEX Rainbow 5 support using rb52odim rave module
 
 Some influential environment variables:
   CC          C compiler command
@@ -3004,7 +2995,6 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 LIBS=-lm
 
-
 CONFUSE_INCLUDE_DIR=
 CONFUSE_LIB_DIR=
 GOT_CONFUSE_INC=no
@@ -4291,248 +4281,6 @@ See \`config.log' for more details" "$LINENO" 5; };
 fi
 
 
-
-IRIS_INCLUDE_DIR=
-IRIS_LIB_DIR=
-IRIS_CFLAG=
-IRIS_LIB=
-GOT_IRIS_INC=no
-GOT_IRIS_LIB=no
-IRIS_SUPPRESSED=no
-
-# Check whether --with-iris was given.
-if test "${with_iris+set}" = set; then :
-  withval=$with_iris;
-else
-  withval=yes
-fi
-
-case $withval in
-	yes)
-		for ac_header in iris2odim.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "iris2odim.h" "ac_cv_header_iris2odim_h" "$ac_includes_default"
-if test "x$ac_cv_header_iris2odim_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_IRIS2ODIM_H 1
-_ACEOF
- GOT_IRIS_INC=yes
-fi
-
-done
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for populateObject in -liris2odim" >&5
-$as_echo_n "checking for populateObject in -liris2odim... " >&6; }
-if ${ac_cv_lib_iris2odim_populateObject+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-liris2odim  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char populateObject ();
-int
-main ()
-{
-return populateObject ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_iris2odim_populateObject=yes
-else
-  ac_cv_lib_iris2odim_populateObject=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_iris2odim_populateObject" >&5
-$as_echo "$ac_cv_lib_iris2odim_populateObject" >&6; }
-if test "x$ac_cv_lib_iris2odim_populateObject" = xyes; then :
-  GOT_IRIS_LIB=yes
-fi
-
-		;;
-	no)
-                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for IRIS library" >&5
-$as_echo_n "checking for IRIS library... " >&6; }
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: suppressed" >&5
-$as_echo "suppressed" >&6; }
-		IRIS_SUPPRESSED=yes
-		;;
-	*)
-    if [ "$withval" != "" ]; then
-      if [ "`echo $withval | grep ','`" = "" ]; then
-        iris_inc=$withval/include
-        iris_lib=$withval/lib
-      else
-        iris_inc="`echo $withval |cut -f1 -d,`"
-        iris_lib="`echo $withval |cut -f2 -d,`"
-      fi
-
-      if [ "$iris_inc" != "" ]; then
-        saved_CPPFLAGS="$CPPFLAGS"
-        CPPFLAGS="$CPPFLAGS -I$iris_inc"
-        for ac_header in iris2odim.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "iris2odim.h" "ac_cv_header_iris2odim_h" "$ac_includes_default"
-if test "x$ac_cv_header_iris2odim_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_IRIS2ODIM_H 1
-_ACEOF
- GOT_IRIS_INC=yes
-fi
-
-done
-
-        if [ "$GOT_IRIS_INC" = "yes" ]; then
-          IRIS_INCLUDE_DIR="-I$iris_inc"
-        else
-          CPPFLAGS="$saved_CPPFLAGS"
-        fi
-      else
-        for ac_header in iris2odim.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "iris2odim.h" "ac_cv_header_iris2odim_h" "$ac_includes_default"
-if test "x$ac_cv_header_iris2odim_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_IRIS2ODIM_H 1
-_ACEOF
- GOT_IRIS_INC=yes
-fi
-
-done
-
-      fi
-
-      if [ "$iris_lib" != "" ]; then
-        saved_LDFLAGS="$LDFLAGS"
-        LDFLAGS="$LDFLAGS -L$iris_lib"
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for populateObject in -liris2odim" >&5
-$as_echo_n "checking for populateObject in -liris2odim... " >&6; }
-if ${ac_cv_lib_iris2odim_populateObject+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-liris2odim  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char populateObject ();
-int
-main ()
-{
-return populateObject ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_iris2odim_populateObject=yes
-else
-  ac_cv_lib_iris2odim_populateObject=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_iris2odim_populateObject" >&5
-$as_echo "$ac_cv_lib_iris2odim_populateObject" >&6; }
-if test "x$ac_cv_lib_iris2odim_populateObject" = xyes; then :
-  GOT_IRIS_LIB=yes
-fi
-
-        if [ "$GOT_IRIS_LIB" = "yes" ]; then
-          IRIS_LIB_DIR="-L$iris_lib"
-        else
-          LDFLAGS="$saved_LDFLAGS"
-        fi
-      else
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for populateObject in -liris2odim" >&5
-$as_echo_n "checking for populateObject in -liris2odim... " >&6; }
-if ${ac_cv_lib_iris2odim_populateObject+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-liris2odim  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char populateObject ();
-int
-main ()
-{
-return populateObject ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_iris2odim_populateObject=yes
-else
-  ac_cv_lib_iris2odim_populateObject=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_iris2odim_populateObject" >&5
-$as_echo "$ac_cv_lib_iris2odim_populateObject" >&6; }
-if test "x$ac_cv_lib_iris2odim_populateObject" = xyes; then :
-  GOT_RSL_LIB=yes
-fi
-
-      fi
-    else
-      as_fn_error $? "\"Odd argument passed for IRIS\"" "$LINENO" 5
-    fi
-    ;;
-esac
-
-IRIS_LIBRARY_FLAG=${IRIS_LIB_DIR}
-IRIS_INCLUDE_FLAG=${IRIS_INCLUDE_DIR}
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for IRIS installation" >&5
-$as_echo_n "checking for IRIS installation... " >&6; }
-
-if [ "$GOT_IRIS_INC" = "yes" ]; then
-   if [ "$GOT_IRIS_LIB" = "yes" ]; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-      IRIS_CFLAG=-DIRIS
-      IRIS_LIB=-liris2odim
-   else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-   fi
-else
-   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-echo "PROBLEMS!!!"
-
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for RAVE cc compiler" >&5
 $as_echo_n "checking for RAVE cc compiler... " >&6; }
 RAVECC=`cat $RAVE_ROOT_DIR/mkf/def.mk | sed -n "/^CC=/p" | sed -n -e"s/^CC=[ \t]*\(.*\)/\1/p"`
@@ -4635,7 +4383,6 @@ LDCPPSHARED=`echo "$HLHDFLDSHARED" | awk '{$1=""}1'`
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LDCPPSHARED" >&5
 $as_echo "$LDCPPSHARED" >&6; }
 
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for hdf5 software used by hlhdf" >&5
 $as_echo_n "checking for hdf5 software used by hlhdf... " >&6; }
 HLHDF_HDF5_LIB=`cat $HLHDF_MK_FILE | sed -n "/^HDF5_LIBDIR=/p" | sed -n -e"s/^HDF5_LIBDIR=[ 	]*\(.*\)/\1/p"`
@@ -4653,6 +4400,322 @@ $as_echo_n "checking for szlib software used by hlhdf... " >&6; }
 HLHDF_SZLIB_LIB=`cat $HLHDF_MK_FILE | sed -n "/^SZLIB_LIBDIR=/p" | sed -n -e"s/^SZLIB_LIBDIR=[ 	]*\(.*\)/\1/p"`
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $HLHDF_SZLIB_LIB" >&5
 $as_echo "$HLHDF_SZLIB_LIB" >&6; }
+
+LDFLAGS="$LDFLAGS $RAVE_LIB_FLAG $HLHDF_LIBRARY_FLAG $PROJ_LIBRARY_FLAG"
+CPPFLAGS="$CPPFLAGS $RAVE_INCLUDE_FLAG $HLHDF_INCLUDE_FLAG $PROJ_INCLUDE_FLAG"
+
+IRIS_CFLAG=
+IRIS_LIB=
+GOT_IRIS_INC=no
+GOT_IRIS_LIB=no
+IRIS_SUPPRESSED=no
+
+# Check whether --with-iris was given.
+if test "${with_iris+set}" = set; then :
+  withval=$with_iris;
+else
+  withval=yes
+fi
+
+case $withval in
+	yes)
+		for ac_header in iris2odim.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "iris2odim.h" "ac_cv_header_iris2odim_h" "$ac_includes_default"
+if test "x$ac_cv_header_iris2odim_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_IRIS2ODIM_H 1
+_ACEOF
+ GOT_IRIS_INC=yes
+fi
+
+done
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for populateObject in -liris2odim" >&5
+$as_echo_n "checking for populateObject in -liris2odim... " >&6; }
+if ${ac_cv_lib_iris2odim_populateObject+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-liris2odim  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char populateObject ();
+int
+main ()
+{
+return populateObject ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_iris2odim_populateObject=yes
+else
+  ac_cv_lib_iris2odim_populateObject=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_iris2odim_populateObject" >&5
+$as_echo "$ac_cv_lib_iris2odim_populateObject" >&6; }
+if test "x$ac_cv_lib_iris2odim_populateObject" = xyes; then :
+  GOT_IRIS_LIB=yes
+fi
+
+		;;
+	no)
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for iris2odim rave module" >&5
+$as_echo_n "checking for iris2odim rave module... " >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: suppressed" >&5
+$as_echo "suppressed" >&6; }
+		IRIS_SUPPRESSED=yes
+		;;
+	*)
+    if [ "$withval" != "" ]; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: \"iris2odim should be installed as a library module of RAVE - ignoring specified path '$withval'\"" >&5
+$as_echo "$as_me: WARNING: \"iris2odim should be installed as a library module of RAVE - ignoring specified path '$withval'\"" >&2;}
+      for ac_header in iris2odim.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "iris2odim.h" "ac_cv_header_iris2odim_h" "$ac_includes_default"
+if test "x$ac_cv_header_iris2odim_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_IRIS2ODIM_H 1
+_ACEOF
+ GOT_IRIS_INC=yes
+fi
+
+done
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for populateObject in -liris2odim" >&5
+$as_echo_n "checking for populateObject in -liris2odim... " >&6; }
+if ${ac_cv_lib_iris2odim_populateObject+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-liris2odim  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char populateObject ();
+int
+main ()
+{
+return populateObject ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_iris2odim_populateObject=yes
+else
+  ac_cv_lib_iris2odim_populateObject=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_iris2odim_populateObject" >&5
+$as_echo "$ac_cv_lib_iris2odim_populateObject" >&6; }
+if test "x$ac_cv_lib_iris2odim_populateObject" = xyes; then :
+  GOT_IRIS_LIB=yes
+fi
+
+    else
+      as_fn_error $? "\"Odd argument passed for iris\"" "$LINENO" 5
+    fi
+    ;;
+esac
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Vaisala IRIS support" >&5
+$as_echo_n "checking for Vaisala IRIS support... " >&6; }
+
+if [ "$GOT_IRIS_INC" = "yes" ]; then
+   if [ "$GOT_IRIS_LIB" = "yes" ]; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      IRIS_CFLAG=-DIRIS
+      IRIS_LIB=-liris2odim
+   else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+   fi
+else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+
+RAINBOW_CFLAG=
+RAINBOW_LIB=
+GOT_RAINBOW_INC=no
+GOT_RAINBOW_LIB=no
+RAINBOW_SUPPRESSED=no
+
+# Check whether --with-rainbow was given.
+if test "${with_rainbow+set}" = set; then :
+  withval=$with_rainbow;
+else
+  withval=yes
+fi
+
+case $withval in
+	yes)
+		for ac_header in rb52odim.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "rb52odim.h" "ac_cv_header_rb52odim_h" "$ac_includes_default"
+if test "x$ac_cv_header_rb52odim_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_RB52ODIM_H 1
+_ACEOF
+ GOT_RAINBOW_INC=yes
+fi
+
+done
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for populateObject in -lrb52odim" >&5
+$as_echo_n "checking for populateObject in -lrb52odim... " >&6; }
+if ${ac_cv_lib_rb52odim_populateObject+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lrb52odim  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char populateObject ();
+int
+main ()
+{
+return populateObject ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_rb52odim_populateObject=yes
+else
+  ac_cv_lib_rb52odim_populateObject=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_rb52odim_populateObject" >&5
+$as_echo "$ac_cv_lib_rb52odim_populateObject" >&6; }
+if test "x$ac_cv_lib_rb52odim_populateObject" = xyes; then :
+  GOT_RAINBOW_LIB=yes
+fi
+
+		;;
+	no)
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for rb52odim rave module" >&5
+$as_echo_n "checking for rb52odim rave module... " >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: suppressed" >&5
+$as_echo "suppressed" >&6; }
+		IRIS_SUPPRESSED=yes
+		;;
+	*)
+    if [ "$withval" != "" ]; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: \"rb52odim should be installed as a library module of RAVE - ignoring specified path '$withval'\"" >&5
+$as_echo "$as_me: WARNING: \"rb52odim should be installed as a library module of RAVE - ignoring specified path '$withval'\"" >&2;}
+      for ac_header in rb52odim.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "rb52odim.h" "ac_cv_header_rb52odim_h" "$ac_includes_default"
+if test "x$ac_cv_header_rb52odim_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_RB52ODIM_H 1
+_ACEOF
+ GOT_RAINBOW_INC=yes
+fi
+
+done
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for populateObject in -lrb52odim" >&5
+$as_echo_n "checking for populateObject in -lrb52odim... " >&6; }
+if ${ac_cv_lib_rb52odim_populateObject+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lrb52odim  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char populateObject ();
+int
+main ()
+{
+return populateObject ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_rb52odim_populateObject=yes
+else
+  ac_cv_lib_rb52odim_populateObject=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_rb52odim_populateObject" >&5
+$as_echo "$ac_cv_lib_rb52odim_populateObject" >&6; }
+if test "x$ac_cv_lib_rb52odim_populateObject" = xyes; then :
+  GOT_RAINBOW_LIB=yes
+fi
+
+    else
+      as_fn_error $? "\"Odd argument passed for rainbow\"" "$LINENO" 5
+    fi
+    ;;
+esac
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SELEX Rainbow support" >&5
+$as_echo_n "checking for SELEX Rainbow support... " >&6; }
+
+if [ "$GOT_RAINBOW_INC" = "yes" ]; then
+   if [ "$GOT_RAINBOW_LIB" = "yes" ]; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      RAINBOW_CFLAG=-DRAINBOW
+      RAINBOW_LIB=-lrb52odim
+   else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+   fi
+else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
 
 LD_PRINTOUT=$prefix/lib
 if [ "$RAVE_LIB_FLAG" != "" ]; then
