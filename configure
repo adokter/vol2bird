@@ -621,6 +621,12 @@ ac_includes_default="\
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 LD_PRINTOUT
+GOT_IRIS_LIB
+IRIS_LIB
+IRIS_CFLAG
+IRIS_LIBRARY_FLAG
+IRIS_INCLUDE_FLAG
+GOT_RSL_LIB
 RSL_LIB
 RSL_CFLAG
 RSL_LIBRARY_FLAG
@@ -701,6 +707,7 @@ with_confuse
 with_gsl
 with_rsl
 with_rave
+with_iris
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1323,6 +1330,7 @@ Optional Packages:
   --with-gsl=DIR|INC,LIB  The GSL (GNU Scientific Library) installation directory
   --with-rsl=DIR	  The RSL root installation directory
   --with-rave=ROOT	  The RAVE root installation directory
+  --with-iris=DIR	  The IRIS root installation directory
 
 Some influential environment variables:
   CC          C compiler command
@@ -2845,25 +2853,6 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-LIBS=-lm
-
-
-CONFUSE_INCLUDE_DIR=
-CONFUSE_LIB_DIR=
-GOT_CONFUSE_INC=no
-GOT_CONFUSE_LIB=no
-CONFUSE_SUPPRESSED=no
-
-# Check whether --with-confuse was given.
-if test "${with_confuse+set}" = set; then :
-  withval=$with_confuse;
-else
-  withval=yes
-fi
-
-case $withval in
-	yes)
-
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -3000,6 +2989,26 @@ ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+LIBS=-lm
+
+
+CONFUSE_INCLUDE_DIR=
+CONFUSE_LIB_DIR=
+GOT_CONFUSE_INC=no
+GOT_CONFUSE_LIB=no
+CONFUSE_SUPPRESSED=no
+
+# Check whether --with-confuse was given.
+if test "${with_confuse+set}" = set; then :
+  withval=$with_confuse;
+else
+  withval=yes
+fi
+
+case $withval in
+	yes)
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for grep that handles long lines and -e" >&5
@@ -4193,6 +4202,7 @@ RSL_LIBRARY_FLAG=${RSL_LIB_DIR}
 RSL_INCLUDE_FLAG=${RSL_INCLUDE_DIR}
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for RSL installation" >&5
 $as_echo_n "checking for RSL installation... " >&6; }
+
 if [ "$GOT_RSL_INC" = "yes" ]; then
    if [ "$GOT_RSL_LIB" = "yes" ]; then
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
@@ -4207,6 +4217,7 @@ else
    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
+
 
 RAVE_ROOT_DIR=
 RAVE_INCLUDE_FLAG=
@@ -4267,6 +4278,385 @@ $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "The RAVE installation does not contain def.mk. Is this an old installation
 See \`config.log' for more details" "$LINENO" 5; };
 fi
+
+
+IRIS_INCLUDE_DIR=
+IRIS_LIB_DIR=
+IRIS_CFLAG=
+IRIS_LIB=
+GOT_IRIS_INC=no
+GOT_IRIS_LIB=no
+IRIS_SUPPRESSED=no
+
+# Check whether --with-iris was given.
+if test "${with_iris+set}" = set; then :
+  withval=$with_iris;
+else
+  withval=yes
+fi
+
+case $withval in
+	yes)
+		for ac_header in iris2odim.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "iris2odim.h" "ac_cv_header_iris2odim_h" "$ac_includes_default"
+if test "x$ac_cv_header_iris2odim_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_IRIS2ODIM_H 1
+_ACEOF
+ GOT_IRIS_INC=yes
+fi
+
+done
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for populateObject in -liris2odim" >&5
+$as_echo_n "checking for populateObject in -liris2odim... " >&6; }
+if ${ac_cv_lib_iris2odim_populateObject+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-liris2odim  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char populateObject ();
+int
+main ()
+{
+return populateObject ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_iris2odim_populateObject=yes
+else
+  ac_cv_lib_iris2odim_populateObject=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_iris2odim_populateObject" >&5
+$as_echo "$ac_cv_lib_iris2odim_populateObject" >&6; }
+if test "x$ac_cv_lib_iris2odim_populateObject" = xyes; then :
+  GOT_IRIS_LIB=yes
+fi
+
+		;;
+	no)
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for IRIS library" >&5
+$as_echo_n "checking for IRIS library... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: suppressed" >&5
+$as_echo "suppressed" >&6; }
+        IRIS_SUPPRESSED=yes
+		;;
+	*)
+    if [ "$withval" != "" ]; then
+      if [ "`echo $withval | grep ','`" = "" ]; then
+        iris_inc=$withval/include
+        iris_lib=$withval/lib
+      else
+        iris_inc="`echo $withval |cut -f1 -d,`"
+        iris_lib="`echo $withval |cut -f2 -d,`"
+      fi
+
+      if [ "$iris_inc" != "" ]; then
+        saved_CPPFLAGS="$CPPFLAGS"
+        CPPFLAGS="$CPPFLAGS -I$iris_inc"
+        echo FUCK!!!!
+        ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking how to run the C preprocessor" >&5
+$as_echo_n "checking how to run the C preprocessor... " >&6; }
+# On Suns, sometimes $CPP names a directory.
+if test -n "$CPP" && test -d "$CPP"; then
+  CPP=
+fi
+if test -z "$CPP"; then
+  if ${ac_cv_prog_CPP+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+      # Double quotes because CPP needs to be expanded
+    for CPP in "$CC -E" "$CC -E -traditional-cpp" "/lib/cpp"
+    do
+      ac_preproc_ok=false
+for ac_c_preproc_warn_flag in '' yes
+do
+  # Use a header file that comes with gcc, so configuring glibc
+  # with a fresh cross-compiler works.
+  # Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+  # <limits.h> exists even on freestanding compilers.
+  # On the NeXT, cc -E runs the code through the compiler's parser,
+  # not just through cpp. "Syntax error" is here to catch this case.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+		     Syntax error
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+
+else
+  # Broken: fails on valid input.
+continue
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+  # OK, works on sane cases.  Now check whether nonexistent headers
+  # can be detected and how.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <ac_nonexistent.h>
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  # Broken: success on invalid input.
+continue
+else
+  # Passes both tests.
+ac_preproc_ok=:
+break
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+done
+# Because of `break', _AC_PREPROC_IFELSE's cleaning code was skipped.
+rm -f conftest.i conftest.err conftest.$ac_ext
+if $ac_preproc_ok; then :
+  break
+fi
+
+    done
+    ac_cv_prog_CPP=$CPP
+
+fi
+  CPP=$ac_cv_prog_CPP
+else
+  ac_cv_prog_CPP=$CPP
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $CPP" >&5
+$as_echo "$CPP" >&6; }
+ac_preproc_ok=false
+for ac_c_preproc_warn_flag in '' yes
+do
+  # Use a header file that comes with gcc, so configuring glibc
+  # with a fresh cross-compiler works.
+  # Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+  # <limits.h> exists even on freestanding compilers.
+  # On the NeXT, cc -E runs the code through the compiler's parser,
+  # not just through cpp. "Syntax error" is here to catch this case.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+		     Syntax error
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+
+else
+  # Broken: fails on valid input.
+continue
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+  # OK, works on sane cases.  Now check whether nonexistent headers
+  # can be detected and how.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <ac_nonexistent.h>
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  # Broken: success on invalid input.
+continue
+else
+  # Passes both tests.
+ac_preproc_ok=:
+break
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+done
+# Because of `break', _AC_PREPROC_IFELSE's cleaning code was skipped.
+rm -f conftest.i conftest.err conftest.$ac_ext
+if $ac_preproc_ok; then :
+
+else
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "C preprocessor \"$CPP\" fails sanity check
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+        for ac_header in iris2odim.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "iris2odim.h" "ac_cv_header_iris2odim_h" "$ac_includes_default"
+if test "x$ac_cv_header_iris2odim_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_IRIS2ODIM_H 1
+_ACEOF
+ GOT_IRIS_INC=yes
+fi
+
+done
+
+        echo $GOT_IRIS_INC
+        if [ "$GOT_IRIS_INC" = "yes" ]; then
+          IRIS_INCLUDE_DIR="-I$iris_inc"
+        else
+          CPPFLAGS="$saved_CPPFLAGS"
+        fi
+      else
+        for ac_header in iris2odim.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "iris2odim.h" "ac_cv_header_iris2odim_h" "$ac_includes_default"
+if test "x$ac_cv_header_iris2odim_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_IRIS2ODIM_H 1
+_ACEOF
+ GOT_IRIS_INC=yes
+fi
+
+done
+
+      fi
+
+      if [ "$iris_lib" != "" ]; then
+        saved_LDFLAGS="$LDFLAGS"
+        LDFLAGS="$LDFLAGS -L$iris_lib"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for populateObject in -liris2odim" >&5
+$as_echo_n "checking for populateObject in -liris2odim... " >&6; }
+if ${ac_cv_lib_iris2odim_populateObject+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-liris2odim  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char populateObject ();
+int
+main ()
+{
+return populateObject ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_iris2odim_populateObject=yes
+else
+  ac_cv_lib_iris2odim_populateObject=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_iris2odim_populateObject" >&5
+$as_echo "$ac_cv_lib_iris2odim_populateObject" >&6; }
+if test "x$ac_cv_lib_iris2odim_populateObject" = xyes; then :
+  GOT_IRIS_LIB=yes
+fi
+
+        if [ "$GOT_IRIS_LIB" = "yes" ]; then
+          IRIS_LIB_DIR="-L$iris_lib"
+        else
+          LDFLAGS="$saved_LDFLAGS"
+        fi
+      else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for populateObject in -liris2odim" >&5
+$as_echo_n "checking for populateObject in -liris2odim... " >&6; }
+if ${ac_cv_lib_iris2odim_populateObject+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-liris2odim  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char populateObject ();
+int
+main ()
+{
+return populateObject ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_iris2odim_populateObject=yes
+else
+  ac_cv_lib_iris2odim_populateObject=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_iris2odim_populateObject" >&5
+$as_echo "$ac_cv_lib_iris2odim_populateObject" >&6; }
+if test "x$ac_cv_lib_iris2odim_populateObject" = xyes; then :
+  GOT_IRIS_LIB=yes
+fi
+
+      fi
+    else
+      as_fn_error $? "\"Odd argument passed for iris\"" "$LINENO" 5
+    fi
+    ;;
+esac
+
+IRIS_LIBRARY_FLAG=${IRIS_LIB_DIR}
+IRIS_INCLUDE_FLAG=${IRIS_INCLUDE_DIR}
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for IRIS installation" >&5
+$as_echo_n "checking for IRIS installation... " >&6; }
+if [ "$GOT_IRIS_INC" = "yes" ]; then
+   if [ "$GOT_IRIS_LIB" = "yes" ]; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      IRIS_CFLAG=-DIRIS
+      IRIS_LIB=-iris2odim
+   else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+   fi
+else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for RAVE cc compiler" >&5
 $as_echo_n "checking for RAVE cc compiler... " >&6; }
@@ -4417,6 +4807,13 @@ fi
 if [ "$HLHDF_SZLIB_LIB" != "" ]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$HLHDF_SZLIB_LIB" | sed -e"s/[ \t]*-L//"`
 fi
+
+
+
+
+
+
+
 
 
 
