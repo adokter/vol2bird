@@ -376,14 +376,14 @@ AC_MSG_CHECKING(for szlib software used by hlhdf)
 HLHDF_SZLIB_LIB=`cat $HLHDF_MK_FILE | sed -n "/^SZLIB_LIBDIR=/p" | sed -n -e"s/^SZLIB_LIBDIR=[[ 	]]*\(.*\)/\1/p"`
 AC_MSG_RESULT($HLHDF_SZLIB_LIB)
 
+AC_MSG_CHECKING(for RAVE module libraries)
+RAVE_MODULE_LIBRARIES=`cat $RAVE_ROOT_DIR/mkf/def.mk | sed -n "/^RAVE_MODULE_LIBRARIES=/p" | sed -n -e"s/^RAVE_MODULE_LIBRARIES=[[ 	]]*\(.*\)/\1/p"`
+AC_MSG_RESULT($RAVE_MODULE_LIBRARIES)
+
+
 dnl Update LDFLAGS and CPPFLAGS with those obtained from RAVE
 LDFLAGS="$LDFLAGS $RAVE_LIB_FLAG $HLHDF_LIBRARY_FLAG $PROJ_LIBRARY_FLAG"
 CPPFLAGS="$CPPFLAGS $RAVE_INCLUDE_FLAG $HLHDF_INCLUDE_FLAG $PROJ_INCLUDE_FLAG"
-
-echo PRINTING LDFLAGS:
-echo $LDFLAGS
-echo $CPPFLAGS
-echo $LIBS
 
 dnl Check that we have Vaisala IRIS library installed as part of RAVE
 dnl
@@ -397,7 +397,7 @@ AC_ARG_WITH(iris,[  --with-iris		  Add Vaisala IRIS support using iris2odim rave
 case $withval in
 	yes)
 		AC_CHECK_HEADERS(iris2odim.h,GOT_IRIS_INC=yes)
-		AC_CHECK_LIB(iris2odim,populateObject,GOT_IRIS_LIB=yes)
+		AC_CHECK_LIB(iris2odim,populateObject,GOT_IRIS_LIB=yes,,[$RAVE_MODULE_LIBRARIES])
 		;;
 	no)
                 AC_MSG_CHECKING(for iris2odim rave module)
@@ -408,7 +408,7 @@ case $withval in
     if [[ "$withval" != "" ]]; then
       AC_MSG_WARN("iris2odim should be installed as a library module of RAVE - ignoring specified path '$withval'")
       AC_CHECK_HEADERS(iris2odim.h,GOT_IRIS_INC=yes)
-      AC_CHECK_LIB(iris2odim,populateObject,GOT_IRIS_LIB=yes)
+      AC_CHECK_LIB(iris2odim,populateObject,GOT_IRIS_LIB=yes,,[$RAVE_MODULE_LIBARIES])
     else
       AC_MSG_ERROR("Odd argument passed for iris")
     fi
