@@ -293,6 +293,7 @@ else
 fi
 
 
+
 dnl Check that we have Vaisala IRIS library installed as part of RAVE
 dnl
 IRIS_INCLUDE_DIR=
@@ -303,16 +304,16 @@ GOT_IRIS_INC=no
 GOT_IRIS_LIB=no
 IRIS_SUPPRESSED=no
 AC_ARG_WITH(iris,[  --with-iris=DIR	  The IRIS root installation directory],
-    ,withval=yes)
+		,withval=yes)
 case $withval in
 	yes)
 		AC_CHECK_HEADERS(iris2odim.h,GOT_IRIS_INC=yes)
 		AC_CHECK_LIB(iris2odim,populateObject,GOT_IRIS_LIB=yes)
 		;;
 	no)
-        AC_MSG_CHECKING(for IRIS library)
-        AC_MSG_RESULT(suppressed)
-        IRIS_SUPPRESSED=yes
+                AC_MSG_CHECKING(for IRIS library)
+		AC_MSG_RESULT(suppressed)
+		IRIS_SUPPRESSED=yes
 		;;
 	*)
     if [[ "$withval" != "" ]]; then
@@ -327,9 +328,7 @@ case $withval in
       if [[ "$iris_inc" != "" ]]; then
         saved_CPPFLAGS="$CPPFLAGS"
         CPPFLAGS="$CPPFLAGS -I$iris_inc"
-        AC_PROG_CPP
         AC_CHECK_HEADERS(iris2odim.h,GOT_IRIS_INC=yes)
-        echo $GOT_IRIS_INC
         if [[ "$GOT_IRIS_INC" = "yes" ]]; then
           IRIS_INCLUDE_DIR="-I$iris_inc"
         else
@@ -349,10 +348,10 @@ case $withval in
           LDFLAGS="$saved_LDFLAGS"
         fi
       else
-        AC_CHECK_LIB(iris2odim,populateObject,GOT_IRIS_LIB=yes)
+        AC_CHECK_LIB(iris2odim,populateObject,GOT_RSL_LIB=yes)
       fi
     else
-      AC_MSG_ERROR("Odd argument passed for iris")
+      AC_MSG_ERROR("Odd argument passed for IRIS")
     fi
     ;;
 esac
@@ -360,11 +359,12 @@ esac
 IRIS_LIBRARY_FLAG=${IRIS_LIB_DIR}
 IRIS_INCLUDE_FLAG=${IRIS_INCLUDE_DIR}
 AC_MSG_CHECKING(for IRIS installation)
+
 if [[ "$GOT_IRIS_INC" = "yes" ]]; then
    if [[ "$GOT_IRIS_LIB" = "yes" ]]; then
       AC_MSG_RESULT(yes)
       IRIS_CFLAG=-DIRIS
-      IRIS_LIB=-iris2odim
+      IRIS_LIB=-liris2odim
    else
       AC_MSG_RESULT(no)
    fi
@@ -372,6 +372,7 @@ else
    AC_MSG_RESULT(no)
 fi
 
+echo "PROBLEMS!!!"
 
 
 dnl Now we should extract some variables from raves def.mk file to give user a possibility to change
