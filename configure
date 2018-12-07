@@ -4579,7 +4579,7 @@ $as_echo "no" >&6; }
 fi
 
 
-CPPFLAGS="$CPPFLAGS  -I/usr/include/libxml2"
+CPPFLAGS="$CPPFLAGS -I/usr/include/libxml2"
 
 RAINBOW_CFLAG=
 RAINBOW_LIB=

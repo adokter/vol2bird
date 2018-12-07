@@ -434,7 +434,8 @@ dnl Check that we have SELEX Rainbow library installed as part of RAVE
 dnl
 dnl rb52odim depends on libxml, including it here hard-coded
 dnl TODO: add explicit checking for presence of xml2 
-CPPFLAGS="$CPPFLAGS  -I/usr/include/libxml2"
+dnl BUG: this solution works on Mac OSX but not on linux
+CPPFLAGS="$CPPFLAGS -I/usr/include/libxml2"
 
 RAINBOW_CFLAG=
 RAINBOW_LIB=
