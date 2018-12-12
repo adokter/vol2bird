@@ -1,4 +1,4 @@
-## vol2bird algorithm
+## vertical profiling of biological scatterers
 Vol2bird is an algorithm that calculates vertical profiles of birds and other biological scatterers from weather radar data
 
 For a description of the methodology see:
