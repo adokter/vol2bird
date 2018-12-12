@@ -1,4 +1,4 @@
-# Instructions for Ubuntu 16.04 LTS
+# Install instructions for Ubuntu 16.04 LTS
 
 ```
 # the directory in which we will install 

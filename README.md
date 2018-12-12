@@ -1,21 +1,21 @@
-## vertical profiling of biological scatterers
-Vol2bird is an algorithm that calculates vertical profiles of birds and other biological scatterers from weather radar data
+## Vertical profiling of biological scatterers
+**%vol2bird** is an algorithm that calculates vertical profiles of birds and other biological scatterers from weather radar data
 
-For a description of the methodology see:
+See this publications for a description of the methodology:
 
-*Bird migration flight altitudes studied by a network of operational weather radars*
-Dokter AM, Liechti F, Stark H, Delobbe L, Tabary P, Holleman I
-J. R. Soc. Interface, **8**, 30–43, 2011.
-DOI: [10.1098/rsif.2010.0116](https://doi.org/10.1098/rsif.2010.0116)
+[**Bird migration flight altitudes studied by a network of operational weather radars**](https://doi.org/10.1098/rsif.2010.0116)  
+Dokter AM, Liechti F, Stark H, Delobbe L, Tabary P, Holleman I  
+J. R. Soc. Interface, **8**, 30–43, 2011, DOI [10.1098/rsif.2010.0116](https://doi.org/10.1098/rsif.2010.0116)
 
-and:
+Recent algorithm extensions and integration with the [bioRad R package](http://adokter.github.io/bioRad) are described here:
 
-*bioRad: biological analysis and visualization of weather radar data*
-Dokter AM, Desmet P, Spaaks JH, van Hoey S, Veen L, Verlinden L, Nilsson C, Haase G, Leijnse H, Farnsworth A, Bouten W, Shamoun-Baranes J.
-Ecography, 2018
-DOI: [10.1111/ecog.04028](https://doi.org/10.1111/ecog.04028)
+[**bioRad: biological analysis and visualization of weather radar data**](https://doi.org/10.1111/ecog.04028)  
+Dokter AM, Desmet P, Spaaks JH, van Hoey S, Veen L, Verlinden L, Nilsson C, Haase G, Leijnse H, Farnsworth A, Bouten W, Shamoun-Baranes J.  
+Ecography, 2018, DOI [10.1111/ecog.04028](https://doi.org/10.1111/ecog.04028)  
 
 ### repository contents
+
+**%vol2bird** is written in C.
 
 * `data` contains two polar volume radar files for testing
 * `doc` documentation on ODIM hdf5 data format

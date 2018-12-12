@@ -1,6 +1,5 @@
+# Install Instructions for Mac OSX systems
 ```bash
-# instructions for Mac OSX systems
-#
 # we will use Macports (https://www.macports.org/) to install dependencies
 
 # cd to project directory
