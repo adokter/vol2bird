@@ -1,3 +1,9 @@
+/** vol2bird main executable
+ * @file vol2bird.c
+ * @author Adriaan Dokter & Netherlands eScience Centre
+ * @date 2015-05-05
+ */
+
 /*
  * Copyright 2017 Adriaan Dokter
  *

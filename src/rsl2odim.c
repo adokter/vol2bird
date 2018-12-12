@@ -1,10 +1,8 @@
-/*
- * Copyright 2016 - Adriaan Dokter
- *
- * This program converts RSL library compatible radar volumes to ODIM hdf5
- *
+/** convert NEXRAD radar volumes to ODIM hdf5
+ * @file rsl2odim.c
+ * @author Adriaan Dokter
+ * @date 2016
  */
-
 
 #include <stdio.h>
 #include <float.h>

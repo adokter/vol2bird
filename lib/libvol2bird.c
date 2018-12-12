@@ -1,3 +1,9 @@
+/** vol2bird main functions
+ * @file libvol2bird.c
+ * @author Adriaan Dokter & Netherlands eScience Centre
+ * @date 2015-05-05
+ */
+
 /*
  * Copyright 2015 Adriaan Dokter & Netherlands eScience Centre
  * If you want to use this software, please contact me at a.m.dokter@uva.nl

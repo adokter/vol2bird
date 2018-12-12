@@ -1,0 +1,40 @@
+\hypertarget{libdealias_8c}{}\section{/\+Users/amd427/git/vol2bird/lib/libdealias.c File Reference}
+\label{libdealias_8c}\index{/\+Users/amd427/git/vol2bird/lib/libdealias.\+c@{/\+Users/amd427/git/vol2bird/lib/libdealias.\+c}}
+
+
+Function for dealiasing weather radar radial velocities.  
+
+
+{\ttfamily \#include \char`\"{}libdealias.\+h\char`\"{}}\newline
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include $<$gsl/gsl\+\_\+multimin.\+h$>$}\newline
+{\ttfamily \#include $<$gsl/gsl\+\_\+vector.\+h$>$}\newline
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{libdealias_8c_a7994ca3ecfe0c077f579f44d865fb90a}\label{libdealias_8c_a7994ca3ecfe0c077f579f44d865fb90a}} 
+void {\bfseries print\+Dealias} (const float $\ast$points, const int n\+Dims, const float nyquist\mbox{[}$\,$\mbox{]}, const float vrad\+Obs\mbox{[}$\,$\mbox{]}, float vrad\+Dealias\mbox{[}$\,$\mbox{]}, const int n\+Points, const int i\+Profile\+Type, const int i\+Layer, const int i\+Pass)
+\item 
+\mbox{\Hypertarget{libdealias_8c_a3c13ef46efa5844fd809f3f70bf28fc3}\label{libdealias_8c_a3c13ef46efa5844fd809f3f70bf28fc3}} 
+double {\bfseries test\+\_\+field} (float u, float v, const float $\ast$points, const float $\ast$points\+Trigon, const int n\+Points, const int n\+Dims, double x\mbox{[}$\,$\mbox{]}, double y\mbox{[}$\,$\mbox{]}, const float nyquist\mbox{[}$\,$\mbox{]})
+\item 
+\mbox{\Hypertarget{libdealias_8c_a8c5952c7494e967af459a9f786285e2d}\label{libdealias_8c_a8c5952c7494e967af459a9f786285e2d}} 
+double {\bfseries test\+\_\+field\+\_\+gsl} (const gsl\+\_\+vector $\ast$uv, void $\ast$params)
+\item 
+\mbox{\Hypertarget{libdealias_8c_a9ee1148b3e1efe423b4e654c4906da22}\label{libdealias_8c_a9ee1148b3e1efe423b4e654c4906da22}} 
+int {\bfseries fit\+\_\+field\+\_\+gsl} (gsl\+\_\+vector $\ast$uv, void $\ast$params)
+\item 
+\mbox{\Hypertarget{libdealias_8c_adde56ea73ace31df53bd2e98c9b5439a}\label{libdealias_8c_adde56ea73ace31df53bd2e98c9b5439a}} 
+int {\bfseries dealias\+\_\+points} (const float $\ast$points, const int n\+Dims, const float nyquist\mbox{[}$\,$\mbox{]}, const double N\+I\+\_\+\+M\+IN, const float vo\mbox{[}$\,$\mbox{]}, float vrad\+Dealias\mbox{[}$\,$\mbox{]}, const int n\+Points)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Function for dealiasing weather radar radial velocities. 
+
+\begin{DoxyAuthor}{Author}
+Adriaan Dokter, adapted from dealias.\+c R\+A\+VE functions by Gunther Haase 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+2016-\/09-\/22 
+\end{DoxyDate}

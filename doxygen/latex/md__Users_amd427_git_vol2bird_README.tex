@@ -1,0 +1,20 @@
+Copyright 2017 Adriaan Dokter (University of Amsterdam, Cornell lab of ornithology) \& Netherlands e\+Science Centre
+
+If you are interested in using this software through collaboration, please contact me at \href{mailto:a.m.dokter@uva.nl}{\tt a.\+m.\+dokter@uva.\+nl}
+
+This repository contains code to generate vertical profiles of birds (V\+P\+Bs), following the methods described in\+:
+
+{\itshape Bird migration flight altitudes studied by a network of operational weather radars} Dokter A.\+M., Liechti F., Stark H., Delobbe L., Tabary P., Holleman I. J. R. Soc. Interface, {\bfseries 8}, 30–43, 2011. D\+OI\+: \href{https://doi.org/10.1098/rsif.2010.0116}{\tt 10.\+1098/rsif.2010.\+0116}
+
+
+\begin{DoxyItemize}
+\item {\ttfamily data} contains two polar volume radar files for testing
+\item {\ttfamily doc} documentation on O\+D\+IM hdf5 data format
+\item {\ttfamily docker} scripts for generating and running a Docker container for \mbox{\hyperlink{structvol2bird}{vol2bird}}
+\item {\ttfamily etc} contains the user configuration file {\ttfamily options.\+conf}. Put your own modified copy in your working directory to run \mbox{\hyperlink{structvol2bird}{vol2bird}} with non-\/default settings.
+\item {\ttfamily lib} contains the main library
+\item {\ttfamily pgfplugin} product generation framework (P\+GF) plugin for the B\+A\+L\+T\+R\+AD system
+\item {\ttfamily pyvol2bird} is a python wrapper for the library
+\item {\ttfamily src} contains main executables for \mbox{\hyperlink{structvol2bird}{vol2bird}} (main program) and rsl2odim (converts N\+E\+X\+R\+AD to O\+D\+IM data format)
+\item {\ttfamily tests} unit tests for pgfplugin 
+\end{DoxyItemize}

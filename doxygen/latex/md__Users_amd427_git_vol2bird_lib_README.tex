@@ -1,0 +1,20 @@
+Copyright 2015 Adriaan Dokter (University of Amsterdam) \& Netherlands e\+Science Centre
+
+If you are interested in collaborating and using this software, please contact me at \href{mailto:a.m.dokter@uva.nl}{\tt a.\+m.\+dokter@uva.\+nl}
+
+This repository contains code to generate vertical profiles of birds (V\+P\+Bs), following the methods described in\+:
+
+{\itshape Bird migration flight altitudes studied by a network of operational weather radars} Dokter A.\+M., Liechti F., Stark H., Delobbe L., Tabary P., Holleman I. J. R. Soc. Interface, {\bfseries 8}, 30–43, 2011. D\+OI\+: \href{https://doi.org/10.1098/rsif.2010.0116}{\tt 10.\+1098/rsif.2010.\+0116}
+
+
+\begin{DoxyEnumerate}
+\item {\ttfamily vol2bird.\+c} is the program\textquotesingle{}s main
+\item {\ttfamily libvol2bird} is the library containing the routines for calculating V\+P\+Bs
+\item {\ttfamily libsvdfit} is a library used by libvol2bird to perform singular value decomposition, for fitting a V\+VP radial velocity model
+\item {\ttfamily options.\+conf} for specifying configurable options
+\item {\ttfamily \mbox{\hyperlink{constants_8h_source}{constants.\+h}}} contains fixed constants
+\end{DoxyEnumerate}
+
+for compiling the code use the {\ttfamily Makefile}.
+
+for running the code on a baltrad node add the paths listed in {\ttfamily ldlib.\+txt} to {\ttfamily L\+D\+\_\+\+L\+I\+B\+R\+A\+R\+Y\+\_\+\+P\+A\+TH} 
