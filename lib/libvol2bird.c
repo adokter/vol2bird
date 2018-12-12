@@ -36,6 +36,10 @@
 #include "librsl.h"
 #endif
 
+#ifdef IRIS
+#include "iris2odim.h"
+#endif
+
 
 // non-public function prototypes (local to this file/translation unit)
 
@@ -131,7 +135,9 @@ static void updateFlagFieldsInPointsArray(const float* yObs, const float* yFitte
 
 static int updateMap(PolarScan_t* scan, CELLPROP *cellProp, const int nCells, vol2bird_t* alldata);
 
-
+#ifdef IRIS
+PolarVolume_t* vol2birdGetIRISVolume(char* filename, float rangeMax, int small);
+#endif
 
 // non-public function declarations (local to this file/translation unit)
 
@@ -4191,6 +4197,14 @@ PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax, int small){
     
     PolarVolume_t* volume = NULL;
     
+    #ifdef IRIS
+    // test whether the file is in IRIS format
+    if (isIRIS(filename)==0){
+        volume = vol2birdGetIRISVolume(filename, rangeMax, small);
+        goto done;
+    }
+    #endif
+
     RaveIO_t* raveio = RaveIO_open(filename);
 
     // check that a valid RaveIO_t pointer was returned
@@ -4211,15 +4225,68 @@ PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax, int small){
     // not a rave complient file, attempt to read the file with the RSL library instead
     #ifdef RSL
     else{
-       volume = vol2birdGetRSLVolume(filename, rangeMax, small); 
+        volume = vol2birdGetRSLVolume(filename, rangeMax, small); 
     }
     #endif
     
     RAVE_OBJECT_RELEASE(raveio);
     
-    return volume;
+    done:
+        return volume;
 }
 
+#ifdef IRIS
+PolarVolume_t* vol2birdGetIRISVolume(char* filename, float rangeMax, int small) {
+
+    // initialize a polar volume to return
+    PolarVolume_t* volume = NULL;
+
+    // initialize the rave object type of filename
+    int rot = Rave_ObjectType_UNDEFINED;
+
+    int ret = 0;
+
+    // read the iris file
+    file_element_s* file_element_p = readIRIS(filename);
+
+    if(file_element_p == NULL){
+        fprintf(stderr, "Error: could not read IRIS file.\n");
+        return volume;
+    }
+
+    rot = objectTypeFromIRIS(file_element_p);
+
+    if (rot == Rave_ObjectType_PVOL) {
+        volume = RAVE_OBJECT_NEW(&PolarVolume_TYPE);
+
+        if (volume == NULL) {
+            RAVE_CRITICAL0("Error: failed to create polarvolume instance");
+            goto done;
+        }
+    }
+    else{
+        fprintf(stderr, "Error: IRIS file does not contain a polar volume.\n");
+        goto done;
+    }
+
+    // read iris data into rave polar volume object
+    ret = populateObject((RaveCoreObject*) volume, file_element_p);
+
+    if( ret != 0) {
+        fprintf(stderr, "Error: could not populate IRIS data into a polar volume object\n");
+        RAVE_OBJECT_RELEASE(volume);
+        volume = (PolarVolume_t*) NULL;
+    }
+
+    // clean up
+    if(file_element_p != NULL) {
+        free_IRIS(&file_element_p);
+    }
+
+    done:
+        return volume;
+}
+#endif
 
 
 RaveIO_t* vol2birdIO_open(const char* filename)
