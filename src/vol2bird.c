@@ -1,3 +1,9 @@
+/** vol2bird main executable
+ * @file vol2bird.c
+ * @author Adriaan Dokter & Netherlands eScience Centre
+ * @date 2015-05-05
+ */
+
 /*
  * Copyright 2017 Adriaan Dokter
  *
@@ -30,6 +36,7 @@
 #include "constants.h"
 #include "hlhdf.h"
 #include "hlhdf_debug.h"
+#include "rave_debug.h"
 
 int main(int argc, char** argv) {
 //    cfg_t* cfg;
@@ -101,6 +108,12 @@ int main(int argc, char** argv) {
 
     // Initialize hlhdf library
     HL_init();
+    //HL_setDebugLevel(HLHDF_SPEWDEBUG);
+
+    // Make rave library print debugging error messages
+    //Rave_initializeDebugger();
+    //Rave_setDebugLevel(RAVE_WARNING);
+    //Rave_setDebugLevel(RAVE_INFO);
 
     // store the input filename
     strcpy(alldata.misc.filename_pvol,fileVolIn);

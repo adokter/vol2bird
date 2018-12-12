@@ -1,3 +1,9 @@
+/** Functions for reading NEXRAD WSR88-D data
+ * @file librsl.c
+ * @author Adriaan Dokter
+ * @date 2017-05-05
+ */
+
 #ifdef RSL
 
 #include "rsl.h"

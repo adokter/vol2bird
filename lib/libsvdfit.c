@@ -1,3 +1,10 @@
+/** Functions for linear fitting using Singular Value Decomposition
+ * @file libsvdfit.c
+ * @author Iwan Holleman, KNMI, adapted for vol2bird by Adriaan Dokter
+ * @date 2010-01-01
+ */
+
+
 /*
  * Copyright 2015 Adriaan Dokter & Netherlands eScience Centre
  * If you want to use this software, please contact me at a.m.dokter@uva.nl
