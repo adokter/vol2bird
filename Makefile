@@ -46,7 +46,7 @@ install: def.mk
 
 .PHONY:doc
 doc:
-	$(MAKE) -C docs doc
+	$(MAKE) -C doxygen doc
 
 .PHONY:test
 test: def.mk
