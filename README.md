@@ -24,13 +24,13 @@ Report a bug at:
 * `data` contains two polar volume radar files for testing
 * `doc` documentation on ODIM hdf5 data format
 * `docs` html pages of this documentation
-* `docker` scripts for generating and running a Docker container for %vol2bird
+* `docker` scripts for generating and running a Docker container for vol2bird
 * `doxygen` doxygen configuration for generating this documentation
-* `etc` contains the user configuration file `options.conf`. Put your own modified copy in your working directory to run %vol2bird with non-default settings.
+* `etc` contains the user configuration file `options.conf`. Put your own modified copy in your working directory to run vol2bird with non-default settings.
 * `lib` contains the main library
 * `pgfplugin` product generation framework (PGF) plugin for the BALTRAD system
 * `pyvol2bird` is a python wrapper for the library
-* `src` contains main executables for %vol2bird (main program) and rsl2odim (converts NEXRAD to ODIM data format)
+* `src` contains main executables for vol2bird (main program) and rsl2odim (converts NEXRAD to ODIM data format)
 * `tests` unit tests for pgfplugin
 
 Copyright 2010-2018 Adriaan M. Dokter (University of Amsterdam, Cornell lab of ornithology) & Netherlands eScience Centre
