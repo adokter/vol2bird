@@ -17,8 +17,8 @@
  
 # use gcc if not set already
 CC      ?= gcc
-#CFLAGS  += ${RSL_CFLAG} -fPIC -x c -DFPRINTFON
-CFLAGS  += ${RSL_CFLAG} ${IRIS_CFLAG} -fPIC -g -x c
+#CFLAGS  += $(RSL_CFLAG) -fPIC -x c -DFPRINTFON
+CFLAGS  += $(RSL_CFLAG) $(IRIS_CFLAG) -fPIC -g -x c
 LDFLAGS += -shared -Wall
 
 # define where the vol2bird stuff is
