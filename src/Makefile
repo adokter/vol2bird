@@ -51,7 +51,7 @@ vol2bird : ../lib/libvol2bird.so $(VOL2BIRD_DEPS)
 	$(RAVE_MODULE_LDFLAGS) \
 	$(PROJ_LIBRARY_FLAG) \
 	$(RSL_LIBRARY_FLAG) \
-	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) -o vol2bird $(LDFLAGS)
+	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) $(IRIS_LIB) -o vol2bird $(LDFLAGS)
 	
 rsl2odim : ../lib/libvol2bird.so $(RSL2ODIM_DEPS)
 	#
@@ -65,7 +65,8 @@ rsl2odim : ../lib/libvol2bird.so $(RSL2ODIM_DEPS)
 	$(RAVE_MODULE_LDFLAGS) \
 	$(PROJ_LIBRARY_FLAG) \
 	$(RSL_LIBRARY_FLAG) \
-	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) -o rsl2odim $(LDFLAGS)
+	$(IRIS_LIBRARY_FLAG) \
+	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) $(IRIS_LIB) -o rsl2odim $(LDFLAGS)
 	
 	#
 	# (You may still have to change your LD_LIBRARY_PATH)
