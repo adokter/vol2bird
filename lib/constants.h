@@ -82,6 +82,8 @@
 //             other hard-coded options                  //
 //-------------------------------------------------------//
 
+// maximum number of input files
+#define INPUTFILESMAX 50
 // Raw value used for gates or layers void of data (never ra-diated)
 #define UNDETECT -999
 // Raw value used for gates or layers when below the measurement detection threshold
