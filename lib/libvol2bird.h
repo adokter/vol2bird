@@ -381,9 +381,19 @@ struct vol2bird {
 };
 typedef struct vol2bird vol2bird_t;
 
+typedef enum radarDataFormat {
+  radarDataFormat_UNKNOWN = 0,
+  radarDataFormat_ODIM = 1,   /** Opera Data Information Model (ODIM) */
+  radarDataFormat_RSL = 2,    /** TRMM radar solftware library (including NEXRAD) */
+  radarDataFormat_IRIS = 3    /** Vaisala IRIS */
+} radarDataFormat;
+
+
 // *****************************************************************************
 // Public function prototypes
 // *****************************************************************************
+
+int isRegularFile(const char *path);
 
 void vol2birdCalcProfiles(vol2bird_t* alldata);
 

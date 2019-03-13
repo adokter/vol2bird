@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <getopt.h>
+#include <string.h>
 #include "rave_io.h"
 #include "polarvolume.h"
 #include "libvol2bird.h"
@@ -91,7 +92,7 @@ int main(int argc, char** argv) {
     // number of input files specified on command line
     int nInputFiles = 0;
     // the polar volume file that the user provided as input
-    char* fileVolIn[INPUTFILESMAX];
+    char* fileIn[INPUTFILESMAX];
     // the (optional) vertical profile file that the user specified as output
     const char* fileVpOut = NULL;
     // the (optional) vertical profile file that the user specified as output
@@ -124,7 +125,7 @@ int main(int argc, char** argv) {
         // ------------------------------------------------------------- //
 
         // the polar volume file that the user provided as input
-        fileVolIn[0] = argv[1];
+        fileIn[0] = argv[1];
         nInputFiles = 1;
 
         if (argc == 3){
@@ -140,6 +141,7 @@ int main(int argc, char** argv) {
             fileVolOut = NULL;
         }        
     }
+    
     else{ // interpret command line input using getopt library
     
         int c;
@@ -188,18 +190,15 @@ int main(int argc, char** argv) {
                     break;
 
                 case 'i':
-                    printf ("option -i with value `%s'\n", optarg);
-                    fileVolIn[nInputFiles] = optarg;
+                    fileIn[nInputFiles] = optarg;
                     nInputFiles++;
                     break;
 
                 case 'o':
-                    printf ("option -o with value `%s'\n", optarg);
                     fileVpOut = optarg;
                     break;
 
                 case 'p':
-                    printf ("option -p with value `%s'\n", optarg);
                     fileVolOut = optarg;
                     break;
 
@@ -219,12 +218,23 @@ int main(int argc, char** argv) {
                 printf ("%s ", argv[optind++]);
             putchar ('\n');
         }
-      printf("%i input files found\n",nInputFiles);
-      printf("vp output file: %s\n",fileVpOut);
-      printf("pvol output file: %s\n",fileVolOut);
+        
+        printf("%i input files found in command line\n",nInputFiles);
+        for (int i=0; i<nInputFiles; i++){
+            printf("input file: %s\n",fileIn[i]);
+        }
+        printf("vp output file: %s\n",fileVpOut);
+        printf("pvol output file: %s\n",fileVolOut);
       
     }
 
+    // check that input files exist
+    for (int i=0; i<nInputFiles; i++){
+        if(!isRegularFile(fileIn[i])){
+            fprintf(stderr, "Error: input file '%s' does not exist.\n", fileIn[i]);
+            return -1;
+        }
+    }
 
     // Initialize hlhdf library
     HL_init();
@@ -234,9 +244,9 @@ int main(int argc, char** argv) {
     //Rave_initializeDebugger();
     //Rave_setDebugLevel(RAVE_WARNING);
     //Rave_setDebugLevel(RAVE_INFO);
-
-    // store the input filename
-    strcpy(alldata.misc.filename_pvol,fileVolIn[0]);
+        
+    // store the input filename TODO: add other input files
+    strcpy(alldata.misc.filename_pvol, fileIn[0]);
     if (fileVpOut != NULL){
         strcpy(alldata.misc.filename_vp,fileVpOut);
     }
@@ -253,7 +263,7 @@ int main(int argc, char** argv) {
     // we do not read in the full volume for speed/memory
     PolarVolume_t* volume = NULL;
     
-    volume = vol2birdGetVolume(fileVolIn[0], alldata.misc.rCellMax,1);
+    volume = vol2birdGetVolume(fileIn[0], alldata.misc.rCellMax,1);
          
     if (volume == NULL) {
         fprintf(stderr,"Error: failed to read radar volume\n");
@@ -318,7 +328,7 @@ int main(int argc, char** argv) {
             
             fprintf(stdout, "# vol2bird Vertical Profile of Birds (VPB)\n");
             fprintf(stdout, "# source: %s\n",source);
-            fprintf(stdout, "# polar volume input: %s\n",fileVolIn[0]);
+            fprintf(stdout, "# polar volume input: %s\n",fileIn[0]);
             if (alldata.misc.vcp > 0) fprintf(stdout, "# volume coverage pattern (VCP): %i\n", alldata.misc.vcp);
             printf("# date   time HGHT    u      v       w     ff    dd  sd_vvp gap dbz     eta   dens   DBZH   n   n_dbz n_all n_dbz_all\n");
            

@@ -24,6 +24,7 @@
 #include <confuse.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 #include <vertical_profile.h>
 
 #include "rave_io.h"
@@ -2642,7 +2643,14 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
 } // includeGate
 
 
-
+/**
+ * Function name: isRegularFile
+ * Intent: determines whether the given path is to a regular file
+ * Note: also returns true on existing directories
+ */
+int isRegularFile(const char *path) {
+    return (access(path, F_OK) != -1);
+} /* end function is_regular_file */
 
 
 static int readUserConfigOptions(cfg_t** cfg, const char * optsConfFilename) {
