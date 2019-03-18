@@ -1920,7 +1920,7 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
 
 int vol2birdLoadClutterMap(PolarVolume_t* volume, char* file, float rangeMax){
     PolarVolume_t* clutVol = NULL;
-    clutVol = vol2birdGetVolume(file, rangeMax,1);
+    clutVol = vol2birdGetVolume(&file, 1, rangeMax,1);
             
     if(clutVol == NULL){
         fprintf(stderr, "Error: function loadClutterMap: failed to load file '%s'\n",file); 
@@ -4236,19 +4236,19 @@ void printProfile(vol2bird_t* alldata) {
 
 // reads a polar volume from file and returns it as a RAVE polar volume object
 // remember to release the polar volume object when done with it
-PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax, int small){
+PolarVolume_t* vol2birdGetVolume(char* filenames[], int nInputFiles, float rangeMax, int small){
     
     PolarVolume_t* volume = NULL;
     
     #ifdef IRIS
     // test whether the file is in IRIS format
-    if (isIRIS(filename)==0){
-        volume = vol2birdGetIRISVolume(filename, rangeMax, small);
+    if (isIRIS(filenames[0])==0){
+        volume = vol2birdGetIRISVolume(filenames[0], rangeMax, small);
         goto done;
     }
     #endif
 
-    RaveIO_t* raveio = RaveIO_open(filename);
+    RaveIO_t* raveio = RaveIO_open(filenames[0]);
 
     // check that a valid RaveIO_t pointer was returned
     if (raveio != (RaveIO_t*) NULL){
@@ -4268,7 +4268,7 @@ PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax, int small){
     // not a rave complient file, attempt to read the file with the RSL library instead
     #ifdef RSL
     else{
-        volume = vol2birdGetRSLVolume(filename, rangeMax, small); 
+        volume = vol2birdGetRSLVolume(filenames[0], rangeMax, small); 
     }
     #endif
     

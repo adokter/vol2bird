@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     // read in data up to a distance of alldata.misc.rCellMax
     // we do not read in the full volume for speed/memory
     PolarVolume_t* volume = NULL;
-    volume = vol2birdGetVolume(fileVolIn, 1000000, 0);
+    volume = vol2birdGetVolume(&fileVolIn, 1, 1000000, 0);
     
     if (volume == NULL) {
         fprintf(stderr,"Error: failed to read radar volume\n");

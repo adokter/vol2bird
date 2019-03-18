@@ -190,8 +190,13 @@ int main(int argc, char** argv) {
                     break;
 
                 case 'i':
-                    fileIn[nInputFiles] = optarg;
-                    nInputFiles++;
+                    if (nInputFiles < INPUTFILESMAX){
+                        fileIn[nInputFiles] = optarg;
+                        nInputFiles++;
+                    }
+                    else{
+                        fprintf(stderr, "Warning: too many input files, ignoring file %s ...\n", optarg);
+                    }
                     break;
 
                 case 'o':
@@ -262,7 +267,7 @@ int main(int argc, char** argv) {
     // we do not read in the full volume for speed/memory
     PolarVolume_t* volume = NULL;
     
-    volume = vol2birdGetVolume(fileIn[0], alldata.misc.rCellMax,1);
+    volume = vol2birdGetVolume(fileIn, nInputFiles, alldata.misc.rCellMax,1);
          
     if (volume == NULL) {
         fprintf(stderr,"Error: failed to read radar volume\n");

@@ -401,7 +401,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata);
 
 float* vol2birdGetProfile(int iProfileType, vol2bird_t* alldata);
 
-PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax, int small);
+PolarVolume_t* vol2birdGetVolume(char* filenames[], int nInputFiles, float rangeMax, int small);
 
 PolarVolume_t* PolarVolume_resample(PolarVolume_t* volume, double rscale_proj, long nbins_proj, long nrays_proj);
 
