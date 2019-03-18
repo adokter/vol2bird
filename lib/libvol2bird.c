@@ -40,6 +40,7 @@
 #include "libdealias.h"
 
 #ifdef RSL
+#include "rsl.h"
 #include "librsl.h"
 #endif
 
@@ -3334,6 +3335,34 @@ static void sortCellsByArea(CELLPROP *cellProp, const int nCells) {
 } // sortCellsByArea
 
 
+
+radarDataFormat determineRadarFormat(char* filename){
+    
+#ifdef IRIS
+    if (isIRIS(filename)==0){
+        return radarDataFormat_ODIM;
+    }
+#endif
+
+#ifdef RSL
+    if(RSL_filetype(filename) != UNKNOWN){
+        return radarDataFormat_RSL;
+    }
+#endif
+
+    // try to load the file using Rave
+    // unfortunately this loads the entire file into memory,
+    // but no other file type check function available in Rave.
+    RaveIO_t* raveio = RaveIO_open(filename);
+
+    // check that a valid RaveIO_t pointer was returned
+    if (raveio != (RaveIO_t*) NULL){
+        RAVE_OBJECT_RELEASE(raveio);
+        return radarDataFormat_ODIM;
+    }
+    
+    return radarDataFormat_UNKNOWN;
+}
 
 
 static int removeDroppedCells(CELLPROP *cellProp, const int nCells) {

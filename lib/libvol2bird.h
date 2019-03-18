@@ -393,6 +393,8 @@ typedef enum radarDataFormat {
 // Public function prototypes
 // *****************************************************************************
 
+radarDataFormat determineRadarFormat(char* filename);
+
 int isRegularFile(const char *path);
 
 void vol2birdCalcProfiles(vol2bird_t* alldata);

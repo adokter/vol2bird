@@ -217,15 +217,7 @@ int main(int argc, char** argv) {
             while (optind < argc)
                 printf ("%s ", argv[optind++]);
             putchar ('\n');
-        }
-        
-        printf("%i input files found in command line\n",nInputFiles);
-        for (int i=0; i<nInputFiles; i++){
-            printf("input file: %s\n",fileIn[i]);
-        }
-        printf("vp output file: %s\n",fileVpOut);
-        printf("pvol output file: %s\n",fileVolOut);
-      
+        }        
     }
 
     // check that input files exist
@@ -233,6 +225,13 @@ int main(int argc, char** argv) {
         if(!isRegularFile(fileIn[i])){
             fprintf(stderr, "Error: input file '%s' does not exist.\n", fileIn[i]);
             return -1;
+        }
+        else{
+            radarDataFormat format = determineRadarFormat(fileIn[i]);
+            if (format == radarDataFormat_RSL) fprintf(stderr, "File %s file type: RSL\n",fileIn[i]);
+            if (format == radarDataFormat_ODIM) fprintf(stderr, "File %s file type: ODIM\n",fileIn[i]);
+            if (format == radarDataFormat_IRIS) fprintf(stderr, "File %s file type: IRIS\n",fileIn[i]);
+            if (format == radarDataFormat_UNKNOWN) fprintf(stderr, "File %s file type: UNKNOWN\n",fileIn[i]);
         }
     }
 
