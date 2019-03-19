@@ -147,6 +147,8 @@ static int updateMap(PolarScan_t* scan, CELLPROP *cellProp, const int nCells, vo
 PolarVolume_t* vol2birdGetIRISVolume(char* filenames[], int nInputFiles);
 #endif
 
+PolarVolume_t* vol2birdGetODIMVolume(char* filenames[], int nInputFiles);
+
 // non-public function declarations (local to this file/translation unit)
 
 static int analyzeCells(PolarScan_t *scan, vol2birdScanUse_t scanUse, const int nCells, int dualpol, vol2bird_t *alldata) {
@@ -4248,31 +4250,19 @@ PolarVolume_t* vol2birdGetVolume(char* filenames[], int nInputFiles, float range
     }
     #endif
 
-    RaveIO_t* raveio = RaveIO_open(filenames[0]);
-
-    // check that a valid RaveIO_t pointer was returned
-    if (raveio != (RaveIO_t*) NULL){
-        // check that the Rave object is a polar volume
-        if (RaveIO_getObjectType(raveio) == Rave_ObjectType_PVOL) {
-
-            // the if statement above tests whether we are dealing with a 
-            // PVOL object, so we can safely cast the generic object to
-            // the PolarVolume_t type:
-            
-            volume = (PolarVolume_t*) RaveIO_getObject(raveio);
-        }
-        else{
-            fprintf(stderr,"Error: ODIM HDF5 file is not a polar volume\n");
-        }
-    }
     // not a rave complient file, attempt to read the file with the RSL library instead
     #ifdef RSL
-    else{
-        volume = vol2birdGetRSLVolume(filenames[0], rangeMax, small); 
+    if(RSL_filetype(filenames[0]) != UNKNOWN){
+        if (nInputFiles > 1){
+            fprintf(stderr,"Multiple input files detected in RSL format. \
+            Only single polar volume file import supported, using file %s only.\n", filenames[0]);
+        }
+        volume = vol2birdGetRSLVolume(filenames[0], rangeMax, small);
+        goto done;
     }
     #endif
     
-    RAVE_OBJECT_RELEASE(raveio);
+    volume = vol2birdGetODIMVolume(filenames, nInputFiles);
     
     done:
         return volume;
@@ -4293,7 +4283,7 @@ PolarVolume_t* vol2birdGetIRISVolume(char* filenames[], int nInputFiles) {
 
     int ret = 0;
     
-    file_element_s* file_element_p;
+    file_element_s* file_element_p = NULL;
 
     for (int i=0; i<nInputFiles; i++){
         // read the iris file
@@ -4392,16 +4382,125 @@ PolarVolume_t* vol2birdGetIRISVolume(char* filenames[], int nInputFiles) {
         if(file_element_p != NULL) {
             free_IRIS(&file_element_p);
         }
-        if (volume != NULL){
-            RAVE_OBJECT_RELEASE(volume);            
-        }
-        if (scan != NULL){
-            RAVE_OBJECT_RELEASE(scan);
-        }
+        RAVE_OBJECT_RELEASE(volume);            
+        RAVE_OBJECT_RELEASE(scan);
         
         return output;
 }
 #endif
+
+PolarVolume_t* vol2birdGetODIMVolume(char* filenames[], int nInputFiles) {
+    // initialize a polar volume to return
+    PolarVolume_t* output = NULL;
+    // initialize helper volume and scan to store intermediate file reads
+    PolarVolume_t* volume = NULL;
+    PolarScan_t* scan = NULL;
+    
+    int outputInitialised = FALSE;
+        
+    // initialize the rave object type of filename
+    int rot = Rave_ObjectType_UNDEFINED;
+
+    for (int i=0; i<nInputFiles; i++){
+        // read the iris file
+        RaveIO_t* raveio = RaveIO_open(filenames[i]);
+
+        if(raveio == NULL){
+            fprintf(stderr, "Warning: failed to read file %s in ODIM format, ignoring.\n", filenames[i]);
+            continue;
+        }
+        
+        rot = RaveIO_getObjectType(raveio);
+
+        if (!(rot == Rave_ObjectType_PVOL || rot == Rave_ObjectType_SCAN)) {
+            fprintf(stderr, "Warning: no scan or volume found when reading file %s in ODIM format, ignoring.\n", filenames[i]);
+            RAVE_OBJECT_RELEASE(raveio);
+            continue;
+        }
+        
+        // start a new output volume object if we do not have one yet
+        if (output == NULL){
+            output = RAVE_OBJECT_NEW(&PolarVolume_TYPE);
+            if (output == NULL) {
+                RAVE_CRITICAL0("Error: failed to create polarvolume instance");
+                goto done;
+            }
+        }
+        
+        if (rot == Rave_ObjectType_PVOL) {
+            volume = RAVE_OBJECT_NEW(&PolarVolume_TYPE);
+            if (volume == NULL) {
+                RAVE_CRITICAL0("Error: failed to create polarvolume instance");
+                goto done;
+            }
+            
+            // read ODIM data into rave polar volume object
+            volume = (PolarVolume_t*) RaveIO_getObject(raveio);
+
+            if( volume == NULL) {
+                RAVE_CRITICAL0("Error: could not populate ODIM data into a polarvolume object");
+                goto done;
+            }
+            
+            if (!outputInitialised){
+                output = RAVE_OBJECT_CLONE(volume);
+                RAVE_OBJECT_RELEASE(volume);
+                outputInitialised = TRUE;
+                continue;
+            }
+            
+            for (int j=0; j<PolarVolume_getNumberOfScans(volume); j++){
+                scan = PolarVolume_getScan(volume, j);
+                PolarVolume_addScan(output, scan);
+                RAVE_OBJECT_RELEASE(scan);
+            }
+            
+            RAVE_OBJECT_RELEASE(raveio);
+            RAVE_OBJECT_RELEASE(volume);
+        }
+    
+        if (rot == Rave_ObjectType_SCAN) {
+            scan = RAVE_OBJECT_NEW(&PolarScan_TYPE);
+            if (scan == NULL) {
+                RAVE_CRITICAL0("Error: failed to create polarscan instance");
+                goto done;
+            }
+            
+            // read iris data into rave polar volume object
+            scan = (PolarScan_t*) RaveIO_getObject(raveio);
+
+            if (scan == 0) {
+                RAVE_CRITICAL0("Error: could not populate ODIM data into a polar scan object");
+                goto done;
+            }
+            
+            if (!outputInitialised){
+                // copy essential root metadata to volume
+                PolarVolume_setDate(output, PolarScan_getDate(scan));
+                PolarVolume_setTime(output, PolarScan_getTime(scan));
+                PolarVolume_setLatitude(output, PolarScan_getLatitude(scan));
+                PolarVolume_setLongitude(output, PolarScan_getLongitude(scan));
+                PolarVolume_setHeight(output, PolarScan_getHeight(scan));
+                PolarVolume_setSource(output, PolarScan_getSource(scan));
+                outputInitialised = TRUE;
+            }
+            
+            PolarVolume_addScan(output, scan);
+            RAVE_OBJECT_RELEASE(raveio);
+            RAVE_OBJECT_RELEASE(scan);
+        }
+    
+    }
+
+    done:
+    
+        // clean up
+        RAVE_OBJECT_RELEASE(volume); 
+        RAVE_OBJECT_RELEASE(volume);            
+        RAVE_OBJECT_RELEASE(scan);
+        
+        return output;
+}
 
 
 RaveIO_t* vol2birdIO_open(const char* filename)

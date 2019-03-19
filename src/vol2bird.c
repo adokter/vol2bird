@@ -46,9 +46,10 @@ void usage(char* programName, int verbose){
     fprintf(stderr,"usage: %s --help\n", programName);
 
     if(verbose){
-        fprintf(stderr,"   Version %s (%s)\n", VERSION, VERSIONDATE);
+        fprintf(stderr,"\n   Version %s (%s)\n", VERSION, VERSIONDATE);
         fprintf(stderr,"   expects OPERA ODIM hdf5 input format, see <http://www.eumetnet.eu/opera-software>\n");
-        fprintf(stderr,"   or input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>\n\n");
+        fprintf(stderr,"   or input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>\n");
+        fprintf(stderr,"   or Vaisala Sigmet IRIS format, see <ftp://ftp.sigmet.com/outgoing/manuals/IRIS_Programmers_Manual.pdf>\n\n");
         fprintf(stderr,"   Output fields to stdout:\n");
         fprintf(stderr,"   date      - date [UTC]\n");
         fprintf(stderr,"   time      - time [UTC]\n");
@@ -68,7 +69,7 @@ void usage(char* programName, int verbose){
         fprintf(stderr,"   n_dbz     - number of points bird density estimate (dbz,eta,dens)\n");
         fprintf(stderr,"   n_all     - number of points VVP st.dev. estimate (sd_vvp)\n");
         fprintf(stderr,"   n_dbz_all - number of points total reflectivity estimate (DBZH)\n\n");
-        fprintf(stderr,"   Report bugs to: a.m.dokter@uva.nl or on http://github.com/adokter/vol2bird/issues \n");
+        fprintf(stderr,"   Report bugs at: http://github.com/adokter/vol2bird/issues \n");
         fprintf(stderr,"   vol2bird home page: <http://github.com/adokter/vol2bird>\n");
     }
 }
