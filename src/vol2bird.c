@@ -41,15 +41,16 @@
 #include "rave_debug.h"
 
 void usage(char* programName, int verbose){
-    fprintf(stderr,"usage: %s <polar volume> [<ODIM hdf5 profile output> [<ODIM hdf5 volume output>]]\n",programName);
-    fprintf(stderr,"usage: %s -i <polar volume or scan> [-i <polar scan> [-i <polar scan>] ...] [-o <ODIM hdf5 profile output> [-p <ODIM hdf5 volume output>]]\n",programName);
-    fprintf(stderr,"usage: %s --help\n", programName);
+    fprintf(stderr,"vol2bird version %s (%s)\n", VERSION, VERSIONDATE);
+    fprintf(stderr,"   usage: %s <polar volume> [<ODIM hdf5 profile output> [<ODIM hdf5 volume output>]]\n",programName);
+    fprintf(stderr,"   usage: %s -i <polar volume or scan> [-i <polar scan> [-i <polar scan>] ...] [-o <ODIM hdf5 profile output> [-p <ODIM hdf5 volume output>]]\n",programName);
+    fprintf(stderr,"   usage: %s --help\n", programName);
 
     if(verbose){
-        fprintf(stderr,"\n   Version %s (%s)\n", VERSION, VERSIONDATE);
-        fprintf(stderr,"   expects OPERA ODIM hdf5 input format, see <http://www.eumetnet.eu/opera-software>\n");
-        fprintf(stderr,"   or input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>\n");
-        fprintf(stderr,"   or Vaisala Sigmet IRIS format, see <ftp://ftp.sigmet.com/outgoing/manuals/IRIS_Programmers_Manual.pdf>\n\n");
+        fprintf(stderr,"\n   Supported radar data formats:\n");
+        fprintf(stderr,"   * OPERA ODIM hdf5 input format, see <http://www.eumetnet.eu/opera-software>\n");
+        fprintf(stderr,"   * input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>\n");
+        fprintf(stderr,"   * Vaisala Sigmet IRIS format, see <ftp://ftp.sigmet.com/outgoing/manuals/IRIS_Programmers_Manual.pdf>\n\n");
         fprintf(stderr,"   Output fields to stdout:\n");
         fprintf(stderr,"   date      - date [UTC]\n");
         fprintf(stderr,"   time      - time [UTC]\n");
