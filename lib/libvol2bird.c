@@ -144,7 +144,7 @@ static void updateFlagFieldsInPointsArray(const float* yObs, const float* yFitte
 static int updateMap(PolarScan_t* scan, CELLPROP *cellProp, const int nCells, vol2bird_t* alldata);
 
 #ifdef IRIS
-PolarVolume_t* vol2birdGetIRISVolume(char* filename, float rangeMax, int small);
+PolarVolume_t* vol2birdGetIRISVolume(char* filenames[], int nInputFiles, float rangeMax, int small);
 #endif
 
 // non-public function declarations (local to this file/translation unit)
@@ -4243,7 +4243,7 @@ PolarVolume_t* vol2birdGetVolume(char* filenames[], int nInputFiles, float range
     #ifdef IRIS
     // test whether the file is in IRIS format
     if (isIRIS(filenames[0])==0){
-        volume = vol2birdGetIRISVolume(filenames[0], rangeMax, small);
+        volume = vol2birdGetIRISVolume(filenames, nInputFiles, rangeMax, small);
         goto done;
     }
     #endif
@@ -4279,55 +4279,125 @@ PolarVolume_t* vol2birdGetVolume(char* filenames[], int nInputFiles, float range
 }
 
 #ifdef IRIS
-PolarVolume_t* vol2birdGetIRISVolume(char* filename, float rangeMax, int small) {
-
+PolarVolume_t* vol2birdGetIRISVolume(char* filenames[], int nInputFiles, float rangeMax, int small) {
     // initialize a polar volume to return
     PolarVolume_t* volume = NULL;
-
+    PolarVolume_t* output = NULL;
+    PolarScan_t* scan = NULL;
+    
+    int outputInitialised = FALSE;
+    
     // initialize the rave object type of filename
     int rot = Rave_ObjectType_UNDEFINED;
 
     int ret = 0;
+    
+    file_element_s* file_element_p;
 
-    // read the iris file
-    file_element_s* file_element_p = readIRIS(filename);
+    for (int i=0; i<nInputFiles; i++){
+        // read the iris file
+        file_element_p = readIRIS(filenames[i]);
 
-    if(file_element_p == NULL){
-        fprintf(stderr, "Error: could not read IRIS file.\n");
-        return volume;
-    }
-
-    rot = objectTypeFromIRIS(file_element_p);
-
-    if (rot == Rave_ObjectType_PVOL) {
-        volume = RAVE_OBJECT_NEW(&PolarVolume_TYPE);
-
-        if (volume == NULL) {
-            RAVE_CRITICAL0("Error: failed to create polarvolume instance");
-            goto done;
+        if(file_element_p == NULL){
+            fprintf(stderr, "Warning: failed to read file %s in IRIS format, ignoring.\n", filenames[i]);
+            continue;
         }
-    }
-    else{
-        fprintf(stderr, "Error: IRIS file does not contain a polar volume.\n");
-        goto done;
-    }
 
-    // read iris data into rave polar volume object
-    ret = populateObject((RaveCoreObject*) volume, file_element_p);
+        rot = objectTypeFromIRIS(file_element_p);
+        
+        if (rot == Rave_ObjectType_UNDEFINED){
+            fprintf(stderr, "Warning: unknown object type while reading file %s in IRIS format, ignoring.\n", filenames[i]);
+            free_IRIS(&file_element_p);
+            continue;
+        }
+        
+        // start a new output volume object if we do not have one yet
+        if (output == NULL){
+            output = RAVE_OBJECT_NEW(&PolarVolume_TYPE);
+            if (output == NULL) {
+                RAVE_CRITICAL0("Error: failed to create polarvolume instance");
+                goto done;
+            }
+        }
+        
+        if (rot == Rave_ObjectType_PVOL) {
+            volume = RAVE_OBJECT_NEW(&PolarVolume_TYPE);
+            if (volume == NULL) {
+                RAVE_CRITICAL0("Error: failed to create polarvolume instance");
+                goto done;
+            }
+            
+            // read iris data into rave polar volume object
+            ret = populateObject((RaveCoreObject*) volume, file_element_p);
 
-    if( ret != 0) {
-        fprintf(stderr, "Error: could not populate IRIS data into a polar volume object\n");
-        RAVE_OBJECT_RELEASE(volume);
-        volume = (PolarVolume_t*) NULL;
-    }
+            if( ret != 0) {
+                fprintf(stderr, "Error: could not populate IRIS data into a polar volume object\n");
+                goto done;
+            }
+            
+            if (!outputInitialised){
+                output = RAVE_OBJECT_CLONE(volume);
+                RAVE_OBJECT_RELEASE(volume);
+                outputInitialised = TRUE;
+                continue;
+            }
+            
+            for (int j=0; j<PolarVolume_getNumberOfScans(volume); j++){
+                scan = PolarVolume_getScan(volume, j);
+                PolarVolume_addScan(output, scan);
+                RAVE_OBJECT_RELEASE(scan);
+            }
+            
+            free_IRIS(&file_element_p);
+            RAVE_OBJECT_RELEASE(volume);
+        }
+    
+        if (rot == Rave_ObjectType_SCAN) {
+            scan = RAVE_OBJECT_NEW(&PolarScan_TYPE);
+            if (scan == NULL) {
+                RAVE_CRITICAL0("Error: failed to create polarscan instance");
+                goto done;
+            }
+            
+            // read iris data into rave polar volume object
+            ret = populateObject((RaveCoreObject*) scan, file_element_p);
 
-    // clean up
-    if(file_element_p != NULL) {
-        free_IRIS(&file_element_p);
+            if( ret != 0) {
+                fprintf(stderr, "Error: could not populate IRIS data into a polar scan object\n");
+                goto done;
+            }
+            
+            if (!outputInitialised){
+                // copy essential root metadata to volume
+                PolarVolume_setDate(output, PolarScan_getDate(scan));
+                PolarVolume_setTime(output, PolarScan_getTime(scan));
+                PolarVolume_setLatitude(output, PolarScan_getLatitude(scan));
+                PolarVolume_setLongitude(output, PolarScan_getLongitude(scan));
+                PolarVolume_setHeight(output, PolarScan_getHeight(scan));
+                outputInitialised = TRUE;
+            }
+            
+            PolarVolume_addScan(output, scan);
+            free_IRIS(&file_element_p);
+            RAVE_OBJECT_RELEASE(scan);
+        }
+    
     }
 
     done:
-        return volume;
+    
+        // clean up
+        if(file_element_p != NULL) {
+            free_IRIS(&file_element_p);
+        }
+        if (volume != NULL){
+            RAVE_OBJECT_RELEASE(volume);            
+        }
+        if (scan != NULL){
+            RAVE_OBJECT_RELEASE(scan);
+        }
+        
+        return output;
 }
 #endif
 
