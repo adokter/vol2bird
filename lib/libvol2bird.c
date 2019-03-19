@@ -144,7 +144,7 @@ static void updateFlagFieldsInPointsArray(const float* yObs, const float* yFitte
 static int updateMap(PolarScan_t* scan, CELLPROP *cellProp, const int nCells, vol2bird_t* alldata);
 
 #ifdef IRIS
-PolarVolume_t* vol2birdGetIRISVolume(char* filenames[], int nInputFiles, float rangeMax, int small);
+PolarVolume_t* vol2birdGetIRISVolume(char* filenames[], int nInputFiles);
 #endif
 
 // non-public function declarations (local to this file/translation unit)
@@ -4243,7 +4243,7 @@ PolarVolume_t* vol2birdGetVolume(char* filenames[], int nInputFiles, float range
     #ifdef IRIS
     // test whether the file is in IRIS format
     if (isIRIS(filenames[0])==0){
-        volume = vol2birdGetIRISVolume(filenames, nInputFiles, rangeMax, small);
+        volume = vol2birdGetIRISVolume(filenames, nInputFiles);
         goto done;
     }
     #endif
@@ -4279,10 +4279,11 @@ PolarVolume_t* vol2birdGetVolume(char* filenames[], int nInputFiles, float range
 }
 
 #ifdef IRIS
-PolarVolume_t* vol2birdGetIRISVolume(char* filenames[], int nInputFiles, float rangeMax, int small) {
+PolarVolume_t* vol2birdGetIRISVolume(char* filenames[], int nInputFiles) {
     // initialize a polar volume to return
-    PolarVolume_t* volume = NULL;
     PolarVolume_t* output = NULL;
+    // initialize helper volume and scan to store intermediate file reads
+    PolarVolume_t* volume = NULL;
     PolarScan_t* scan = NULL;
     
     int outputInitialised = FALSE;
@@ -4374,6 +4375,7 @@ PolarVolume_t* vol2birdGetIRISVolume(char* filenames[], int nInputFiles, float r
                 PolarVolume_setLatitude(output, PolarScan_getLatitude(scan));
                 PolarVolume_setLongitude(output, PolarScan_getLongitude(scan));
                 PolarVolume_setHeight(output, PolarScan_getHeight(scan));
+                PolarVolume_setSource(output, PolarScan_getSource(scan));
                 outputInitialised = TRUE;
             }
             
