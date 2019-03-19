@@ -88,7 +88,7 @@ static int hasAzimuthGap(const float *points_local, const int nPoints, vol2bird_
 
 static int includeGate(const int iProfileType, const int iQuantityType, const unsigned int gateCode, vol2bird_t* alldata);
 
-const char* libvol2bird_version();
+const char* libvol2bird_version(void);
 
 static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* field, const char* quantity);
 
@@ -2418,7 +2418,7 @@ static int hasAzimuthGap(const float* points_local, const int nPoints, vol2bird_
 } // hasAzimuthGap
 
 
-const char* libvol2bird_version(){
+const char* libvol2bird_version(void){
     return VERSION;
 };
 
@@ -4254,8 +4254,7 @@ PolarVolume_t* vol2birdGetVolume(char* filenames[], int nInputFiles, float range
     #ifdef RSL
     if(RSL_filetype(filenames[0]) != UNKNOWN){
         if (nInputFiles > 1){
-            fprintf(stderr,"Multiple input files detected in RSL format. \
-            Only single polar volume file import supported, using file %s only.\n", filenames[0]);
+            fprintf(stderr,"Multiple input files detected in RSL format. Only single polar volume file import supported, using file %s only.\n", filenames[0]);
         }
         volume = vol2birdGetRSLVolume(filenames[0], rangeMax, small);
         goto done;

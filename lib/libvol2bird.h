@@ -433,4 +433,4 @@ float nanify(float value);
 
 int saveToODIM(RaveCoreObject* object, const char* filename);
 
-const char* libvol2bird_version();
+const char* libvol2bird_version(void);

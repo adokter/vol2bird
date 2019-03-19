@@ -233,13 +233,6 @@ int main(int argc, char** argv) {
             fprintf(stderr, "Error: input file '%s' does not exist.\n", fileIn[i]);
             return -1;
         }
-        else{
-            radarDataFormat format = determineRadarFormat(fileIn[i]);
-            if (format == radarDataFormat_RSL) fprintf(stderr, "File %s file type: RSL\n",fileIn[i]);
-            if (format == radarDataFormat_ODIM) fprintf(stderr, "File %s file type: ODIM\n",fileIn[i]);
-            if (format == radarDataFormat_IRIS) fprintf(stderr, "File %s file type: IRIS\n",fileIn[i]);
-            if (format == radarDataFormat_UNKNOWN) fprintf(stderr, "File %s file type: UNKNOWN\n",fileIn[i]);
-        }
     }
 
     // Initialize hlhdf library
