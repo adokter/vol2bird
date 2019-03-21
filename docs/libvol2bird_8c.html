@@ -57,6 +57,7 @@ $(function() {
 <code>#include &lt;confuse.h&gt;</code><br />
 <code>#include &lt;stdlib.h&gt;</code><br />
 <code>#include &lt;math.h&gt;</code><br />
+<code>#include &lt;unistd.h&gt;</code><br />
 <code>#include &lt;vertical_profile.h&gt;</code><br />
 <code>#include &quot;rave_io.h&quot;</code><br />
 <code>#include &quot;rave_debug.h&quot;</code><br />
@@ -66,6 +67,7 @@ $(function() {
 <code>#include &quot;libsvdfit.h&quot;</code><br />
 <code>#include &quot;constants.h&quot;</code><br />
 <code>#include &quot;libdealias.h&quot;</code><br />
+<code>#include &quot;rsl.h&quot;</code><br />
 <code>#include &quot;librsl.h&quot;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
@@ -73,9 +75,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a9ed5dbe778728d34ac15da4ce0da64f1"><td class="memItemLeft" align="right" valign="top"><a id="a9ed5dbe778728d34ac15da4ce0da64f1"></a>
 <a class="el" href="structcellprop.html">CELLPROP</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>getCellProperties</b> (PolarScan_t *scan, <a class="el" href="structvol2birdScanUse.html">vol2birdScanUse_t</a> scanUse, const int nCells, <a class="el" href="structvol2bird.html">vol2bird_t</a> *alldata)</td></tr>
 <tr class="separator:a9ed5dbe778728d34ac15da4ce0da64f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4acc92ffa427adad69dcfcf2819670a7"><td class="memItemLeft" align="right" valign="top"><a id="a4acc92ffa427adad69dcfcf2819670a7"></a>
-const char *&#160;</td><td class="memItemRight" valign="bottom"><b>libvol2bird_version</b> ()</td></tr>
-<tr class="separator:a4acc92ffa427adad69dcfcf2819670a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af40299b623d3c842beef1be3caad3cd9"><td class="memItemLeft" align="right" valign="top"><a id="af40299b623d3c842beef1be3caad3cd9"></a>
+const char *&#160;</td><td class="memItemRight" valign="bottom"><b>libvol2bird_version</b> (void)</td></tr>
+<tr class="separator:af40299b623d3c842beef1be3caad3cd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad2aa88fb5d5faa6538c8ea0c66bec4ce"><td class="memItemLeft" align="right" valign="top"><a id="ad2aa88fb5d5faa6538c8ea0c66bec4ce"></a>
 PolarScanParam_t *&#160;</td><td class="memItemRight" valign="bottom"><b>PolarScan_newParam</b> (PolarScan_t *scan, const char *quantity, RaveDataType type)</td></tr>
 <tr class="separator:ad2aa88fb5d5faa6538c8ea0c66bec4ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -109,6 +111,9 @@ PolarScan_t *&#160;</td><td class="memItemRight" valign="bottom"><b>PolarScan_re
 <tr class="memitem:a4be5290473034599f11dd964345b0c88"><td class="memItemLeft" align="right" valign="top"><a id="a4be5290473034599f11dd964345b0c88"></a>
 PolarScanParam_t *&#160;</td><td class="memItemRight" valign="bottom"><b>PolarScanParam_resample</b> (PolarScanParam_t *param, double rscale, double rscale_proj, long nbins_proj, long nrays_proj)</td></tr>
 <tr class="separator:a4be5290473034599f11dd964345b0c88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a390add2d885e13a43b2e9ddcd99e4700"><td class="memItemLeft" align="right" valign="top"><a id="a390add2d885e13a43b2e9ddcd99e4700"></a>
+PolarVolume_t *&#160;</td><td class="memItemRight" valign="bottom"><b>vol2birdGetODIMVolume</b> (char *filenames[], int nInputFiles)</td></tr>
+<tr class="separator:a390add2d885e13a43b2e9ddcd99e4700"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6b7cec5697ef27aebf2668f3932ac3f8"><td class="memItemLeft" align="right" valign="top"><a id="a6b7cec5697ef27aebf2668f3932ac3f8"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>vol2birdLoadClutterMap</b> (PolarVolume_t *volume, char *file, float rangeMax)</td></tr>
 <tr class="separator:a6b7cec5697ef27aebf2668f3932ac3f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -124,6 +129,9 @@ PolarScanParam_t *&#160;</td><td class="memItemRight" valign="bottom"><b>PolarSc
 <tr class="memitem:aaf5a55599146190dd0894d8732e3476f"><td class="memItemLeft" align="right" valign="top"><a id="aaf5a55599146190dd0894d8732e3476f"></a>
 PolarVolume_t *&#160;</td><td class="memItemRight" valign="bottom"><b>PolarVolume_resample</b> (PolarVolume_t *volume, double rscale_proj, long nbins_proj, long nrays_proj)</td></tr>
 <tr class="separator:aaf5a55599146190dd0894d8732e3476f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afe3d9b63379205d47a720bc96530d401"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="libvol2bird_8c.html#afe3d9b63379205d47a720bc96530d401">isRegularFile</a> (const char *path)</td></tr>
+<tr class="memdesc:afe3d9b63379205d47a720bc96530d401"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function name: isRegularFile Intent: determines whether the given path is to a regular file Note: also returns true on existing directories.  <a href="#afe3d9b63379205d47a720bc96530d401">More...</a><br /></td></tr>
+<tr class="separator:afe3d9b63379205d47a720bc96530d401"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a925011cf7df194b5daeee6aa53fb9365"><td class="memItemLeft" align="right" valign="top"><a id="a925011cf7df194b5daeee6aa53fb9365"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>mapDataToRave</b> (PolarVolume_t *volume, <a class="el" href="structvol2bird.html">vol2bird_t</a> *alldata)</td></tr>
 <tr class="separator:a925011cf7df194b5daeee6aa53fb9365"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -133,6 +141,9 @@ float&#160;</td><td class="memItemRight" valign="bottom"><b>nanify</b> (float va
 <tr class="memitem:a043fef3550bf74824b5ba9e567c0d4ad"><td class="memItemLeft" align="right" valign="top"><a id="a043fef3550bf74824b5ba9e567c0d4ad"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>saveToODIM</b> (RaveCoreObject *object, const char *filename)</td></tr>
 <tr class="separator:a043fef3550bf74824b5ba9e567c0d4ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed1f09e6c3031fcc9d03b570c8be0358"><td class="memItemLeft" align="right" valign="top"><a id="aed1f09e6c3031fcc9d03b570c8be0358"></a>
+radarDataFormat&#160;</td><td class="memItemRight" valign="bottom"><b>determineRadarFormat</b> (char *filename)</td></tr>
+<tr class="separator:aed1f09e6c3031fcc9d03b570c8be0358"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ccf67b8e96246ae255f4517fab37e1f"><td class="memItemLeft" align="right" valign="top"><a id="a1ccf67b8e96246ae255f4517fab37e1f"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>vol2birdCalcProfiles</b> (<a class="el" href="structvol2bird.html">vol2bird_t</a> *alldata)</td></tr>
 <tr class="separator:a1ccf67b8e96246ae255f4517fab37e1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -157,9 +168,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>vol2birdPrintPointsAr
 <tr class="memitem:af100a8c49940c439efdad5af71ea8ad2"><td class="memItemLeft" align="right" valign="top"><a id="af100a8c49940c439efdad5af71ea8ad2"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>vol2birdPrintPointsArraySimple</b> (<a class="el" href="structvol2bird.html">vol2bird_t</a> *alldata)</td></tr>
 <tr class="separator:af100a8c49940c439efdad5af71ea8ad2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a920861c388470411e4c24dbf00808dbb"><td class="memItemLeft" align="right" valign="top"><a id="a920861c388470411e4c24dbf00808dbb"></a>
-PolarVolume_t *&#160;</td><td class="memItemRight" valign="bottom"><b>vol2birdGetVolume</b> (char *filename, float rangeMax, int small)</td></tr>
-<tr class="separator:a920861c388470411e4c24dbf00808dbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2fa406d560e8c70df50dea44fe57f565"><td class="memItemLeft" align="right" valign="top"><a id="a2fa406d560e8c70df50dea44fe57f565"></a>
+PolarVolume_t *&#160;</td><td class="memItemRight" valign="bottom"><b>vol2birdGetVolume</b> (char *filenames[], int nInputFiles, float rangeMax, int small)</td></tr>
+<tr class="separator:a2fa406d560e8c70df50dea44fe57f565"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac0d6dc8b1c9149292eaa0ccd653d748c"><td class="memItemLeft" align="right" valign="top"><a id="ac0d6dc8b1c9149292eaa0ccd653d748c"></a>
 RaveIO_t *&#160;</td><td class="memItemRight" valign="bottom"><b>vol2birdIO_open</b> (const char *filename)</td></tr>
 <tr class="separator:ac0d6dc8b1c9149292eaa0ccd653d748c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -177,7 +188,28 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>vol2birdTearDown</b> 
 <div class="textblock"><p><a class="el" href="structvol2bird.html">vol2bird</a> main functions </p>
 <dl class="section author"><dt>Author</dt><dd>Adriaan Dokter &amp; Netherlands eScience Centre </dd></dl>
 <dl class="section date"><dt>Date</dt><dd>2015-05-05 </dd></dl>
-</div></div><!-- contents -->
+</div><h2 class="groupheader">Function Documentation</h2>
+<a id="afe3d9b63379205d47a720bc96530d401"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afe3d9b63379205d47a720bc96530d401">&#9670;&nbsp;</a></span>isRegularFile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int isRegularFile </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Function name: isRegularFile Intent: determines whether the given path is to a regular file Note: also returns true on existing directories. </p>
+
+</div>
+</div>
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated by &#160;<a href="http://www.doxygen.org/index.html">
