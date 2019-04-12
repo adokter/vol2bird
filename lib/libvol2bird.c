@@ -3784,6 +3784,13 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 else {
                     birdDensity = UNDETECT;
                 }
+
+                // birdDensity and reflectivity should also be UNDETECT when undbzAvg is
+                if (undbzAvg == UNDETECT){
+                    reflectivity = UNDETECT
+                    birdDensity = UNDETECT
+                }
+
                 
 		        //Prepare the arguments of svdfit
                 iPointIncluded = 0;
