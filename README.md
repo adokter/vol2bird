@@ -18,7 +18,7 @@ Ecography, 2018, DOI [10.1111/ecog.04028](https://doi.org/10.1111/ecog.04028)
 Browse source code at:  
 [https://github.com/adokter/vol2bird](https://github.com/adokter/vol2bird)
 
-Report a bug at:  
+Report a bug at:
 [https://github.com/adokter/vol2bird/issues](https://github.com/adokter/vol2bird/issues)
 
 * `data` contains two polar volume radar files for testing
