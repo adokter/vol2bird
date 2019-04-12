@@ -3787,8 +3787,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
 
                 // birdDensity and reflectivity should also be UNDETECT when undbzAvg is
                 if (undbzAvg == UNDETECT){
-                    reflectivity = UNDETECT
-                    birdDensity = UNDETECT
+                    reflectivity = UNDETECT;
+                    birdDensity = UNDETECT;
                 }
 
                 
