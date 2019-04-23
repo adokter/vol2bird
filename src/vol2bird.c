@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
                     break;
 
                 case 'v':
-                    fprintf(stderr,"%s version %s (%s)\n", argv[0], VERSION, VERSIONDATE);
+                    fprintf(stdout,"%s version %s (%s)\n", argv[0], VERSION, VERSIONDATE);
                     return -1;
                     break;
 
