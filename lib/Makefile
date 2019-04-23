@@ -17,8 +17,8 @@
  
 # use gcc if not set already
 CC      ?= gcc
-#CFLAGS  += ${RSL_CFLAG} -fPIC -x c -DFPRINTFON
-CFLAGS  += ${RSL_CFLAG} -fPIC -g -x c
+#CFLAGS  += $(RSL_CFLAG) -fPIC -x c -DFPRINTFON
+CFLAGS  += $(RSL_CFLAG) $(IRIS_CFLAG) -fPIC -g -x c
 LDFLAGS += -shared -Wall
 
 # define where the vol2bird stuff is
@@ -48,7 +48,7 @@ libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	$(SRC_VOL2BIRD_DIR)/libdealias.c \
 	$(SRC_VOL2BIRD_DIR)/librsl.c \
 	$(LDFLAGS) \
-	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lgsl -lgslcblas $(RSL_LIB) -lm
+	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lgsl -lgslcblas $(RSL_LIB) $(IRIS_LIB) -lm
 
 .PHONY : install
 install : libvol2bird.so

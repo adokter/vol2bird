@@ -381,15 +381,27 @@ struct vol2bird {
 };
 typedef struct vol2bird vol2bird_t;
 
+typedef enum radarDataFormat {
+  radarDataFormat_UNKNOWN = 0,
+  radarDataFormat_ODIM = 1,   /** Opera Data Information Model (ODIM) */
+  radarDataFormat_RSL = 2,    /** TRMM radar solftware library (including NEXRAD) */
+  radarDataFormat_IRIS = 3    /** Vaisala IRIS */
+} radarDataFormat;
+
+
 // *****************************************************************************
 // Public function prototypes
 // *****************************************************************************
+
+radarDataFormat determineRadarFormat(char* filename);
+
+int isRegularFile(const char *path);
 
 void vol2birdCalcProfiles(vol2bird_t* alldata);
 
 float* vol2birdGetProfile(int iProfileType, vol2bird_t* alldata);
 
-PolarVolume_t* vol2birdGetVolume(char* filename, float rangeMax, int small);
+PolarVolume_t* vol2birdGetVolume(char* filenames[], int nInputFiles, float rangeMax, int small);
 
 PolarVolume_t* PolarVolume_resample(PolarVolume_t* volume, double rscale_proj, long nbins_proj, long nrays_proj);
 
@@ -421,4 +433,4 @@ float nanify(float value);
 
 int saveToODIM(RaveCoreObject* object, const char* filename);
 
-const char* libvol2bird_version();
+const char* libvol2bird_version(void);

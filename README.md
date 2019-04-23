@@ -15,7 +15,7 @@ Ecography, 2018, DOI [10.1111/ecog.04028](https://doi.org/10.1111/ecog.04028)
 
 ### repository contents
 
-Browse source code at:
+Browse source code at:  
 [https://github.com/adokter/vol2bird](https://github.com/adokter/vol2bird)
 
 Report a bug at:
