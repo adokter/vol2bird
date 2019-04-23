@@ -4,13 +4,13 @@ All issues included in this release can be found [here](https://github.com/adokt
 
 * vol2bird now reads Vaisala Sigmet IRIS (Iris RAW) format, the native radar data format of Vaisala radar processors (e.g. used in Canada, Portugal, Finland) (#112)
 
-* added functionality to read files containing single scans (sweeps) and merge them into polar volumes (#116)
+* added functionality to vol2bird to read files containing single scans (sweeps) and merge them into polar volumes (#116)
 
-* rsl2odim now also converts Vaisala IRIS format and ODIM hdf5 format and can merge files containing scans / sweeps into a polar volume. 
+* rsl2odim now converts Vaisala IRIS format and ODIM hdf5 format and can merge files containing scans / sweeps into a polar volume. 
 
-* new input argument format that generalizes to multiple input files
+* new input argument format that allows specifying multiple input files
 
-* change default maximum range to 35 km (#117)
+* change default maximum range from 25 km to 35 km (#117)
 
 * fixed a bug that in rare cases produced a negative reflectivity eta (#123)
 
