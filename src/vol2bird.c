@@ -43,7 +43,7 @@
 void usage(char* programName, int verbose){
     fprintf(stderr,"vol2bird version %s (%s)\n", VERSION, VERSIONDATE);
     fprintf(stderr,"   usage: %s <polar volume> [<ODIM hdf5 profile output> [<ODIM hdf5 volume output>]]\n",programName);
-    fprintf(stderr,"   usage: %s -i <polar volume or scan> [-i <polar scan> [-i <polar scan>] ...] [-o <ODIM hdf5 profile output> [-p <ODIM hdf5 volume output>]]\n",programName);
+    fprintf(stderr,"   usage: %s -i <polar volume or scan> [-i <polar scan> [-i <polar scan>] ...] [-o <ODIM hdf5 profile output>] [-p <ODIM hdf5 volume output>]\n",programName);
     fprintf(stderr,"   usage: %s --help\n", programName);
 
     if(verbose){
