@@ -40,6 +40,10 @@
 #include "hlhdf_debug.h"
 #include "rave_debug.h"
 
+// FIXME for testing only
+#include "libmistnet.h"
+#include "cartesian.h"
+
 void usage(char* programName, int verbose){
     fprintf(stderr,"vol2bird version %s (%s)\n", VERSION, VERSIONDATE);
     fprintf(stderr,"   usage: %s <polar volume> [<ODIM hdf5 profile output> [<ODIM hdf5 volume output>]]\n",programName);
@@ -261,6 +265,27 @@ int main(int argc, char** argv) {
     // read in data up to a distance of alldata.misc.rCellMax
     // we do not read in the full volume for speed/memory
     PolarVolume_t* volume = NULL;
+
+
+    // FIXME for testing only
+    static double elevs[] = {0.5, 1.5, 2.5, 3.5, 4.5};
+    int res=1000;
+    int dim=400;
+    volume = vol2birdGetVolume(fileIn, nInputFiles, sqrt(2)*res*dim/2,1);
+    Cartesian_t *cartesian = NULL;
+    fprintf(stderr,"load cartesian file\n");
+    cartesian = polarVolumeToCartesian(volume, elevs, 5, dim, res, 0);
+    fprintf(stderr,"save cartesian file\n");
+    saveToODIM((RaveCoreObject*) cartesian, "rendering.h5");
+    
+    fprintf(stderr,"initialize 3D array\n");    
+    double ***array;
+    array = init3DArray(3*5,dim,dim,0);
+    fill3DArray(array, cartesian, 5, dim, dim, 3);
+    free3DArray(array,3*5,dim);
+    RAVE_OBJECT_RELEASE(volume);
+    fprintf(stderr,"DONE\n");
+
     
     volume = vol2birdGetVolume(fileIn, nInputFiles, alldata.misc.rCellMax,1);
          

@@ -95,12 +95,16 @@
 #define CELLNAME "CELL"
 // name of the parameter containing the static cluttermap
 #define CLUTNAME "OCCULT"
+// earth's radius (taken from NARR GRIB file)
+#define EARTH_RADIUS 6371200 
+// standard refraction coefficient (4/3)
+#define REFRACTION_COEFFICIENT 1.333333f
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
-#define VERSION "0.4.0"
+#define VERSION "0.4.1"
 // Date of latest version of the program
-#define VERSIONDATE "23-Apr-2019"
+#define VERSIONDATE "22-May-2019"
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //
