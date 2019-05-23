@@ -269,8 +269,8 @@ int main(int argc, char** argv) {
 
     // FIXME for testing only
     static double elevs[] = {0.5, 1.5, 2.5, 3.5, 4.5};
-    int res=1000;
-    int dim=400;
+    int res=500;
+    int dim=600;
     volume = vol2birdGetVolume(fileIn, nInputFiles, sqrt(2)*res*dim/2,1);
     Cartesian_t *cartesian = NULL;
     fprintf(stderr,"load cartesian file\n");

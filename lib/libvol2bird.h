@@ -395,6 +395,8 @@ typedef enum radarDataFormat {
 
 radarDataFormat determineRadarFormat(char* filename);
 
+static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* alldata);
+
 int isRegularFile(const char *path);
 
 void vol2birdCalcProfiles(vol2bird_t* alldata);
