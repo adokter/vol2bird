@@ -10,4 +10,6 @@ void free3DArray(double ***array, int dim1, int dim2);
 
 double*** init3DArray(int dim1, int dim2, int dim3, double init);
 
-int fill3DArray(double ***array, Cartesian_t* cartesian, int dim1, int dim2, int dim3, int nScanParam);
+int mistnet3DArray(double ****array, PolarVolume_t* pvol, float elevs[], int nElevs, int dim, double res);
+
+int fill3DArray(double ***array, Cartesian_t* cartesian, int dim1, int dim2, int dim3);

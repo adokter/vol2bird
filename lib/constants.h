@@ -40,6 +40,10 @@
 #define NTEXMIN 4
 // the refractive index of water
 #define REFRACTIVE_INDEX_OF_WATER 0.964
+// standard refraction coefficient (4/3)
+#define REFRACTION_COEFFICIENT 1.333333f
+// earth's radius (taken from NARR GRIB file)
+#define EARTH_RADIUS 6371200 
 // range gates up to a distance of RANGE_MAX+RCELLMAX_OFFSET are read into memory
 // the extra offset allows for the raincell search to extend somewhat further
 // than the maximum range used in the profile generation (RANGE_MAX).
@@ -51,7 +55,6 @@
 #define VDIFMAX 10.0
 // When analyzing cells, radial velocities lower than VRADMIN are treated as clutter
 #define VRADMIN 1.0
-
 
 //-------------------------------------------------------//
 //       hard-coded options for use RSL library          //
@@ -95,10 +98,6 @@
 #define CELLNAME "CELL"
 // name of the parameter containing the static cluttermap
 #define CLUTNAME "OCCULT"
-// earth's radius (taken from NARR GRIB file)
-#define EARTH_RADIUS 6371200 
-// standard refraction coefficient (4/3)
-#define REFRACTION_COEFFICIENT 1.333333f
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
@@ -212,3 +211,9 @@
 #define RESAMPLE_NBINS 100
 // resampled number of azimuth bins
 #define RESAMPLE_NRAYS 360
+// elevations to use in Cartesian projection for Mistnet
+#define CARTESIAN_ELEVATIONS "{0.5, 1.5, 2.5, 3.5, 4.5}"
+// resolution of the Cartesian grid in meter for Mistnet
+#define CARTESIAN_RESOLUTION 500
+// X and Y dimension of the Cartesian grid for Mistnet
+#define CARTESIAN_DIMENSION 600

@@ -136,6 +136,9 @@ struct vol2birdOptions {
     float resampleRscale;           /* resampled range gate length in m */
     int resampleNbins;              /* resampled number of range bins */
     int resampleNrays;              /* resampled number of azimuth bins */
+    float cartesianElevs[100];      /* array of elevation angles in degrees to use in Cartesian projection*/
+    int cartesianNElevs;            /* array of elevation angles in degrees to use in Cartesian projection*/
+
 };
 typedef struct vol2birdOptions vol2birdOptions_t;
 
@@ -357,6 +360,8 @@ struct vol2birdScanUse {
     char dbzName[10];
     // the radial velocity quantity used for this scan
     char vradName[10];
+    // the spectrum width quantity used for this scan
+    char wradName[10];
     // the correlation coefficient quantity used for this scan
     char rhohvName[10];
     // the texture field quantity used for this scan
@@ -394,8 +399,6 @@ typedef enum radarDataFormat {
 // *****************************************************************************
 
 radarDataFormat determineRadarFormat(char* filename);
-
-static vol2birdScanUse_t *determineScanUse(PolarVolume_t* volume, vol2bird_t* alldata);
 
 int isRegularFile(const char *path);
 

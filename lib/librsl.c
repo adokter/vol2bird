@@ -480,7 +480,7 @@ PolarVolume_t* vol2birdGetRSLVolume(char* filename, float rangeMax, int small) {
 
     // if small, only read reflectivity, velocity, Rho_HV        
     // else select all scans
-    if(small) RSL_select_fields("dz","vr","rh", NULL);
+    if(small) RSL_select_fields("dz","vr","sw","rh", NULL);
     else RSL_select_fields("dz","vr","sw","zt","dr","rh","ph","kd", NULL);
     
     RSL_read_these_sweeps("all",NULL);

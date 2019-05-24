@@ -266,32 +266,20 @@ int main(int argc, char** argv) {
     // we do not read in the full volume for speed/memory
     PolarVolume_t* volume = NULL;
 
-
-    // FIXME for testing only
-    static double elevs[] = {0.5, 1.5, 2.5, 3.5, 4.5};
-    int res=500;
-    int dim=600;
-    volume = vol2birdGetVolume(fileIn, nInputFiles, sqrt(2)*res*dim/2,1);
-    Cartesian_t *cartesian = NULL;
-    fprintf(stderr,"load cartesian file\n");
-    cartesian = polarVolumeToCartesian(volume, elevs, 5, dim, res, 0);
-    fprintf(stderr,"save cartesian file\n");
-    saveToODIM((RaveCoreObject*) cartesian, "rendering.h5");
-    
-    fprintf(stderr,"initialize 3D array\n");    
-    double ***array;
-    array = init3DArray(3*5,dim,dim,0);
-    fill3DArray(array, cartesian, 5, dim, dim, 3);
-    free3DArray(array,3*5,dim);
-    RAVE_OBJECT_RELEASE(volume);
-    fprintf(stderr,"DONE\n");
-
-    
-    volume = vol2birdGetVolume(fileIn, nInputFiles, alldata.misc.rCellMax,1);
-         
+    volume = vol2birdGetVolume(fileIn, nInputFiles, 1000000,1);
+    //volume = vol2birdGetVolume(fileIn, nInputFiles, alldata.misc.rCellMax,1);
+        
     if (volume == NULL) {
         fprintf(stderr,"Error: failed to read radar volume\n");
         return -1;
+    }
+            
+    double ***arrayMistnet = NULL;
+    int nCartesianParam = mistnet3DArray(&arrayMistnet,volume,alldata.options.cartesianElevs,alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_RESOLUTION);
+    //clean up 3D array
+    if(nCartesianParam > 0){
+        fprintf(stderr,"DONE WITH MISTNET, cleaning up %i params\n",nCartesianParam);
+        free3DArray(arrayMistnet,nCartesianParam,CARTESIAN_RESOLUTION);
     }
     
     // loading static clutter map upon request

@@ -832,6 +832,22 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
             }
         }
         
+        // check whether spectrum width parameter is present, and store its name
+        sprintf(scanUse[iScan].wradName,"");
+		if (PolarScan_hasParameter(scan, "WRAD")){
+			sprintf(scanUse[iScan].wradName,"WRAD");	
+		}
+		else{
+			if (PolarScan_hasParameter(scan, "WRADH")){
+				sprintf(scanUse[iScan].wradName,"WRADH");	
+			}
+			else{
+				if (PolarScan_hasParameter(scan, "WRADV")){
+					sprintf(scanUse[iScan].vradName,"WRADV");	
+				}
+			}
+		}
+        
         // check that elevation is not too high or too low
         if (scanUse[iScan].useScan)
         {
@@ -2705,6 +2721,7 @@ static int readUserConfigOptions(cfg_t** cfg, const char * optsConfFilename) {
         CFG_FLOAT("RESAMPLE_RSCALE",RESAMPLE_RSCALE,CFGF_NONE),
         CFG_INT("RESAMPLE_NBINS",RESAMPLE_NBINS,CFGF_NONE),
         CFG_INT("RESAMPLE_NRAYS",RESAMPLE_NRAYS,CFGF_NONE),
+        CFG_FLOAT_LIST("CARTESIAN_ELEVATIONS", CARTESIAN_ELEVATIONS, CFGF_NONE),
         CFG_END()
     };
     
@@ -4270,6 +4287,8 @@ PolarVolume_t* vol2birdGetVolume(char* filenames[], int nInputFiles, float range
     
     volume = vol2birdGetODIMVolume(filenames, nInputFiles);
     
+    PolarVolume_sortByElevations(volume,1);
+    
     done:
         return volume;
 }
@@ -4608,6 +4627,13 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.resampleRscale = cfg_getfloat(*cfg,"RESAMPLE_RSCALE");
     alldata->options.resampleNbins = cfg_getint(*cfg,"RESAMPLE_NBINS");
     alldata->options.resampleNrays = cfg_getint(*cfg,"RESAMPLE_NRAYS");
+    alldata->options.cartesianNElevs = cfg_size(*cfg, "CARTESIAN_ELEVATIONS");
+    for(int i=0; i<alldata->options.cartesianNElevs; i++){
+        alldata->options.cartesianElevs[i] = cfg_getnfloat(*cfg, "CARTESIAN_ELEVATIONS",i);
+    }
+    
+//    alldata->options.cartesianElevs = cfg_getnfloat(*cfg, "CARTESIAN_ELEVATIONS");
+
 
     // ------------------------------------------------------------- //
     //              vol2bird options from constants.h                //
