@@ -165,7 +165,6 @@ Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nEle
 
             // create a cartesian scan parameter with the same name
             cartesianParam = Cartesian_createParameter(cartesian,parameterName,RaveDataType_DOUBLE, init);
-            fprintf(stderr,"%s\n",parameterName);
             double range,azim,distance;
             double value;
             
@@ -255,7 +254,6 @@ Cartesian_t* polarScanToCartesian(PolarScan_t* scan, long dim, long res, double 
         
         // create a cartesian scan parameter with the same name
         cartesianParam = Cartesian_createParameter(cartesian,scanParameterName,RaveDataType_DOUBLE, init);
-        fprintf(stderr,"%s\n",scanParameterName);
         double range,azim,distance;
         double value;
         
@@ -410,36 +408,62 @@ int fill3DArray(double ***array, RaveObjectList_t* list, int dim1, int dim2, int
         double value;
         RaveValueType valueType;
         
-        for(int iCartesianParam = 0; iCartesianParam < nCartesianParam; iCartesianParam++){
-            char* parameterName = RaveList_get(cartesianParameterNames, iCartesianParam);
-            fprintf(stderr, "writing %s to 3D array\n", parameterName);
-            CartesianParam_t* cartesianParam = Cartesian_getParameter(cartesian, parameterName);
+        for(int iOrder = 0; iOrder < 4; iOrder++){
+            for(int iCartesianParam = 0; iCartesianParam < nCartesianParam; iCartesianParam++){
+                char* parameterName = RaveList_get(cartesianParameterNames, iCartesianParam);
+                switch(iOrder){
+                    case 0:
+                       if(strncmp("DBZ",parameterName,3)!=0){
+                           continue;
+                       }
+                       break;
+                    case 1:
+                       if(strncmp("VRAD",parameterName,4)!=0){
+                           continue;
+                       }
+                       break;
+                    case 2:
+                       if(strncmp("WRAD",parameterName,4)!=0){
+                           continue;
+                       }
+                       break;
+                    case 3:
+                       if(strncmp("RHOHV",parameterName,5)!=0){
+                           continue;                       
+                       }
+                       break;
+                }
+                
+                CartesianParam_t* cartesianParam = Cartesian_getParameter(cartesian, parameterName);
 
-            //increase counter
-            iParam++;
-            
-            if(iParam>=dim1){
-               fprintf(stderr, "Error: exceeding 3D array dimension\n"); 
-               RAVE_OBJECT_RELEASE(cartesianParam);
-               return(-1);
-            }
-            
-            // fill array
-            for(int x = 0; x < xSize; x++){
-                for(int y = 0; y < ySize; y++){
-                    valueType = CartesianParam_getValue(cartesianParam, x, y, &value);
-                    if (valueType == RaveValueType_DATA){
-                        array[iParam][x][y] = value;
-                    }
-                    else{
-                        array[iParam][x][y] = NAN;
-                    }
-                } //y
-            } //x
-            
-            RAVE_OBJECT_RELEASE(cartesianParam);
-        } //iScan
-            
+                fprintf(stderr,"writing %s at index %i\n",parameterName,iParam);
+                
+                if(iParam>=dim1){
+                   fprintf(stderr, "Error: exceeding 3D array dimension\n"); 
+                   RAVE_OBJECT_RELEASE(cartesianParam);
+                   return(-1);
+                }
+                
+                // fill array
+                for(int x = 0; x < xSize; x++){
+                    for(int y = 0; y < ySize; y++){
+                        valueType = CartesianParam_getValue(cartesianParam, x, y, &value);
+                        if (valueType == RaveValueType_DATA){
+                            array[iParam][x][y] = value;
+                        }
+                        else{
+                            array[iParam][x][y] = NAN;
+                        }
+                    } //y
+                } //x
+                
+                RAVE_OBJECT_RELEASE(cartesianParam);
+                
+                //increase counter
+                iParam++;
+                                
+            } //iScan
+        }   
     }
     
     return 0;
@@ -447,28 +471,24 @@ int fill3DArray(double ***array, RaveObjectList_t* list, int dim1, int dim2, int
 
 
 int mistnet3DArray(double ****array, PolarVolume_t* pvol, float elevs[], int nElevs, int dim, double res){
-    // define a Cartesian object
-    Cartesian_t *cartesian = NULL;
-    // fill the Cartesian object with polar volume data
-    cartesian = polarVolumeToCartesian(pvol, elevs, nElevs, dim, res, 0);
-    
-    if(cartesian == NULL){
-        fprintf(stderr, "Error: failed to load Cartesian object from polar volume\n");
-        return -1;
-    }
-        
-    // save it (FIXME)
-    saveToODIM((RaveCoreObject*) cartesian, "rendering.h5");
-    // initialize a 3D array
+    //Un-comment these two lines to save a rendering to file
+    //Cartesian_t *cartesian = NULL;
+    //cartesian = polarVolumeToCartesian(pvol, elevs, nElevs, dim, res, 0);            
+    //saveToODIM((RaveCoreObject*) cartesian, "rendering.h5");
     
     // convert polar volume to a list of Cartesian objects, one for each scan
     // store the total number of scan parameters for all scans in nCartesianParam
     int nCartesianParam = 0;
     RaveObjectList_t* list = polarVolumeToCartesianList(pvol, elevs, nElevs, dim, res, 0, &nCartesianParam);
+    
+    if(list == NULL){
+        fprintf(stderr, "Error: failed to load Cartesian objects from polar volume\n");
+        return -1;
+    }
 
     // initialize a 3D array, and fill it
     *array = init3DArray(nCartesianParam,dim,dim,0);
-    fill3DArray(*array, list, nElevs, dim, dim);
+    fill3DArray(*array, list, nCartesianParam, dim, dim);
 
     // clean up
     RAVE_OBJECT_RELEASE(list);
