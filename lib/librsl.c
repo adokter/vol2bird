@@ -117,7 +117,7 @@ PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDE
         return param;
     }
 
-    rslRay = RSL_get_first_ray_of_volume(rslVolume);
+    rslRay = RSL_get_first_ray_of_sweep(rslSweep);
 
     if(rslRay == NULL) {
         fprintf(stderr, "Warning: RSL first ray of volume %i not found by PolarScanParam_RSL2Rave...\n",RSL_INDEX);
