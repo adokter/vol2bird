@@ -56,12 +56,12 @@ vol2bird : ../lib/libvol2bird.so $(VOL2BIRD_DEPS)
 	#       making vol2bird
 	# ------------------------------------
 	#
-	$(CXX) -o vol2bird vol2bird.o -L/Users/amd427/Documents/radar/mistnet/libtorch/lib/ \
+	$(CXX) -o vol2bird vol2bird.o -L/home/adriaan/src/libtorch/lib/ \
 	$(RAVE_MODULE_LDFLAGS) \
 	$(PROJ_LIBRARY_FLAG) \
 	$(RSL_LIBRARY_FLAG) \
         -L../libmistnet/build \
-	-lvol2bird -lmistnet $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) $(IRIS_LIB) $(LDFLAGS) -lmistnet
+	-lvol2bird -lmistnet -ltorch -lc10 -lcaffe2 $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) $(IRIS_LIB) $(LDFLAGS)
 	
 rsl2odim : ../lib/libvol2bird.so $(RSL2ODIM_DEPS)
 	#
