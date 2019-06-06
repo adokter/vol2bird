@@ -41,8 +41,9 @@
 #include "rave_debug.h"
 
 // FIXME for testing only
-#include "libmistnet.h"
+#include "librender.h"
 #include "cartesian.h"
+#include "/Users/amd427/git/vol2bird/libmistnet/mistnet.h"
 
 void usage(char* programName, int verbose){
     fprintf(stderr,"vol2bird version %s (%s)\n", VERSION, VERSIONDATE);
@@ -273,13 +274,26 @@ int main(int argc, char** argv) {
         fprintf(stderr,"Error: failed to read radar volume\n");
         return -1;
     }
-            
-    double ***arrayMistnet = NULL;
-    int nCartesianParam = mistnet3DArray(&arrayMistnet,volume,alldata.options.cartesianElevs,alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_RESOLUTION);
+    
+    // convert polar volume into 3D tensor array
+    double ***mistnetTensorInput3D = NULL;
+    int nCartesianParam = polarVolumeTo3DTensor(volume,&mistnetTensorInput3D,alldata.options.cartesianElevs,alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_RESOLUTION,3);
+    // flatten 3D tensor into a 1D array
+    float *mistnetTensorInput;
+    mistnetTensorInput = flatten3DTensor(mistnetTensorInput3D,nCartesianParam*alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_DIMENSION);
+    // run mistnet, which outputs a 1D array
+    float *mistnetTensorOutput = NULL;
+    run_mistnet(mistnetTensorInput, mistnetTensorOutput, "/Users/amd427/git/vol2bird/libmistnet/mistnet_v4.pt");
+    // convert mistnet 1D array into a 4D tensor
+    float**** mistnetTensorOutput4D = create4DTensor(mistnetTensorOutput,3,alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_DIMENSION);
+    
     //clean up 3D array
     if(nCartesianParam > 0){
         fprintf(stderr,"DONE WITH MISTNET, cleaning up %i params\n",nCartesianParam);
-        free3DArray(arrayMistnet,nCartesianParam,CARTESIAN_RESOLUTION);
+        free(mistnetTensorInput);
+        free(mistnetTensorOutput);
+        free3DTensor(mistnetTensorInput3D,nCartesianParam,CARTESIAN_RESOLUTION);
+        free4DTensor(mistnetTensorOutput4D, nCartesianParam, alldata.options.cartesianNElevs, CARTESIAN_RESOLUTION);
     }
     
     // loading static clutter map upon request

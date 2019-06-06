@@ -16,6 +16,7 @@
 -include ../def.mk 
  
 CC      ?= gcc
+CXX     ?= g++
 #CFLAGS  += -fPIC -x c -DFPRINTFON
 CFLAGS  += -I../lib -Wall -g
 LDFLAGS += -L../lib
@@ -28,9 +29,9 @@ SRC_VOL2BIRD_DIR         = ./
 all :
 
 ifeq ($(RSL_CFLAG),-DRSL)
-all : vol2bird rsl2odim
+all : vol2bird.o vol2bird rsl2odim
 else
-all : vol2bird
+all : vol2bird.o vol2bird
 endif
 
 ../lib/libvol2bird.so :
@@ -39,19 +40,28 @@ endif
 VOL2BIRD_DEPS = vol2bird.c ../lib/libvol2bird.h ../lib/constants.h
 RSL2ODIM_DEPS = rsl2odim.c ../lib/libvol2bird.h
 
+vol2bird.o : vol2bird.c
+	#
+	# ------------------------------------
+	#       making vol2bird.o
+	# ------------------------------------
+	#
+	$(CC) -c $(CFLAGS) vol2bird.c \
+	-I. \
+	$(RAVE_MODULE_CFLAGS) \
+
 vol2bird : ../lib/libvol2bird.so $(VOL2BIRD_DEPS)
 	#
 	# ------------------------------------
-	#       making vol2bird 
+	#       making vol2bird
 	# ------------------------------------
 	#
-	$(CC) $(CFLAGS) vol2bird.c \
-	-I. \
-	$(RAVE_MODULE_CFLAGS) \
+	$(CXX) -o vol2bird vol2bird.o -L/Users/amd427/Documents/radar/mistnet/libtorch/lib/ \
 	$(RAVE_MODULE_LDFLAGS) \
 	$(PROJ_LIBRARY_FLAG) \
 	$(RSL_LIBRARY_FLAG) \
-	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) $(IRIS_LIB) -o vol2bird $(LDFLAGS)
+        -L../libmistnet/build \
+	-lvol2bird -lmistnet $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) $(IRIS_LIB) $(LDFLAGS) -lmistnet
 	
 rsl2odim : ../lib/libvol2bird.so $(RSL2ODIM_DEPS)
 	#
@@ -94,6 +104,9 @@ clean :
 	@if [ -f "./rsl2odim" ]; then \
 		\rm rsl2odim; \
 	fi
+	@if [ -f "./vol2bird.o" ]; then \
+		\rm vol2bird.o; \
+	fi
 	@\rm -f *~
 
 .PHONY : distclean
@@ -103,5 +116,8 @@ distclean:
 	fi
 	@if [ -f "./rsl2odim" ]; then \
 		\rm rsl2odim; \
+	fi
+	@if [ -f "./vol2bird.o" ]; then \
+		\rm volbird.o; \
 	fi
 	@\rm -f *~

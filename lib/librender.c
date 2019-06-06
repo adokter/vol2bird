@@ -7,6 +7,7 @@
 #include "rave_alloc.h"
 #include "constants.h"
 #include "libvol2bird.h"
+#include "librender.h"
 
 
 /**
@@ -329,9 +330,37 @@ RaveObjectList_t* polarVolumeToCartesianList(PolarVolume_t* pvol, float elevs[],
 
 }
 
+float**** create4DTensor(float* data, int dim1, int dim2, int dim3, int dim4) {
+    float ****array = (float ****)malloc(dim1 * sizeof(float***));
+    for(int i=0 ; i < dim1 ; i++) {
+            array[i] = (float ***) malloc(dim2 * sizeof(float**));
+            for(int j=0 ; j < dim2 ; j++) {
+                    array[i][j] = (float **)malloc(dim3 * sizeof(float*));
+                    for (int k=0 ; k < dim3 ; k++){
+                            array[i][j][k] = data +  i * dim4 * dim3 * dim2 + j * dim4 * dim3 + k * dim4;
+                    }
+            }
+    }
 
+    return array;
+}
 
-double*** init3DArray(int dim1, int dim2, int dim3, double init){
+void free4DTensor(float ****array, int dim1, int dim2, int dim3){
+	// deallocate memory
+	for (int i = 0; i < dim1; i++) 
+	{
+		for (int j = 0; j < dim2; j++){
+            for (int k = 0; k < dim3; k++){
+                free(array[i][j][k]);
+            }
+            free(array[i][j]);
+        }
+		free(array[i]);
+	}
+	free(array);
+}
+
+double*** init3DTensor(int dim1, int dim2, int dim3, double init){
     
     double ***array = (double ***)malloc(dim1*sizeof(double**));
     
@@ -369,7 +398,7 @@ double*** init3DArray(int dim1, int dim2, int dim3, double init){
     return array;
 }
 
-void free3DArray(double ***array, int dim1, int dim2){
+void free3DTensor(double ***array, int dim1, int dim2){
 	// deallocate memory
 	for (int i = 0; i < dim1; i++) 
 	{
@@ -381,7 +410,7 @@ void free3DArray(double ***array, int dim1, int dim2){
 	free(array);
 }
 
-int fill3DArray(double ***array, RaveObjectList_t* list, int dim1, int dim2, int dim3){
+int fill3DTensor(double ***array, RaveObjectList_t* list, int dim1, int dim2, int dim3){
 
     int nScan = RaveObjectList_size(list);
     int iParam = 0;
@@ -408,9 +437,11 @@ int fill3DArray(double ***array, RaveObjectList_t* list, int dim1, int dim2, int
         double value;
         RaveValueType valueType;
         
-        for(int iOrder = 0; iOrder < 4; iOrder++){
+        for(int iOrder = 0; iOrder < dim1; iOrder++){
             for(int iCartesianParam = 0; iCartesianParam < nCartesianParam; iCartesianParam++){
                 char* parameterName = RaveList_get(cartesianParameterNames, iCartesianParam);
+                
+                // make sure parameters are stored in order DBZ, VRAD, WRAD, RHOHV
                 switch(iOrder){
                     case 0:
                        if(strncmp("DBZ",parameterName,3)!=0){
@@ -469,8 +500,21 @@ int fill3DArray(double ***array, RaveObjectList_t* list, int dim1, int dim2, int
     return 0;
 }
 
+float* flatten3DTensor(double ***array, int dim1, int dim2, int dim3){
+    float* output = (float *)malloc(dim1 * dim2 * dim3 *sizeof(float));
+    float* temp = output;
+    for (int i=0 ; i < dim1 ; i++){
+        for (int j=0 ; j < dim2 ; j++){
+            for (int k=0 ; k < dim3 ; k++){
+                *temp = array[i][j][k];
+                temp++;
+            }
+        }
+    }
+    return output;
+}
 
-int mistnet3DArray(double ****array, PolarVolume_t* pvol, float elevs[], int nElevs, int dim, double res){
+int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****array, float elevs[], int nElevs, int dim, double res, int nParam){
     //Un-comment these two lines to save a rendering to file
     //Cartesian_t *cartesian = NULL;
     //cartesian = polarVolumeToCartesian(pvol, elevs, nElevs, dim, res, 0);            
@@ -485,10 +529,18 @@ int mistnet3DArray(double ****array, PolarVolume_t* pvol, float elevs[], int nEl
         fprintf(stderr, "Error: failed to load Cartesian objects from polar volume\n");
         return -1;
     }
+    
+    // if nParam is specified, restrict the number of output parameters to its value.
+    // nParam typically equals 3, selecting DBZ, VRAD and WRAD for Misnet segmentation model input.
+    if(nParam > 0){
+        if(nParam < nCartesianParam){
+            nCartesianParam = nParam;
+        }
+    }
 
     // initialize a 3D array, and fill it
-    *array = init3DArray(nCartesianParam,dim,dim,0);
-    fill3DArray(*array, list, nCartesianParam, dim, dim);
+    *array = init3DTensor(nCartesianParam,dim,dim,0);
+    fill3DTensor(*array, list, nCartesianParam, dim, dim);
 
     // clean up
     RAVE_OBJECT_RELEASE(list);

@@ -215,5 +215,7 @@
 #define CARTESIAN_ELEVATIONS "{0.5, 1.5, 2.5, 3.5, 4.5}"
 // resolution of the Cartesian grid in meter for Mistnet
 #define CARTESIAN_RESOLUTION 500
-// X and Y dimension of the Cartesian grid for Mistnet
-#define CARTESIAN_DIMENSION 600
+// X and Y dimension of the Cartesian grid for Mistnet,
+// including a 4 pixel padding around the image, i.e. 8
+// additional pixels.
+#define CARTESIAN_DIMENSION 608
