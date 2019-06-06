@@ -22,7 +22,7 @@ float**** create4DTensor( float* data, int dim1, int dim2, int dim3, int dim4) {
         return array;
 }
 
-int run_mistnet(float* tensor_in, float* tensor_out, const char* model_path) {
+extern "C" int run_mistnet(float* tensor_in, float* tensor_out, const char* model_path) {
         if (2 != 2) {
                 std::cerr << "usage: example-app <path-to-exported-script-module>\n";
                 return -1;
