@@ -8,7 +8,7 @@ double distance2range(double distance,double elev);
 
 double*** init3DTensor(int dim1, int dim2, int dim3, double init);
 
-float**** create4DTensor(float* data, int dim1, int dim2, int dim3, int dim4);
+float**** create4DTensor(int dim1, int dim2, int dim3, int dim4);
 
 int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****array, float elevs[], int nElevs, int dim, double res, int nParam);
 

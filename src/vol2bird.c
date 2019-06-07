@@ -277,15 +277,19 @@ int main(int argc, char** argv) {
     
     // convert polar volume into 3D tensor array
     double ***mistnetTensorInput3D = NULL;
-    int nCartesianParam = polarVolumeTo3DTensor(volume,&mistnetTensorInput3D,alldata.options.cartesianElevs,alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_RESOLUTION,3);
+    fprintf(stderr, "convert pvol to 3D tensor...\n");
+    int nCartesianParam = polarVolumeTo3DTensor(volume,&mistnetTensorInput3D,alldata.options.cartesianElevs,alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_RESOLUTION,3*alldata.options.cartesianNElevs);
     // flatten 3D tensor into a 1D array
     float *mistnetTensorInput;
-    mistnetTensorInput = flatten3DTensor(mistnetTensorInput3D,nCartesianParam*alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_DIMENSION);
+    fprintf(stderr, "flatten 3D tensor...\n");
+    mistnetTensorInput = flatten3DTensor(mistnetTensorInput3D,3*alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_DIMENSION);
     // run mistnet, which outputs a 1D array
-    float *mistnetTensorOutput = NULL;
-    run_mistnet(mistnetTensorInput, mistnetTensorOutput, "/Users/amd427/git/vol2bird/libmistnet/mistnet_v4.pt");
+    float *mistnetTensorOutput = (float *) malloc(3*alldata.options.cartesianNElevs*CARTESIAN_DIMENSION*CARTESIAN_DIMENSION*sizeof(float));
+    //float**** mistnetTensorOutput4D = create4DTensor(3,alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_DIMENSION);
+    fprintf(stderr, "START MISTNET...");
+    run_mistnet(mistnetTensorInput, &mistnetTensorOutput, "/Users/amd427/git/vol2bird/libmistnet/mistnet_v4.pt");
+    fprintf(stderr, "done\n");
     // convert mistnet 1D array into a 4D tensor
-    float**** mistnetTensorOutput4D = create4DTensor(mistnetTensorOutput,3,alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_DIMENSION);
     
     //clean up 3D array
     if(nCartesianParam > 0){
@@ -293,7 +297,7 @@ int main(int argc, char** argv) {
         free(mistnetTensorInput);
         free(mistnetTensorOutput);
         free3DTensor(mistnetTensorInput3D,nCartesianParam,CARTESIAN_RESOLUTION);
-        free4DTensor(mistnetTensorOutput4D, nCartesianParam, alldata.options.cartesianNElevs, CARTESIAN_RESOLUTION);
+        //free4DTensor(mistnetTensorOutput4D, nCartesianParam, alldata.options.cartesianNElevs, CARTESIAN_RESOLUTION);
     }
     
     // loading static clutter map upon request

@@ -14,7 +14,10 @@ float**** create4DTensor( float* data, int dim1, int dim2, int dim3, int dim4) {
                 for(int j=0 ; j < dim2 ; j++) {
                         array[i][j] = (float **)malloc(dim3 * sizeof(float*));
                         for (int k=0 ; k < dim3 ; k++){
-                                array[i][j][k] = data +  i * dim4 * dim3 * dim2 + j * dim4 * dim3 + k * dim4; 
+                        	array[i][j][k] = (float *)malloc(dim4 * sizeof(float));
+				for (int l=0 ; l < dim4 ; l++){
+                                	array[i][j][k][l] = data[i * dim4 * dim3 * dim2 + j * dim4 * dim3 + k * dim4 + l]; 
+				}
                         }
                 }
         }
@@ -22,41 +25,15 @@ float**** create4DTensor( float* data, int dim1, int dim2, int dim3, int dim4) {
         return array;
 }
 
-extern "C" int run_mistnet(float* tensor_in, float* tensor_out, const char* model_path) {
+extern "C" int run_mistnet(float* tensor_in, float** tensor_out, const char* model_path) {
         if (2 != 2) {
                 std::cerr << "usage: example-app <path-to-exported-script-module>\n";
                 return -1;
         }
 
-	// load the scan from the hard drives
-        
-        /*
-        cnpy::NpyArray dz = cnpy::npz_load("../dz/KBGM20030901_034952.npz", "rdata");
-        cnpy::NpyArray vr = cnpy::npz_load("../vr/KBGM20030901_034952.npz", "rdata");
-        cnpy::NpyArray sw = cnpy::npz_load("../sw/KBGM20030901_034952.npz", "rdata");
-
-        cnpy::NpyArray dz = cnpy::npz_load("../dz/KMOB20080901_040557_V03.npz", "rdata");
-        cnpy::NpyArray vr = cnpy::npz_load("../vr/KMOB20080901_040557_V03.npz", "rdata");
-        cnpy::NpyArray sw = cnpy::npz_load("../sw/KMOB20080901_040557_V03.npz", "rdata");
-
-
-        float* dz_ = dz.data<float>();
-        float* vr_ = vr.data<float>();
-        float* sw_ = sw.data<float>();
-
-	
-        // convert the 1d array of floating points into a torch tensor
-        at::Tensor tensor_dz = torch::from_blob(dz_, {1, 5, 608, 608}, at::kFloat);
-        at::Tensor tensor_vr = torch::from_blob(vr_, {1, 5, 608, 608}, at::kFloat);
-        at::Tensor tensor_sw = torch::from_blob(sw_, {1, 5, 608, 608}, at::kFloat);
-
-        */
-
         // ***************************************************************************
         // *************************                           ***********************
-        // *************************                           ***********************
         // ************************* the code to use the model ***********************
-        // *************************                           ***********************
         // *************************                           ***********************
         // ***************************************************************************
         std::shared_ptr<torch::jit::script::Module> module = torch::jit::load(model_path);
@@ -73,7 +50,6 @@ extern "C" int run_mistnet(float* tensor_in, float* tensor_out, const char* mode
         inputs_.push_back(inputs);
 
         at::Tensor output = module->forward(inputs_).toTensor();
-        tensor_out=output.data<float>();
 
         float**** output_array = create4DTensor(output.data<float>(), 3, 5, 608, 608);
 
@@ -90,15 +66,17 @@ extern "C" int run_mistnet(float* tensor_in, float* tensor_out, const char* mode
         */
 
         // sanity check
-        float* copy_output = (float *)malloc(3 * 5 * 608 * 608 *sizeof(float));
-        float* temp = copy_output;
-        for (int i=0 ; i < 3 ; i++)
-                for (int j=0 ; j < 5 ; j++)
-                        for (int k=0 ; k < 608 ; k++)
+        //float* copy_output = (float *)malloc(3 * 5 * 608 * 608 *sizeof(float));
+        //float* temp = copy_output;
+        for (int i=0 ; i < 3 ; i++){
+                for (int j=0 ; j < 5 ; j++){
+                        for (int k=0 ; k < 608 ; k++){
                                 for (int l=0 ; l < 608 ; l++){
-                                        *temp = output_array[i][j][k][l];
-                                        temp++;
+                                        (*tensor_out)[i*5*608*608 + j*608*608 +k*608 +l] = output_array[i][j][k][l];
                                 }
+			}
+		}
+	}
         //cnpy::npy_save("./copy_output.npy", copy_output, {1, 3, 5, 608, 608}, "w");
         return 0;
 }

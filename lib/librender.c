@@ -330,14 +330,14 @@ RaveObjectList_t* polarVolumeToCartesianList(PolarVolume_t* pvol, float elevs[],
 
 }
 
-float**** create4DTensor(float* data, int dim1, int dim2, int dim3, int dim4) {
+float**** create4DTensor(int dim1, int dim2, int dim3, int dim4) {
     float ****array = (float ****)malloc(dim1 * sizeof(float***));
     for(int i=0 ; i < dim1 ; i++) {
             array[i] = (float ***) malloc(dim2 * sizeof(float**));
             for(int j=0 ; j < dim2 ; j++) {
                     array[i][j] = (float **)malloc(dim3 * sizeof(float*));
                     for (int k=0 ; k < dim3 ; k++){
-                            array[i][j][k] = data +  i * dim4 * dim3 * dim2 + j * dim4 * dim3 + k * dim4;
+                            array[i][j][k] = (float *)malloc(dim4 * sizeof(float));
                     }
             }
     }
@@ -437,7 +437,7 @@ int fill3DTensor(double ***array, RaveObjectList_t* list, int dim1, int dim2, in
         double value;
         RaveValueType valueType;
         
-        for(int iOrder = 0; iOrder < dim1; iOrder++){
+        for(int iOrder = 0; iOrder < 3; iOrder++){
             for(int iCartesianParam = 0; iCartesianParam < nCartesianParam; iCartesianParam++){
                 char* parameterName = RaveList_get(cartesianParameterNames, iCartesianParam);
                 
@@ -460,6 +460,7 @@ int fill3DTensor(double ***array, RaveObjectList_t* list, int dim1, int dim2, in
                        break;
                     case 3:
                        if(strncmp("RHOHV",parameterName,5)!=0){
+                           // note: this case is never selected because iOrder<3
                            continue;                       
                        }
                        break;
