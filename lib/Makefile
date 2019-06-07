@@ -26,7 +26,10 @@ SRC_VOL2BIRD_DIR = .
 
 all : libvol2bird.so
 
-LIBVOL2BIRD_DEPS = constants.h libsvdfit.h libdealias.h librsl.h libvol2bird.h libsvdfit.c libdealias.c librsl.c libvol2bird.c
+../lib/libmistnet.so :
+	make -C ../libmistnet
+
+LIBVOL2BIRD_DEPS = ../lib/libmistnet.so constants.h libsvdfit.h libdealias.h librsl.h libvol2bird.h libsvdfit.c libdealias.c librsl.c libvol2bird.c
 
 libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	# ------------------------------------

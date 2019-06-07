@@ -10,12 +10,12 @@
 #include "librender.h"
 #include "libmistnet.h"
 
+// function prototypes
 double distance2range(double distance,double elev);
 double distance2height(double distance,double elev);
 Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nElevs, long dim, long res, double init);
 RaveObjectList_t* polarVolumeToCartesianList(PolarVolume_t* pvol, float elevs[], int nElevs, long dim, long res, double init, int *nParam);
 Cartesian_t* polarScanToCartesian(PolarScan_t* scan, long dim, long res, double init);
-
 void free4DTensor(float ****tensor, int dim1, int dim2, int dim3);
 float**** create4DTensor(float *array, int dim1, int dim2, int dim3, int dim4);
 double*** init3DTensor(int dim1, int dim2, int dim3, double init);
@@ -98,9 +98,6 @@ double distance2height(double distance,double elev){
 
 
 Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nElevs, long dim, long res, double init){
-    
-    // use only these elevations
-    // FIXME make this adjustable
     
     RAVE_ASSERT((pvol != NULL), "pvol == NULL");
         
@@ -196,7 +193,6 @@ Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nEle
                     a=PolarScan_getConvertedParameterValueAtAzimuthAndRange(scan,scanParameterName,azim,range,&value);
                     if(a==RaveValueType_DATA){
                         CartesianParam_setValue(cartesianParam, x, y, value);
-                        //fprintf(stderr,"no data at scan=%i,param=%s,azim=%f,range=%f,distance=%f,x=%li,y=%li,elev=%f\n",iElev,scanParameterName,azim,range,distance,xx,yy,elev*RAD2DEG);
                     }
                     else{
                         CartesianParam_setValue(cartesianParam, x, y, NAN);
@@ -267,9 +263,6 @@ RaveObjectList_t* polarVolumeToCartesianList(PolarVolume_t* pvol, float elevs[],
 
 Cartesian_t* polarScanToCartesian(PolarScan_t* scan, long dim, long res, double init){
     
-    // use only these elevations
-    // FIXME make this adjustable
-    
     RAVE_ASSERT((scan != NULL), "scan == NULL");
         
     // initialize scan, param, and cartesian RAVE objects
@@ -333,7 +326,6 @@ Cartesian_t* polarScanToCartesian(PolarScan_t* scan, long dim, long res, double 
                 a=PolarScan_getConvertedParameterValueAtAzimuthAndRange(scan,scanParameterName,azim,range,&value);
                 if(a==RaveValueType_DATA){
                     CartesianParam_setValue(cartesianParam, x, y, value);
-                    //fprintf(stderr,"no data at scan=%i,param=%s,azim=%f,range=%f,distance=%f,x=%li,y=%li,elev=%f\n",iElev,scanParameterName,azim,range,distance,xx,yy,elev*RAD2DEG);
                 }
                 else{
                     CartesianParam_setValue(cartesianParam, x, y, NAN);
@@ -585,9 +577,6 @@ int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, float elevs[],
 
 
 // segments biology from precipitation using mistnet deep convolution net.
-
-
-
 int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){
     // convert polar volume into 3D tensor array
     double ***mistnetTensorInput3D = NULL;
