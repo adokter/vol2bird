@@ -36,9 +36,8 @@
 #include "constants.h"
 #undef RAD2DEG // to suppress redefine warning, also defined in dealias.h
 #undef DEG2RAD // to suppress redefine warning, also defined in dealias.h
-//#include "dealias.h"
 #include "libdealias.h"
-#include "librender.h"
+#include "../libmistnet/librender.h"
 
 #ifdef RSL
 #include "rsl.h"
@@ -130,6 +129,8 @@ static int printMeta(PolarScan_t* scan, const char* quantity);
 static void printProfile(vol2bird_t* alldata);
 
 static int removeDroppedCells(CELLPROP *cellProp, const int nCells);
+
+// static int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata);
 
 static int selectCellsToDrop(CELLPROP *cellProp, int nCells, int dualpol, vol2bird_t* alldata);
 
@@ -447,7 +448,6 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
     
     
 };
-
 
 
 
@@ -3215,7 +3215,6 @@ void printImage(PolarScan_t* scan, const char* quantity) {
 
 
 
-
 static int printMeta(PolarScan_t* scan, const char* quantity) {
     
     fprintf(stderr,"scan->heig = %f\n",PolarScan_getHeight(scan));
@@ -4931,6 +4930,9 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->flags.flagPositionAzimTooLow = 7;
     alldata->flags.flagPositionAzimTooHigh = 8;
 
+    // segment precipitation using Mistnet deep convolutional neural net
+    segmentScansUsingMistnet(volume, alldata);
+
     // construct the 'points' array
     constructPointsArray(volume, scanUse, alldata);
 
@@ -5011,8 +5013,6 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     return 0;
 
 } // vol2birdSetUp
-
-
 
 
 void vol2birdTearDown(vol2bird_t* alldata) {

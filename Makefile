@@ -28,6 +28,7 @@ def.mk:
 
 .PHONY:build 
 build: def.mk
+	$(MAKE) -C libmistnet
 	$(MAKE) -C lib
 	$(MAKE) -C src
 	$(MAKE) -C pyvol2bird
@@ -35,6 +36,7 @@ build: def.mk
 
 .PHONY:install
 install: def.mk
+	$(MAKE) -C libmistnet install
 	$(MAKE) -C lib install
 	$(MAKE) -C src install
 	$(MAKE) -C pyvol2bird install
@@ -54,6 +56,7 @@ test: def.mk
 
 .PHONY:clean
 clean:
+	$(MAKE) -C libmistnet clean
 	$(MAKE) -C lib clean
 	$(MAKE) -C src clean
 	$(MAKE) -C pyvol2bird clean
@@ -63,6 +66,7 @@ clean:
 .PHONY:distclean
 distclean:
 	$(MAKE) -C lib distclean
+	$(MAKE) -C libmistnet distclean
 	$(MAKE) -C src distclean
 	$(MAKE) -C pyvol2bird distclean
 	$(MAKE) -C tests distclean
