@@ -10,20 +10,36 @@
 #include "librender.h"
 #include "libmistnet.h"
 
-// function prototypes
+/**
+ * FUNCTION PROTOTYPES
+ **/
 double distance2range(double distance,double elev);
+
 double distance2height(double distance,double elev);
+
 Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nElevs, long dim, long res, double init);
+
 RaveObjectList_t* polarVolumeToCartesianList(PolarVolume_t* pvol, float elevs[], int nElevs, long dim, long res, double init, int *nParam);
+
 Cartesian_t* polarScanToCartesian(PolarScan_t* scan, long dim, long res, double init);
+
 void free4DTensor(float ****tensor, int dim1, int dim2, int dim3);
+
 float**** create4DTensor(float *array, int dim1, int dim2, int dim3, int dim4);
+
 double*** init3DTensor(int dim1, int dim2, int dim3, double init);
+
 void free3DTensor(double ***tensor, int dim1, int dim2);
+
 int fill3DTensor(double ***tensor, RaveObjectList_t* list, int dim1, int dim2, int dim3);
+
 float* flatten3DTensor(double ***tensor, int dim1, int dim2, int dim3);
+
 int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, float elevs[], int nElevs, int dim, double res, int nParam);
 
+/**
+ * FUNCTION BODIES
+ **/
 
 /**
  * Convert from ground distance and elevation to slant range.
