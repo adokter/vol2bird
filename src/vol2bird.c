@@ -43,7 +43,7 @@
 // FIXME for testing only
 #include "librender.h"
 #include "cartesian.h"
-#include "/Users/amd427/git/vol2bird/libmistnet/mistnet.h"
+#include "../libmistnet/mistnet.h"
 
 void usage(char* programName, int verbose){
     fprintf(stderr,"vol2bird version %s (%s)\n", VERSION, VERSIONDATE);
@@ -283,7 +283,7 @@ int main(int argc, char** argv) {
     mistnetTensorInput = flatten3DTensor(mistnetTensorInput3D,nCartesianParam*alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_DIMENSION);
     // run mistnet, which outputs a 1D array
     float *mistnetTensorOutput = NULL;
-    run_mistnet(mistnetTensorInput, mistnetTensorOutput, "/Users/amd427/git/vol2bird/libmistnet/mistnet_v4.pt");
+    run_mistnet(mistnetTensorInput, mistnetTensorOutput, "/home/adriaan/git/vol2bird/libmistnet/mistnet_v4.pt");
     // convert mistnet 1D array into a 4D tensor
     float**** mistnetTensorOutput4D = create4DTensor(mistnetTensorOutput,3,alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_DIMENSION);
     
