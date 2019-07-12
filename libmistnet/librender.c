@@ -8,7 +8,38 @@
 #include "constants.h"
 #include "libvol2bird.h"
 #include "librender.h"
+#include "libmistnet.h"
 
+/**
+ * FUNCTION PROTOTYPES
+ **/
+double distance2range(double distance,double elev);
+
+double distance2height(double distance,double elev);
+
+Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nElevs, long dim, long res, double init);
+
+RaveObjectList_t* polarVolumeToCartesianList(PolarVolume_t* pvol, float elevs[], int nElevs, long dim, long res, double init, int *nParam);
+
+Cartesian_t* polarScanToCartesian(PolarScan_t* scan, long dim, long res, double init);
+
+void free4DTensor(float ****tensor, int dim1, int dim2, int dim3);
+
+float**** create4DTensor(float *array, int dim1, int dim2, int dim3, int dim4);
+
+double*** init3DTensor(int dim1, int dim2, int dim3, double init);
+
+void free3DTensor(double ***tensor, int dim1, int dim2);
+
+int fill3DTensor(double ***tensor, RaveObjectList_t* list, int dim1, int dim2, int dim3);
+
+float* flatten3DTensor(double ***tensor, int dim1, int dim2, int dim3);
+
+int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, float elevs[], int nElevs, int dim, double res, int nParam);
+
+/**
+ * FUNCTION BODIES
+ **/
 
 /**
  * Convert from ground distance and elevation to slant range.
@@ -83,9 +114,6 @@ double distance2height(double distance,double elev){
 
 
 Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nElevs, long dim, long res, double init){
-    
-    // use only these elevations
-    // FIXME make this adjustable
     
     RAVE_ASSERT((pvol != NULL), "pvol == NULL");
         
@@ -181,7 +209,6 @@ Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nEle
                     a=PolarScan_getConvertedParameterValueAtAzimuthAndRange(scan,scanParameterName,azim,range,&value);
                     if(a==RaveValueType_DATA){
                         CartesianParam_setValue(cartesianParam, x, y, value);
-                        //fprintf(stderr,"no data at scan=%i,param=%s,azim=%f,range=%f,distance=%f,x=%li,y=%li,elev=%f\n",iElev,scanParameterName,azim,range,distance,xx,yy,elev*RAD2DEG);
                     }
                     else{
                         CartesianParam_setValue(cartesianParam, x, y, NAN);
@@ -202,10 +229,55 @@ Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nEle
     return cartesian;
 };
 
-Cartesian_t* polarScanToCartesian(PolarScan_t* scan, long dim, long res, double init){
+
+
+
+RaveObjectList_t* polarVolumeToCartesianList(PolarVolume_t* pvol, float elevs[], int nElevs, long dim, long res, double init, int *nParam){
     
-    // use only these elevations
-    // FIXME make this adjustable
+    PolarScan_t *scan = NULL;
+    RaveObjectList_t* list;
+    Cartesian_t *cartesian = NULL;
+    
+    // create a new list
+    list = (RaveObjectList_t *) RAVE_OBJECT_NEW(&RaveObjectList_TYPE);
+    
+    int nScans;
+    // determine how many scan elevations the volume object contains
+    nScans = PolarVolume_getNumberOfScans(pvol);
+    
+    if(nScans<=0){
+        fprintf(stderr,"Error: polar volume contains no scans\n");
+        return NULL;
+    }
+
+    // get the number of elevations.
+    if(nElevs>nScans){
+        fprintf(stderr,"Warning: requesting %i elevations scans, but only %i available\n", nElevs, nScans);
+    }
+
+    // iterate over the selected scans in 'volume'
+    for (int iElev = 0; iElev < nElevs; iElev++) {
+                
+        // extract the scan object from the volume object
+        scan = PolarVolume_getScanClosestToElevation(pvol,DEG2RAD*elevs[iElev],0);
+                
+        cartesian = polarScanToCartesian(scan, dim, res, init);
+        
+        *nParam += Cartesian_getParameterCount(cartesian);
+        
+        RaveObjectList_add(list, (RaveCoreObject*) cartesian); 
+        
+        RAVE_OBJECT_RELEASE(cartesian);
+
+    }
+    
+    return list;
+
+}
+
+
+
+Cartesian_t* polarScanToCartesian(PolarScan_t* scan, long dim, long res, double init){
     
     RAVE_ASSERT((scan != NULL), "scan == NULL");
         
@@ -270,7 +342,6 @@ Cartesian_t* polarScanToCartesian(PolarScan_t* scan, long dim, long res, double 
                 a=PolarScan_getConvertedParameterValueAtAzimuthAndRange(scan,scanParameterName,azim,range,&value);
                 if(a==RaveValueType_DATA){
                     CartesianParam_setValue(cartesianParam, x, y, value);
-                    //fprintf(stderr,"no data at scan=%i,param=%s,azim=%f,range=%f,distance=%f,x=%li,y=%li,elev=%f\n",iElev,scanParameterName,azim,range,distance,xx,yy,elev*RAD2DEG);
                 }
                 else{
                     CartesianParam_setValue(cartesianParam, x, y, NAN);
@@ -287,103 +358,68 @@ Cartesian_t* polarScanToCartesian(PolarScan_t* scan, long dim, long res, double 
     return cartesian;
 };
 
-RaveObjectList_t* polarVolumeToCartesianList(PolarVolume_t* pvol, float elevs[], int nElevs, long dim, long res, double init, int *nParam){
-    
-    PolarScan_t *scan = NULL;
-    RaveObjectList_t* list;
-    Cartesian_t *cartesian = NULL;
-    
-    // create a new list
-    list = RAVE_OBJECT_NEW(&RaveObjectList_TYPE);
-    
-    int nScans;
-    // determine how many scan elevations the volume object contains
-    nScans = PolarVolume_getNumberOfScans(pvol);
-    
-    if(nScans<=0){
-        fprintf(stderr,"Error: polar volume contains no scans\n");
-        return NULL;
-    }
 
-    // get the number of elevations.
-    if(nElevs>nScans){
-        fprintf(stderr,"Warning: requesting %i elevations scans, but only %i available\n", nElevs, nScans);
-    }
-
-    // iterate over the selected scans in 'volume'
-    for (int iElev = 0; iElev < nElevs; iElev++) {
-                
-        // extract the scan object from the volume object
-        scan = PolarVolume_getScanClosestToElevation(pvol,DEG2RAD*elevs[iElev],0);
-                
-        cartesian = polarScanToCartesian(scan, dim, res, init);
-        
-        *nParam += Cartesian_getParameterCount(cartesian);
-        
-        RaveObjectList_add(list, (RaveCoreObject*) cartesian); 
-        
-        RAVE_OBJECT_RELEASE(cartesian);
-
-    }
-    
-    return list;
-
-}
-
-float**** create4DTensor(float* data, int dim1, int dim2, int dim3, int dim4) {
-    float ****array = (float ****)malloc(dim1 * sizeof(float***));
+float**** create4DTensor(float *array, int dim1, int dim2, int dim3, int dim4) {
+    float ****tensor = (float ****)malloc(dim1 * sizeof(float***));
     for(int i=0 ; i < dim1 ; i++) {
-            array[i] = (float ***) malloc(dim2 * sizeof(float**));
-            for(int j=0 ; j < dim2 ; j++) {
-                    array[i][j] = (float **)malloc(dim3 * sizeof(float*));
-                    for (int k=0 ; k < dim3 ; k++){
-                            array[i][j][k] = data +  i * dim4 * dim3 * dim2 + j * dim4 * dim3 + k * dim4;
-                    }
+        tensor[i] = (float ***) malloc(dim2 * sizeof(float**));
+        for(int j=0 ; j < dim2 ; j++) {
+            tensor[i][j] = (float **)malloc(dim3 * sizeof(float*));
+            for (int k=0 ; k < dim3 ; k++){
+                tensor[i][j][k] = (float *)malloc(dim4 * sizeof(float));
+                for (int l=0; l<dim4; l++){
+                    tensor[i][j][k][l] = array[i * dim4 * dim3 * dim2 + j * dim4 * dim3 + k * dim4 + l];
+                }                    
             }
+        }
     }
 
-    return array;
+    return tensor;
 }
 
-void free4DTensor(float ****array, int dim1, int dim2, int dim3){
+
+
+void free4DTensor(float ****tensor, int dim1, int dim2, int dim3){
 	// deallocate memory
 	for (int i = 0; i < dim1; i++) 
 	{
 		for (int j = 0; j < dim2; j++){
             for (int k = 0; k < dim3; k++){
-                free(array[i][j][k]);
+                free(tensor[i][j][k]);
             }
-            free(array[i][j]);
+            free(tensor[i][j]);
         }
-		free(array[i]);
+		free(tensor[i]);
 	}
-	free(array);
+	free(tensor);
 }
+
+    
 
 double*** init3DTensor(int dim1, int dim2, int dim3, double init){
     
-    double ***array = (double ***)malloc(dim1*sizeof(double**));
+    double ***tensor = (double ***)malloc(dim1*sizeof(double**));
     
-    if(array == NULL){
-        fprintf(stderr,"failed to initialize 3D array (1)");
+    if(tensor == NULL){
+        fprintf(stderr,"failed to initialize 3D tensor (1)");
         exit(0);
     }
     
     for (int i = 0; i< dim1; i++) {
 
-        array[i] = (double **) malloc(dim2*sizeof(double *));
+        tensor[i] = (double **) malloc(dim2*sizeof(double *));
         
-        if(array[i] == NULL){
-            fprintf(stderr,"failed to initialize 3D array (2)");
+        if(tensor[i] == NULL){
+            fprintf(stderr,"failed to initialize 3D tensor (2)");
             exit(0);
         }
         
         for (int j = 0; j < dim2; j++) {
             
-            array[i][j] = (double *)malloc(dim3*sizeof(double));
+            tensor[i][j] = (double *)malloc(dim3*sizeof(double));
             
-            if(array[i][j] == NULL){
-                fprintf(stderr,"failed to initialize 3D array (3)");
+            if(tensor[i][j] == NULL){
+                fprintf(stderr,"failed to initialize 3D tensor (3)");
                 exit(0);
             }
         } // j
@@ -393,24 +429,26 @@ double*** init3DTensor(int dim1, int dim2, int dim3, double init){
 	for (int i = 0; i < dim1; i++)
 		for (int j = 0; j < dim2; j++)
 			for (int k = 0; k < dim3; k++)
-				array[i][j][k] = init;
+				tensor[i][j][k] = init;
 
-    return array;
+    return tensor;
 }
 
-void free3DTensor(double ***array, int dim1, int dim2){
+void free3DTensor(double ***tensor, int dim1, int dim2){
 	// deallocate memory
 	for (int i = 0; i < dim1; i++) 
 	{
 		for (int j = 0; j < dim2; j++){
-            free(array[i][j]);
+            free(tensor[i][j]);
         }
-		free(array[i]);
+		free(tensor[i]);
 	}
-	free(array);
+	free(tensor);
 }
 
-int fill3DTensor(double ***array, RaveObjectList_t* list, int dim1, int dim2, int dim3){
+
+
+int fill3DTensor(double ***tensor, RaveObjectList_t* list, int dim1, int dim2, int dim3){
 
     int nScan = RaveObjectList_size(list);
     int iParam = 0;
@@ -437,9 +475,9 @@ int fill3DTensor(double ***array, RaveObjectList_t* list, int dim1, int dim2, in
         double value;
         RaveValueType valueType;
         
-        for(int iOrder = 0; iOrder < dim1; iOrder++){
+        for(int iOrder = 0; iOrder < 3; iOrder++){
             for(int iCartesianParam = 0; iCartesianParam < nCartesianParam; iCartesianParam++){
-                char* parameterName = RaveList_get(cartesianParameterNames, iCartesianParam);
+                char* parameterName = (char *) RaveList_get(cartesianParameterNames, iCartesianParam);
                 
                 // make sure parameters are stored in order DBZ, VRAD, WRAD, RHOHV
                 switch(iOrder){
@@ -460,6 +498,7 @@ int fill3DTensor(double ***array, RaveObjectList_t* list, int dim1, int dim2, in
                        break;
                     case 3:
                        if(strncmp("RHOHV",parameterName,5)!=0){
+                           // note: this case is never selected because iOrder<3
                            continue;                       
                        }
                        break;
@@ -470,20 +509,20 @@ int fill3DTensor(double ***array, RaveObjectList_t* list, int dim1, int dim2, in
                 fprintf(stderr,"writing %s at index %i\n",parameterName,iParam);
                 
                 if(iParam>=dim1){
-                   fprintf(stderr, "Error: exceeding 3D array dimension\n"); 
+                   fprintf(stderr, "Error: exceeding 3D tensor dimension\n"); 
                    RAVE_OBJECT_RELEASE(cartesianParam);
                    return(-1);
                 }
                 
-                // fill array
+                // fill tensor
                 for(int x = 0; x < xSize; x++){
                     for(int y = 0; y < ySize; y++){
                         valueType = CartesianParam_getValue(cartesianParam, x, y, &value);
                         if (valueType == RaveValueType_DATA){
-                            array[iParam][x][y] = value;
+                            tensor[iParam][x][y] = value;
                         }
                         else{
-                            array[iParam][x][y] = NAN;
+                            tensor[iParam][x][y] = NAN;
                         }
                     } //y
                 } //x
@@ -500,13 +539,14 @@ int fill3DTensor(double ***array, RaveObjectList_t* list, int dim1, int dim2, in
     return 0;
 }
 
-float* flatten3DTensor(double ***array, int dim1, int dim2, int dim3){
+
+float* flatten3DTensor(double ***tensor, int dim1, int dim2, int dim3){
     float* output = (float *)malloc(dim1 * dim2 * dim3 *sizeof(float));
     float* temp = output;
     for (int i=0 ; i < dim1 ; i++){
         for (int j=0 ; j < dim2 ; j++){
             for (int k=0 ; k < dim3 ; k++){
-                *temp = array[i][j][k];
+                *temp = tensor[i][j][k];
                 temp++;
             }
         }
@@ -514,7 +554,8 @@ float* flatten3DTensor(double ***array, int dim1, int dim2, int dim3){
     return output;
 }
 
-int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****array, float elevs[], int nElevs, int dim, double res, int nParam){
+
+int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, float elevs[], int nElevs, int dim, double res, int nParam){
     //Un-comment these two lines to save a rendering to file
     //Cartesian_t *cartesian = NULL;
     //cartesian = polarVolumeToCartesian(pvol, elevs, nElevs, dim, res, 0);            
@@ -538,9 +579,9 @@ int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****array, float elevs[], 
         }
     }
 
-    // initialize a 3D array, and fill it
-    *array = init3DTensor(nCartesianParam,dim,dim,0);
-    fill3DTensor(*array, list, nCartesianParam, dim, dim);
+    // initialize a 3D tensor, and fill it
+    *tensor = init3DTensor(nCartesianParam,dim,dim,0);
+    fill3DTensor(*tensor, list, nCartesianParam, dim, dim);
 
     // clean up
     RAVE_OBJECT_RELEASE(list);
@@ -549,3 +590,35 @@ int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****array, float elevs[], 
     
     return(nCartesianParam);
 }
+
+
+// segments biology from precipitation using mistnet deep convolution net.
+int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){
+    // convert polar volume into 3D tensor array
+    double ***mistnetTensorInput3D = NULL;
+    fprintf(stderr, "convert pvol to 3D tensor...\n");
+    int nCartesianParam = polarVolumeTo3DTensor(volume,&mistnetTensorInput3D,alldata->options.cartesianElevs,alldata->options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_RESOLUTION,3*alldata->options.cartesianNElevs);
+    // flatten 3D tensor into a 1D array
+    float *mistnetTensorInput;
+    fprintf(stderr, "flatten 3D tensor...\n");
+    mistnetTensorInput = flatten3DTensor(mistnetTensorInput3D,3*alldata->options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_DIMENSION);
+    // run mistnet, which outputs a 1D array
+    float *mistnetTensorOutput = (float *) malloc(3*alldata->options.cartesianNElevs*CARTESIAN_DIMENSION*CARTESIAN_DIMENSION*sizeof(float));
+    //float**** mistnetTensorOutput4D = create4DTensor(3,alldata->options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_DIMENSION);
+    fprintf(stderr, "START MISTNET...");
+    run_mistnet(mistnetTensorInput, &mistnetTensorOutput, MISTNET_PATH);
+    fprintf(stderr, "done\n");
+    // convert mistnet 1D array into a 4D tensor
+    float ****mistnetTensorOutput4D = create4DTensor(mistnetTensorOutput,3,alldata->options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_DIMENSION);
+    
+    //clean up 3D array
+    if(nCartesianParam > 0){
+        fprintf(stderr,"DONE WITH MISTNET, cleaning up %i params\n",nCartesianParam);
+        free(mistnetTensorInput);
+        free(mistnetTensorOutput);
+        free3DTensor(mistnetTensorInput3D,nCartesianParam,CARTESIAN_RESOLUTION);
+        free4DTensor(mistnetTensorOutput4D, 3, alldata->options.cartesianNElevs, CARTESIAN_RESOLUTION);
+    }
+    
+    return 0;
+}   // segmentScansUsingMistnet

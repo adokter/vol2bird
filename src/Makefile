@@ -16,10 +16,17 @@
 -include ../def.mk 
  
 CC      ?= gcc
-CXX     ?= g++
+CXX     = /usr/bin/c++  #note: has to be same compiler as used for Pytorch
 #CFLAGS  += -fPIC -x c -DFPRINTFON
 CFLAGS  += -I../lib -Wall -g
 LDFLAGS += -L../lib
+
+MISTNET_LIBRARY_FLAG = -L../libmistnet/build -L/Users/amd427/Documents/radar/mistnet/libtorch/lib/
+MISTNET_LIB = -lmistnet -ltorch -lc10 -lcaffe2
+MISTNET_LIBRARY_FLAG = -L/Users/amd427/Documents/radar/mistnet/libtorch/lib/
+MISTNET_LIB = -ltorch -lc10 -lcaffe2
+MISTNET_LIBRARY_FLAG =  -L../libmistnet
+MISTNET_LIB =
 
 # define where the vol2bird stuff is
 #SRC_VOL2BIRD_DIR         = /projects/baltrad/vol2bird/lib
@@ -36,6 +43,8 @@ endif
 
 ../lib/libvol2bird.so :
 	make -C ../lib libvol2bird.so
+../lib/libmistnet.so :
+	make -C ../libmistnet libmistnet.so
 
 VOL2BIRD_DEPS = vol2bird.c ../lib/libvol2bird.h ../lib/constants.h
 RSL2ODIM_DEPS = rsl2odim.c ../lib/libvol2bird.h
@@ -50,18 +59,18 @@ vol2bird.o : vol2bird.c
 	-I. \
 	$(RAVE_MODULE_CFLAGS) \
 
-vol2bird : ../lib/libvol2bird.so $(VOL2BIRD_DEPS)
+vol2bird : ../lib/libvol2bird.so ../lib/libmistnet.so $(VOL2BIRD_DEPS)
 	#
 	# ------------------------------------
-	#       making vol2bird
+	#       linking vol2bird
 	# ------------------------------------
 	#
-	$(CXX) -o vol2bird vol2bird.o -L/home/adriaan/src/libtorch/lib/ \
+	$(CXX) -o vol2bird vol2bird.o ../libmistnet/libmistnet.so \
 	$(RAVE_MODULE_LDFLAGS) \
 	$(PROJ_LIBRARY_FLAG) \
 	$(RSL_LIBRARY_FLAG) \
-        -L../libmistnet/build \
-	-lvol2bird -lmistnet -ltorch -lc10 -lcaffe2 $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) $(IRIS_LIB) $(LDFLAGS)
+	$(MISTNET_LIBRARY_FLAG) \
+	-lvol2bird -lmistnet $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) $(IRIS_LIB) $(MISTNET_LIB) $(LDFLAGS)
 	
 rsl2odim : ../lib/libvol2bird.so $(RSL2ODIM_DEPS)
 	#

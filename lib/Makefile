@@ -26,7 +26,10 @@ SRC_VOL2BIRD_DIR = .
 
 all : libvol2bird.so
 
-LIBVOL2BIRD_DEPS = constants.h libsvdfit.h libdealias.h librsl.h librender.h libvol2bird.h libsvdfit.c libdealias.c librsl.c librender.c libvol2bird.c
+../lib/libmistnet.so :
+	make -C ../libmistnet
+
+LIBVOL2BIRD_DEPS = ../lib/libmistnet.so constants.h libsvdfit.h libdealias.h librsl.h libvol2bird.h libsvdfit.c libdealias.c librsl.c libvol2bird.c
 
 libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	# ------------------------------------
@@ -47,9 +50,9 @@ libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	$(SRC_VOL2BIRD_DIR)/libsvdfit.c \
 	$(SRC_VOL2BIRD_DIR)/libdealias.c \
 	$(SRC_VOL2BIRD_DIR)/librsl.c \
-	$(SRC_VOL2BIRD_DIR)/librender.c \
+	-L../libmistnet \
 	$(LDFLAGS) \
-	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lgsl -lgslcblas $(RSL_LIB) $(IRIS_LIB) -lm
+	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lmistnet -lconfuse -lgsl -lgslcblas $(RSL_LIB) $(IRIS_LIB) -lm
 
 .PHONY : install
 install : libvol2bird.so

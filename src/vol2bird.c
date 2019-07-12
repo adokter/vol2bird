@@ -40,11 +40,6 @@
 #include "hlhdf_debug.h"
 #include "rave_debug.h"
 
-// FIXME for testing only
-#include "librender.h"
-#include "cartesian.h"
-#include "../libmistnet/mistnet.h"
-
 void usage(char* programName, int verbose){
     fprintf(stderr,"vol2bird version %s (%s)\n", VERSION, VERSIONDATE);
     fprintf(stderr,"   usage: %s <polar volume> [<ODIM hdf5 profile output> [<ODIM hdf5 volume output>]]\n",programName);
@@ -79,6 +74,7 @@ void usage(char* programName, int verbose){
         fprintf(stderr,"   vol2bird home page: <http://github.com/adokter/vol2bird>\n");
     }
 }
+
 
 int main(int argc, char** argv) {
 //    cfg_t* cfg;
@@ -275,28 +271,7 @@ int main(int argc, char** argv) {
         return -1;
     }
     
-    // convert polar volume into 3D tensor array
-    double ***mistnetTensorInput3D = NULL;
-    int nCartesianParam = polarVolumeTo3DTensor(volume,&mistnetTensorInput3D,alldata.options.cartesianElevs,alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_RESOLUTION,3);
-    // flatten 3D tensor into a 1D array
-    float *mistnetTensorInput;
-    mistnetTensorInput = flatten3DTensor(mistnetTensorInput3D,nCartesianParam*alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_DIMENSION);
-    // run mistnet, which outputs a 1D array
-    float *mistnetTensorOutput = NULL;
-    run_mistnet(mistnetTensorInput, mistnetTensorOutput, "/home/adriaan/git/vol2bird/libmistnet/mistnet_v4.pt");
-    // convert mistnet 1D array into a 4D tensor
-    float**** mistnetTensorOutput4D = create4DTensor(mistnetTensorOutput,3,alldata.options.cartesianNElevs,CARTESIAN_DIMENSION,CARTESIAN_DIMENSION);
-    
-    //clean up 3D array
-    if(nCartesianParam > 0){
-        fprintf(stderr,"DONE WITH MISTNET, cleaning up %i params\n",nCartesianParam);
-        free(mistnetTensorInput);
-        free(mistnetTensorOutput);
-        free3DTensor(mistnetTensorInput3D,nCartesianParam,CARTESIAN_RESOLUTION);
-        free4DTensor(mistnetTensorOutput4D, nCartesianParam, alldata.options.cartesianNElevs, CARTESIAN_RESOLUTION);
-    }
-    
-    // loading static clutter map upon request
+   // loading static clutter map upon request
     if (alldata.options.useClutterMap){
         int clutterSuccessful = vol2birdLoadClutterMap(volume, alldata.options.clutterMap,alldata.misc.rCellMax) == 0;
         
@@ -337,7 +312,7 @@ int main(int argc, char** argv) {
     
     
     // ------------------------------------------------------------------- //
-    //  example of how the getters can be used to get at the profile data  //
+    //  using getter functions to access at the profile data               //
     // ------------------------------------------------------------------- //
     const char* date;
     const char* time;
@@ -388,7 +363,7 @@ int main(int argc, char** argv) {
             free((void*) profileBio);
 
         //}
-    } // getter example scope end
+    } // getter scope end
 
 
 

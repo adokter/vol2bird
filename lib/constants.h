@@ -219,3 +219,6 @@
 // including a 4 pixel padding around the image, i.e. 8
 // additional pixels.
 #define CARTESIAN_DIMENSION 608
+// location of mistnet model in pytorch format
+// FIXME: change to user option
+#define MISTNET_PATH "/Users/amd427/git/vol2bird/libmistnet/mistnet_v4.pt"
