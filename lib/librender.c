@@ -8,7 +8,9 @@
 #include "constants.h"
 #include "libvol2bird.h"
 #include "librender.h"
+#ifdef MISTNET
 #include "../libmistnet/libmistnet.h"
+#endif
 
 /**
  * FUNCTION PROTOTYPES
@@ -591,6 +593,7 @@ int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, float elevs[],
     return(nCartesianParam);
 }
 
+#ifdef MISTNET
 
 // segments biology from precipitation using mistnet deep convolution net.
 int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){
@@ -622,3 +625,5 @@ int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){
     
     return 0;
 }   // segmentScansUsingMistnet
+
+#endif

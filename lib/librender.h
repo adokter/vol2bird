@@ -25,7 +25,9 @@ void free3DTensor(double ***tensor, int dim1, int dim2);
 
 void free4DTensor(float ****tensor, int dim1, int dim2, int dim3);
 
+#ifdef MISTNET 
 int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata);
+#endif MISTNET
 
 #ifdef __cplusplus
 }

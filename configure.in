@@ -586,7 +586,9 @@ AC_SUBST(MISTNET_CFLAG)
 
 AC_SUBST(LD_PRINTOUT)
 AC_CONFIG_FILES(def.mk)
-AC_CONFIG_FILES(libmistnet/configure)
+if [[ "x$TORCH_SUPPRESSED" = "xno" ]]; then
+	AC_CONFIG_FILES(libmistnet/configure)
+fi
 AC_OUTPUT
 
 if [[ "x$TORCH_SUPPRESSED" = "xno" ]]; then

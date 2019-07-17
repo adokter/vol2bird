@@ -4931,7 +4931,9 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->flags.flagPositionAzimTooHigh = 8;
 
     // segment precipitation using Mistnet deep convolutional neural net
+    #ifdef MISTNET
     segmentScansUsingMistnet(volume, alldata);
+    #endif
 
     // construct the 'points' array
     constructPointsArray(volume, scanUse, alldata);

@@ -31,7 +31,7 @@ libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	# ------------------------------------
 	#        making libvol2bird.so        
 	# ------------------------------------
-	$(CC) $(CFLAGS) \
+	$(CC) $(CFLAGS) $(MISTNET_CFLAG) \
 	$(RAVE_MODULE_CFLAGS) \
 	-I. \
 	$(CONFUSE_INCLUDE_FLAG) \
