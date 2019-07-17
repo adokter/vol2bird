@@ -182,7 +182,7 @@ Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nEle
             // retrieve name of the scan parameter
             scanParameterName = RaveList_get(scanParameterNames, iParam);
             
-            char iElevString[4];
+            char iElevString[11];
             // copy iElev to iElevString
             sprintf(iElevString, "%d", iElev);
 

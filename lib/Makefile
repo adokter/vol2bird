@@ -1,4 +1,3 @@
-#
 # Copyright 2013 Netherlands eScience Center
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +28,7 @@ all : libvol2bird.so
 ../lib/libmistnet.so :
 	make -C ../libmistnet
 
-LIBVOL2BIRD_DEPS = ../lib/libmistnet.so constants.h libsvdfit.h libdealias.h librsl.h libvol2bird.h libsvdfit.c libdealias.c librsl.c libvol2bird.c
+LIBVOL2BIRD_DEPS = ../lib/libmistnet.so librender.h constants.h libsvdfit.h libdealias.h librsl.h libvol2bird.h librender.c libsvdfit.c libdealias.c librsl.c libvol2bird.c
 
 libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	# ------------------------------------
