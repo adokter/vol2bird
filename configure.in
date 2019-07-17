@@ -2,7 +2,7 @@ dnl	This file is an input file used by the GNU "autoconf" program to
 dnl	generate the file "configure", which is run during vol2bird 
 dnl	installation to configure the system for the local environment.
 
-AC_INIT([vol2bird],[0.3.0])
+AC_INIT([vol2bird],[0.4.1])
 
 if test "${prefix}" = "NONE"; then
 	prefix=/opt/radar/vol2bird
@@ -26,7 +26,7 @@ TORCH_INCLUDE_FLAG=
 TORCH_LIBRARY_FLAG=
 MISTNET_LIB=
 MISTNET_CFLAG=
-AC_ARG_WITH(libtorch,[  --with-libtorch=DIR	  The libtorch root installation directory],
+AC_ARG_WITH(libtorch,[  --with-libtorch=DIR	  The libtorch root installation directory. Specify to enable Mistnet],
 		,withval=no)
 
 case $withval in
