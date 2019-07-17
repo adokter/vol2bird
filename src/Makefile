@@ -26,7 +26,7 @@ MISTNET_LIB =
 
 MISTNET_INCLUDE_FLAG = -I/home/adriaan/src/libtorch/include/
 MISTNET_LIBRARY_FLAG = -L/home/adriaan/src/libtorch/lib/ -L../libmistnet
-MISTNET_LIB = -ltorch -lc10 -lcaffe2
+MISTNET_LIB = -lmistnet -ltorch -lc10 -lcaffe2 
 
 
 # define where the vol2bird stuff is
@@ -44,8 +44,6 @@ endif
 
 ../lib/libvol2bird.so :
 	make -C ../lib libvol2bird.so
-../lib/libmistnet.so :
-	make -C ../libmistnet libmistnet.so
 
 VOL2BIRD_DEPS = vol2bird.c ../lib/libvol2bird.h ../lib/constants.h
 RSL2ODIM_DEPS = rsl2odim.c ../lib/libvol2bird.h
@@ -60,13 +58,13 @@ vol2bird.o : vol2bird.c
 	-I. \
 	$(RAVE_MODULE_CFLAGS) \
 
-vol2bird : ../lib/libvol2bird.so ../lib/libmistnet.so $(VOL2BIRD_DEPS)
+vol2bird : ../lib/libvol2bird.so $(VOL2BIRD_DEPS)
 	#
 	# ------------------------------------
 	#       linking vol2bird
 	# ------------------------------------
 	#
-	$(CXX) -o vol2bird vol2bird.o ../libmistnet/librender.o ../libmistnet/libmistnet.a \
+	$(CXX) -o vol2bird vol2bird.o \
 	$(RAVE_MODULE_LDFLAGS) \
 	$(PROJ_LIBRARY_FLAG) \
 	$(RSL_LIBRARY_FLAG) \
@@ -123,12 +121,12 @@ clean :
 .PHONY : distclean
 distclean:
 	@if [ -f "./vol2bird" ]; then \
-		\rm vol2bird; \
+		\rm -f vol2bird; \
 	fi
 	@if [ -f "./rsl2odim" ]; then \
-		\rm rsl2odim; \
+		\rm -f rsl2odim; \
 	fi
 	@if [ -f "./vol2bird.o" ]; then \
-		\rm volbird.o; \
+		\rm -f volbird.o; \
 	fi
 	@\rm -f *~

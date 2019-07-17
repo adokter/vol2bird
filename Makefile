@@ -65,8 +65,8 @@ clean:
 .PHONY:distclean
 distclean:
 	$(MAKE) -C lib distclean
-	$(MAKE) -C libmistnet distclean
 	$(MAKE) -C src distclean
 	$(MAKE) -C pyvol2bird distclean
 	$(MAKE) -C tests distclean
 	@\rm -f *~ config.log config.status def.mk
+	@\rm -rf libmistnet/CMakeFiles libmistnet/Makefile libmistnet/cmake_install.cmake libmistnet/CMakeCache.txt libmistnet/install_manifest.txt

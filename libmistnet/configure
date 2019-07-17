@@ -1,3 +1,7 @@
-export CC=/usr/bin/gcc
-export CXX=/usr/bin/c++
-cmake -DCMAKE_PREFIX_PATH=/home/adriaan/src/libtorch/ -DCMAKE_INSTALL_PREFIX=.. ..
+#!/bin/bash
+if [[ $# < 1 ]]; then
+  me=`basename "$0"`
+  echo "$me <libtorch root directory>"
+  exit
+fi
+cmake -DCMAKE_PREFIX_PATH=$1 -DCMAKE_INSTALL_PREFIX=../lib .

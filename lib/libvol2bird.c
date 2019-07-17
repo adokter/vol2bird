@@ -37,7 +37,7 @@
 #undef RAD2DEG // to suppress redefine warning, also defined in dealias.h
 #undef DEG2RAD // to suppress redefine warning, also defined in dealias.h
 #include "libdealias.h"
-#include "../libmistnet/librender.h"
+#include "librender.h"
 
 #ifdef RSL
 #include "rsl.h"

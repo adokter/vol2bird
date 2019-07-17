@@ -8,7 +8,7 @@
 #include "constants.h"
 #include "libvol2bird.h"
 #include "librender.h"
-#include "libmistnet.h"
+#include "../libmistnet/libmistnet.h"
 
 /**
  * FUNCTION PROTOTYPES

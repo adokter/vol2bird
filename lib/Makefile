@@ -17,7 +17,7 @@
 # use gcc if not set already
 CC      ?= gcc
 #CFLAGS  += $(RSL_CFLAG) -fPIC -x c -DFPRINTFON
-CFLAGS  += $(RSL_CFLAG) $(IRIS_CFLAG) -fPIC -g -x c
+CFLAGS  += $(RSL_CFLAG) $(IRIS_CFLAG) -fPIC -g -x c 
 LDFLAGS += -shared -Wall
 
 # define where the vol2bird stuff is
@@ -25,10 +25,7 @@ SRC_VOL2BIRD_DIR = .
 
 all : libvol2bird.so
 
-../lib/libmistnet.so :
-	make -C ../libmistnet
-
-LIBVOL2BIRD_DEPS = ../lib/libmistnet.so librender.h constants.h libsvdfit.h libdealias.h librsl.h libvol2bird.h librender.c libsvdfit.c libdealias.c librsl.c libvol2bird.c
+LIBVOL2BIRD_DEPS = librender.h constants.h libsvdfit.h libdealias.h librsl.h libvol2bird.h librender.c libsvdfit.c libdealias.c librsl.c libvol2bird.c
 
 libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	# ------------------------------------
@@ -49,9 +46,9 @@ libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	$(SRC_VOL2BIRD_DIR)/libsvdfit.c \
 	$(SRC_VOL2BIRD_DIR)/libdealias.c \
 	$(SRC_VOL2BIRD_DIR)/librsl.c \
-	-L../libmistnet \
+	$(SRC_VOL2BIRD_DIR)/librender.c \
 	$(LDFLAGS) \
-	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lmistnet -lconfuse -lgsl -lgslcblas $(RSL_LIB) $(IRIS_LIB) -lm
+	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lgsl -lgslcblas $(RSL_LIB) $(IRIS_LIB) -lm
 
 .PHONY : install
 install : libvol2bird.so
