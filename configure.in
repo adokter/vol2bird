@@ -18,6 +18,41 @@ AC_PROG_CPP
 
 LIBS=-lm
 
+dnl Check that we install libmistnet
+dnl
+TORCH_DIR=
+TORCH_SUPPRESSED=no
+TORCH_INCLUDE_FLAG=
+TORCH_LIBRARY_FLAG=
+MISTNET_LIB=
+MISTNET_CFLAG=
+AC_ARG_WITH(libtorch,[  --with-libtorch=DIR	  The libtorch root installation directory],
+		,withval=no)
+
+case $withval in
+	yes)
+		AC_MSG_ERROR("path of libtorch installation not specified by --with-libtorch=<libtorch path>")
+		;;
+	no)
+                AC_MSG_CHECKING(for libtorch lib)
+		AC_MSG_RESULT(suppressed)
+		TORCH_SUPPRESSED=yes
+		;;
+	*)
+		if [[ "$withval" != "" ]]; then
+			AC_MSG_CHECKING(for libtorch library path)
+			AC_MSG_RESULT(found)
+			TORCH_DIR="$withval"
+			TORCH_INCLUDE_FLAG="$withval/include"
+			TORCH_LIBRARY_FLAG="$withval/lib"
+			MISTNET_LIB="-lmistnet -ltorch -lc10 -lcaffe2"
+			MISTNET_CFLAG=-DMISTNET
+		else
+      			AC_MSG_ERROR("Odd argument passed for libtorch")
+		fi
+		;;
+esac
+
 dnl Check that we have libconfuse installed
 dnl
 CONFUSE_INCLUDE_DIR=
@@ -543,9 +578,21 @@ AC_SUBST(GOT_IRIS_LIB)
 AC_SUBST(RAINBOW_CFLAG)
 AC_SUBST(RAINBOW_LIB)
 AC_SUBST(GOT_RAINBOW_LIB)
+AC_SUBST(TORCH_DIR)
+AC_SUBST(TORCH_INCLUDE_FLAG)
+AC_SUBST(TORCH_LIBRARY_FLAG)
+AC_SUBST(MISTNET_LIB)
+AC_SUBST(MISTNET_CFLAG)
 
 AC_SUBST(LD_PRINTOUT)
-
 AC_CONFIG_FILES(def.mk)
+AC_CONFIG_FILES(libmistnet/configure)
 AC_OUTPUT
 
+if [[ "x$TORCH_SUPPRESSED" = "xno" ]]; then
+	AC_MSG_NOTICE(starting CMake configuration of libmistnet)
+	cd libmistnet
+	chmod 755 configure
+	./configure
+	AC_MSG_RESULT(done)
+fi

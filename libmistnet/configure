@@ -1,7 +1,0 @@
-#!/bin/bash
-if [[ $# < 1 ]]; then
-  me=`basename "$0"`
-  echo "$me <libtorch root directory>"
-  exit
-fi
-cmake -DCMAKE_PREFIX_PATH=$1 -DCMAKE_INSTALL_PREFIX=../lib .

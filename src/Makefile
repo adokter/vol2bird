@@ -21,14 +21,6 @@ CXX     = /usr/bin/c++   #note: has to be same compiler as used for Pytorch
 CFLAGS  += -I../lib -Wall -g
 LDFLAGS += -L../lib
 
-MISTNET_LIBRARY_FLAG =  -L../libmistnet
-MISTNET_LIB =
-
-MISTNET_INCLUDE_FLAG = -I/home/adriaan/src/libtorch/include/
-MISTNET_LIBRARY_FLAG = -L/home/adriaan/src/libtorch/lib/ -L../libmistnet
-MISTNET_LIB = -lmistnet -ltorch -lc10 -lcaffe2 
-
-
 # define where the vol2bird stuff is
 #SRC_VOL2BIRD_DIR         = /projects/baltrad/vol2bird/lib
 #SRC_VOL2BIRD_DIR         = /Users/adriaan/git/vol2bird/lib
