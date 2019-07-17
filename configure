@@ -3046,9 +3046,9 @@ $as_echo "suppressed" >&6; }
 $as_echo_n "checking for libtorch library path... " >&6; }
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
 $as_echo "found" >&6; }
-			TORCH_DIR="$withval"
-			TORCH_INCLUDE_FLAG="$withval/include"
-			TORCH_LIBRARY_FLAG="$withval/lib"
+			TORCH_DIR="`echo $withval`"
+			TORCH_INCLUDE_FLAG="-I$TORCH_DIR/include"
+			TORCH_LIBRARY_FLAG="-L$TORCH_DIR/lib"
 			MISTNET_LIB="-lmistnet -ltorch -lc10 -lcaffe2"
 			MISTNET_CFLAG=-DMISTNET
 		else
@@ -4857,6 +4857,8 @@ fi
 
 ac_config_files="$ac_config_files def.mk"
 
+ac_config_files="$ac_config_files libmistnet/configure"
+
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -5563,6 +5565,7 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "def.mk") CONFIG_FILES="$CONFIG_FILES def.mk" ;;
+    "libmistnet/configure") CONFIG_FILES="$CONFIG_FILES libmistnet/configure" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -6017,6 +6020,7 @@ if [ "x$TORCH_SUPPRESSED" = "xno" ]; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: starting CMake configuration of libmistnet" >&5
 $as_echo "$as_me: starting CMake configuration of libmistnet" >&6;}
 	cd libmistnet
+	chmod 755 configure
 	./configure
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
 $as_echo "done" >&6; }

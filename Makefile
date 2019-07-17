@@ -70,6 +70,6 @@ distclean:
 	$(MAKE) -C src distclean
 	$(MAKE) -C pyvol2bird distclean
 	$(MAKE) -C tests distclean
-	@\rm -rf libmistnet/CMakeFiles libmistnet/Makefile libmistnet/cmake_install.cmake
+	@\rm -rf libmistnet/CMakeFiles libmistnet/Makefile libmistnet/configure libmistnet/cmake_install.cmake
 	@\rm -f libmistnet/CMakeCache.txt libmistnet/install_manifest.txt libmistnet/libmistnet.a
 	@\rm -f *~ config.log config.status def.mk

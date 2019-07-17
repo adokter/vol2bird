@@ -42,9 +42,9 @@ case $withval in
 		if [[ "$withval" != "" ]]; then
 			AC_MSG_CHECKING(for libtorch library path)
 			AC_MSG_RESULT(found)
-			TORCH_DIR="$withval"
-			TORCH_INCLUDE_FLAG="$withval/include"
-			TORCH_LIBRARY_FLAG="$withval/lib"
+			TORCH_DIR="`echo $withval`"
+			TORCH_INCLUDE_FLAG="-I$TORCH_DIR/include"
+			TORCH_LIBRARY_FLAG="-L$TORCH_DIR/lib"
 			MISTNET_LIB="-lmistnet -ltorch -lc10 -lcaffe2"
 			MISTNET_CFLAG=-DMISTNET
 		else
