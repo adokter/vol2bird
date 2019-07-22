@@ -15,10 +15,10 @@
 -include ../def.mk 
  
 # use gcc if not set already
-CC      = /usr/bin/c++
+CC      = gcc
 #CFLAGS  += $(RSL_CFLAG) -fPIC -x c -DFPRINTFON
 CFLAGS  += $(RSL_CFLAG) $(IRIS_CFLAG) -fPIC -g -x c 
-LDFLAGS += -shared -Wall
+LDFLAGS += -shared -undefined dynamic_lookup -Wall
 
 # define where the vol2bird stuff is
 SRC_VOL2BIRD_DIR = .
@@ -48,7 +48,7 @@ libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	$(SRC_VOL2BIRD_DIR)/librsl.c \
 	$(SRC_VOL2BIRD_DIR)/librender.c \
 	$(LDFLAGS) \
-	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lgsl -lgslcblas $(RSL_LIB) $(IRIS_LIB) $(MISTNET_INCLUDE_FLAG) $(MISTNET_LIBRARY_FLAG) $(MISTNET_LIB)
+	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lgsl -lgslcblas $(RSL_LIB) $(IRIS_LIB)
 
 .PHONY : install
 install : libvol2bird.so
