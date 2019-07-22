@@ -15,7 +15,7 @@
 -include ../def.mk 
  
 # use gcc if not set already
-CC      = gcc
+CC      = /usr/bin/gcc
 #CFLAGS  += $(RSL_CFLAG) -fPIC -x c -DFPRINTFON
 CFLAGS  += $(RSL_CFLAG) $(IRIS_CFLAG) -fPIC -g -x c 
 LDFLAGS += -shared -undefined dynamic_lookup -Wall
