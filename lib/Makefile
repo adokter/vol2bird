@@ -18,7 +18,13 @@
 CC      = /usr/bin/gcc
 #CFLAGS  += $(RSL_CFLAG) -fPIC -x c -DFPRINTFON
 CFLAGS  += $(RSL_CFLAG) $(IRIS_CFLAG) -fPIC -g -x c 
-LDFLAGS += -shared -undefined dynamic_lookup -Wall
+LDFLAGS += -shared -Wall
+
+# set linker flag on OSX
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+	LDFLAGS += -undefined dynamic_lookup
+endif
 
 # define where the vol2bird stuff is
 SRC_VOL2BIRD_DIR = .
