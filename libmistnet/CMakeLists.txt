@@ -3,6 +3,8 @@ project(mistnet)
 
 find_package(Torch REQUIRED)
 
-add_library(mistnet STATIC libmistnet.cpp)
+add_library(mistnet SHARED libmistnet.cpp)
 target_link_libraries(mistnet "${TORCH_LIBRARIES}" z)
 set_property(TARGET mistnet PROPERTY CXX_STANDARD 11)
+set_property(TARGET mistnet PROPERTY SUFFIX ".so")
+install(TARGETS mistnet DESTINATION lib)
