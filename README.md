@@ -1,7 +1,7 @@
 ## Vertical profiling of biological scatterers
 **vol2bird** is an algorithm that calculates vertical profiles of birds and other biological scatterers from weather radar data. **vol2bird** is written in C.
 
-See this publications for a description of the methodology:
+See these publications for a description of the methodology:
 
 [**Bird migration flight altitudes studied by a network of operational weather radars**](https://doi.org/10.1098/rsif.2010.0116)  
 Dokter AM, Liechti F, Stark H, Delobbe L, Tabary P, Holleman I  
@@ -11,7 +11,7 @@ Recent algorithm extensions and integration with the [bioRad R package](http://a
 
 [**bioRad: biological analysis and visualization of weather radar data**](https://doi.org/10.1111/ecog.04028)  
 Dokter AM, Desmet P, Spaaks JH, van Hoey S, Veen L, Verlinden L, Nilsson C, Haase G, Leijnse H, Farnsworth A, Bouten W, Shamoun-Baranes J.  
-Ecography, 2018, DOI [10.1111/ecog.04028](https://doi.org/10.1111/ecog.04028)  
+Ecography, **42**, 852-860, 2019, DOI [10.1111/ecog.04028](https://doi.org/10.1111/ecog.04028)  
 
 ### repository contents
 
