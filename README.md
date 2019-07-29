@@ -11,7 +11,7 @@ Recent algorithm extensions and integration with the [bioRad R package](http://a
 
 [**bioRad: biological analysis and visualization of weather radar data**](https://doi.org/10.1111/ecog.04028)  
 Dokter AM, Desmet P, Spaaks JH, van Hoey S, Veen L, Verlinden L, Nilsson C, Haase G, Leijnse H, Farnsworth A, Bouten W, Shamoun-Baranes J.  
-Ecography, 2018, DOI [10.1111/ecog.04028](https://doi.org/10.1111/ecog.04028)  
+Ecography, **42**, 852-860, 2019, DOI [10.1111/ecog.04028](https://doi.org/10.1111/ecog.04028)  
 
 ### repository contents
 
