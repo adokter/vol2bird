@@ -19,7 +19,7 @@
 // when determining whether there are enough vrad observations in
 // each direction, use NBINSGAP sectors
 // #define NBINSGAP 8 - changed to 1 ohueppop 20.06.2019
-#define NBINSGAP 4
+#define NBINSGAP 1
 // there should be at least NOBSGAPMIN vrad observations in each sector
 #define NOBSGAPMIN 5
 // when calculating the altitude-layer averaged dbz, there should
