@@ -212,13 +212,13 @@
 // resampled number of azimuth bins
 #define RESAMPLE_NRAYS 360
 // elevations to use in Cartesian projection for Mistnet
-#define CARTESIAN_ELEVATIONS "{0.5, 1.5, 2.5, 3.5, 4.5}"
+#define MISTNET_ELEVATIONS "{0.5, 1.5, 2.5, 3.5, 4.5}"
 // resolution of the Cartesian grid in meter for Mistnet
-#define CARTESIAN_RESOLUTION 500
+#define MISTNET_RESOLUTION 500
 // X and Y dimension of the Cartesian grid for Mistnet,
 // including a 4 pixel padding around the image, i.e. 8
 // additional pixels.
-#define CARTESIAN_DIMENSION 608
+#define MISTNET_DIMENSION 608
 // location of mistnet model in pytorch format
 // FIXME: change to user option
 #define MISTNET_PATH "/Users/amd427/git/vol2bird/libmistnet/mistnet_v4.pt"

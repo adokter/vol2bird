@@ -4,7 +4,7 @@
 
 using namespace std;
 
-extern "C" int run_mistnet(float* tensor_in, float** tensor_out, const char* model_path) {
+extern "C" int run_mistnet(float* tensor_in, float** tensor_out, const char* model_path, int tensor_size) {
         if (2 != 2) {
                 std::cerr << "usage: example-app <path-to-exported-script-module>\n";
                 return -1;
