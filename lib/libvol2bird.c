@@ -4930,6 +4930,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
 
     // segment precipitation using Mistnet deep convolutional neural net
     #ifdef MISTNET
+    
     segmentScansUsingMistnet(volume, alldata);
     #endif
 

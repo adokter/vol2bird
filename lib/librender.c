@@ -597,6 +597,13 @@ int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, float elevs[],
 
 // segments biology from precipitation using mistnet deep convolution net.
 int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){
+    
+    if (PolarVolume_getNumberOfScans(volume) != alldata->options.cartesianNElevs){
+        fprintf(stderr,"Error: polar volume has %i scans but segmentation model expects %i scans",
+            PolarVolume_getNumberOfScans(volume),alldata->options.cartesianNElevs);
+        return -1;
+    }
+
     // convert polar volume into 3D tensor array
     double ***mistnetTensorInput3D = NULL;
     fprintf(stderr, "convert pvol to 3D tensor...\n");
@@ -614,6 +621,11 @@ int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){
     fprintf(stderr, "done\n");
     // convert mistnet 1D array into a 4D tensor
     float ****mistnetTensorOutput4D = create4DTensor(mistnetTensorOutput,3,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION);
+    // add segmentation to polar volume
+    int result = 0;
+    //XXX TODO 
+    // 1) map tensor to cartesian object (not essential), or a list of cartesian objects.
+    // 2) map tensor to polar volume
     
     //clean up 3D array
     if(nCartesianParam > 0){
@@ -624,7 +636,7 @@ int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){
         free4DTensor(mistnetTensorOutput4D, 3, alldata->options.cartesianNElevs, MISTNET_RESOLUTION);
     }
     
-    return 0;
+    return result;
 }   // segmentScansUsingMistnet
 
 #endif
