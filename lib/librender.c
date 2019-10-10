@@ -262,6 +262,10 @@ RaveObjectList_t* polarVolumeToCartesianList(PolarVolume_t* pvol, float elevs[],
                 
         // extract the scan object from the volume object
         scan = PolarVolume_getScanClosestToElevation(pvol,DEG2RAD*elevs[iElev],0);
+        if (ABS(RAD2DEG*PolarScan_getElangle(scan)-elevs[iElev]) > 0.05){
+            fprintf(stderr,"Warning: Mistnet segmentation model requests elevation scan at %f degrees but using scan at %f degrees\n",
+                elevs[iElev],RAD2DEG*PolarScan_getElangle(scan));
+        }
                 
         cartesian = polarScanToCartesian(scan, dim, res, init);
         
@@ -599,9 +603,8 @@ int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, float elevs[],
 int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){
     
     if (PolarVolume_getNumberOfScans(volume) != alldata->options.cartesianNElevs){
-        fprintf(stderr,"Error: polar volume has %i scans but segmentation model expects %i scans",
+        fprintf(stderr,"Warning: polar volume has %i scans but segmentation model will use only %i scans\n",
             PolarVolume_getNumberOfScans(volume),alldata->options.cartesianNElevs);
-        return -1;
     }
 
     // convert polar volume into 3D tensor array
