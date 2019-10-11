@@ -193,7 +193,6 @@ PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDE
     nbins = MIN(nbins, ROUND(rangeMax/rscale));
     // return rscale through the scale parameter
     *scale = (double) rscale;
-    fprintf(stderr,"DEBUG: rscale=%i for param=%s\n",rscale,name);
         
     // estimate the number of azimuth bins
     // early WSR88D scans have somewhat variable azimuth spacing

@@ -19,15 +19,17 @@ double distance2range(double distance,double elev);
 
 double distance2height(double distance,double elev);
 
-Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nElevs, long dim, long res, double init);
+Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, long dim, long res, double init);
 
-RaveObjectList_t* polarVolumeToCartesianList(PolarVolume_t* pvol, float elevs[], int nElevs, long dim, long res, double init, int *nParam);
+RaveObjectList_t* polarVolumeToCartesianList(PolarVolume_t* pvol, long dim, long res, double init, int *nParam);
 
 Cartesian_t* polarScanToCartesian(PolarScan_t* scan, long dim, long res, double init);
 
 void free4DTensor(float ****tensor, int dim1, int dim2, int dim3);
 
 float**** create4DTensor(float *array, int dim1, int dim2, int dim3, int dim4);
+
+RaveObjectList_t* tensorToCartesianList(float ****tensor, int dim1, int dim2, int dim3);
 
 double*** init3DTensor(int dim1, int dim2, int dim3, double init);
 
@@ -37,7 +39,9 @@ int fill3DTensor(double ***tensor, RaveObjectList_t* list, int dim1, int dim2, i
 
 float* flatten3DTensor(double ***tensor, int dim1, int dim2, int dim3);
 
-int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, float elevs[], int nElevs, int dim, double res, int nParam);
+int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, int dim, double res, int nParam);
+
+PolarVolume_t* PolarVolume_selectScansByElevation(PolarVolume_t* volume, float elevs[], int nElevs);
 
 /**
  * FUNCTION BODIES
@@ -115,7 +119,7 @@ double distance2height(double distance,double elev){
 }
 
 
-Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nElevs, long dim, long res, double init){
+Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, long dim, long res, double init){
     
     RAVE_ASSERT((pvol != NULL), "pvol == NULL");
         
@@ -160,16 +164,11 @@ Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nEle
         return NULL;
     }
 
-    // get the number of elevations.
-    if(nElevs>nScans){
-        fprintf(stderr,"Warning: requesting %i elevations scans, but only %i available\n", nElevs, nScans);
-    }
-
     // iterate over the selected scans in 'volume'
-    for (int iElev = 0; iElev < nElevs; iElev++) {
+    for (int iScan = 0; iScan < nScans; iScan++) {
         
         // extract the scan object from the volume object
-        scan = PolarVolume_getScanClosestToElevation(pvol,DEG2RAD*elevs[iElev],0);
+        scan = PolarVolume_getScan(pvol,iScan);
         
         double elev = PolarScan_getElangle(scan);
         
@@ -186,7 +185,7 @@ Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nEle
             
             char iElevString[11];
             // copy iElev to iElevString
-            sprintf(iElevString, "%d", iElev);
+            sprintf(iElevString, "%d", iScan);
 
             // create a new scan parameter name with index for the sweep
             char *parameterNameFull = malloc(strlen(scanParameterName)+strlen(iElevString)+1);
@@ -234,7 +233,7 @@ Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nEle
 
 
 
-RaveObjectList_t* polarVolumeToCartesianList(PolarVolume_t* pvol, float elevs[], int nElevs, long dim, long res, double init, int *nParam){
+RaveObjectList_t* polarVolumeToCartesianList(PolarVolume_t* pvol, long dim, long res, double init, int *nParam){
     
     PolarScan_t *scan = NULL;
     RaveObjectList_t* list;
@@ -252,20 +251,11 @@ RaveObjectList_t* polarVolumeToCartesianList(PolarVolume_t* pvol, float elevs[],
         return NULL;
     }
 
-    // get the number of elevations.
-    if(nElevs>nScans){
-        fprintf(stderr,"Warning: requesting %i elevations scans, but only %i available\n", nElevs, nScans);
-    }
-
     // iterate over the selected scans in 'volume'
-    for (int iElev = 0; iElev < nElevs; iElev++) {
+    for (int iScan = 0; iScan < nScans; iScan++) {
                 
         // extract the scan object from the volume object
-        scan = PolarVolume_getScanClosestToElevation(pvol,DEG2RAD*elevs[iElev],0);
-        if (ABS(RAD2DEG*PolarScan_getElangle(scan)-elevs[iElev]) > 0.05){
-            fprintf(stderr,"Warning: Mistnet segmentation model requests elevation scan at %f degrees but using scan at %f degrees\n",
-                elevs[iElev],RAD2DEG*PolarScan_getElangle(scan));
-        }
+        scan = PolarVolume_getScan(pvol,iScan);
                 
         cartesian = polarScanToCartesian(scan, dim, res, init);
         
@@ -400,7 +390,9 @@ void free4DTensor(float ****tensor, int dim1, int dim2, int dim3){
 	free(tensor);
 }
 
+RaveObjectList_t* tensorToCartesianList(float ****tensor, int dim1, int dim2, int dim3){
     
+}
 
 double*** init3DTensor(int dim1, int dim2, int dim3, double init){
     
@@ -511,8 +503,10 @@ int fill3DTensor(double ***tensor, RaveObjectList_t* list, int dim1, int dim2, i
                 }
                 
                 CartesianParam_t* cartesianParam = Cartesian_getParameter(cartesian, parameterName);
-
-                fprintf(stderr,"writing %s at index %i\n",parameterName,iParam);
+                
+                #ifdef FPRINTFON
+                fprintf(stderr,"Writing Cartesian parameter %s at index %i\n",parameterName,iParam);
+                #endif
                 
                 if(iParam>=dim1){
                    fprintf(stderr, "Error: exceeding 3D tensor dimension\n"); 
@@ -561,7 +555,7 @@ float* flatten3DTensor(double ***tensor, int dim1, int dim2, int dim3){
 }
 
 
-int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, float elevs[], int nElevs, int dim, double res, int nParam){
+int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, int dim, double res, int nParam){
     //Un-comment these two lines to save a rendering to file
     //Cartesian_t *cartesian = NULL;
     //cartesian = polarVolumeToCartesian(pvol, elevs, nElevs, dim, res, 0);            
@@ -570,7 +564,7 @@ int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, float elevs[],
     // convert polar volume to a list of Cartesian objects, one for each scan
     // store the total number of scan parameters for all scans in nCartesianParam
     int nCartesianParam = 0;
-    RaveObjectList_t* list = polarVolumeToCartesianList(pvol, elevs, nElevs, dim, res, 0, &nCartesianParam);
+    RaveObjectList_t* list = polarVolumeToCartesianList(pvol, dim, res, 0, &nCartesianParam);
     
     if(list == NULL){
         fprintf(stderr, "Error: failed to load Cartesian objects from polar volume\n");
@@ -597,20 +591,76 @@ int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, float elevs[],
     return(nCartesianParam);
 }
 
+
+PolarVolume_t* PolarVolume_selectScansByElevation(PolarVolume_t* volume, float elevs[], int nElevs){
+    int iScan;
+    int nScans;
+
+    PolarScan_t* scan = NULL;
+    PolarVolume_t* volume_select = NULL;
+
+    // copy the volume 
+    volume_select = RAVE_OBJECT_CLONE(volume); 
+
+    nScans = PolarVolume_getNumberOfScans(volume_select);
+
+    if(nScans<=0){
+        fprintf(stderr,"Error: polar volume contains no scans\n");
+        return volume_select;
+    }
+    
+    // get the number of elevations.
+    if(nElevs>nScans){
+        fprintf(stderr,"Warning: requesting %i elevations scans, but only %i available\n", nElevs, nScans);
+    }
+         
+    // empty the scans in the copied volume 
+    for (iScan = nScans-1; iScan>=0 ; iScan--) {
+        PolarVolume_removeScan(volume_select,iScan); 
+    }
+
+    // iterate over the selected scans in 'volume' and add them to 'volume_select'
+    for (int iElev = 0; iElev < nElevs; iElev++) {
+        // extract the scan object from the volume object
+        scan = PolarVolume_getScanClosestToElevation(volume,DEG2RAD*elevs[iElev],0);
+        
+        if (ABS(RAD2DEG*PolarScan_getElangle(scan)-elevs[iElev]) > 0.05){
+            fprintf(stderr,"Warning: Requested elevation scan at %f degrees but selected scan at %f degrees\n",
+                elevs[iElev],RAD2DEG*PolarScan_getElangle(scan));
+        }
+        
+        // add it to the selected volume
+        PolarVolume_addScan(volume_select, scan);
+    }
+    
+    // sort polar volume by ascending elevation
+    PolarVolume_sortByElevations(volume_select, 1);
+    
+    return(volume_select);
+}
+
+
 #ifdef MISTNET
 
 // segments biology from precipitation using mistnet deep convolution net.
 int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){
     
-    if (PolarVolume_getNumberOfScans(volume) != alldata->options.cartesianNElevs){
-        fprintf(stderr,"Warning: polar volume has %i scans but segmentation model will use only %i scans\n",
-            PolarVolume_getNumberOfScans(volume),alldata->options.cartesianNElevs);
+    // volume with only the 5 selected elevations
+    PolarVolume_t* volume_mistnet = NULL;
+
+    fprintf(stderr, "select relevant elevations...\n");
+    volume_mistnet = PolarVolume_selectScansByElevation(volume, alldata->options.cartesianElevs, alldata->options.cartesianNElevs);
+    
+    if (PolarVolume_getNumberOfScans(volume_mistnet) != alldata->options.cartesianNElevs){
+        fprintf(stderr,"Error: found only %i/%i scans required by mistnet segmentation model\n",
+            PolarVolume_getNumberOfScans(volume_mistnet),alldata->options.cartesianNElevs);
+            return -1;
     }
 
     // convert polar volume into 3D tensor array
     double ***mistnetTensorInput3D = NULL;
     fprintf(stderr, "convert pvol to 3D tensor...\n");
-    int nCartesianParam = polarVolumeTo3DTensor(volume,&mistnetTensorInput3D,alldata->options.cartesianElevs,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_RESOLUTION,3*alldata->options.cartesianNElevs);
+    int nCartesianParam = polarVolumeTo3DTensor(volume,&mistnetTensorInput3D,MISTNET_DIMENSION,MISTNET_RESOLUTION,3*alldata->options.cartesianNElevs);
     // flatten 3D tensor into a 1D array
     float *mistnetTensorInput;
     fprintf(stderr, "flatten 3D tensor...\n");
@@ -618,7 +668,6 @@ int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){
     // run mistnet, which outputs a 1D array
     int mistnetTensorSize=3*alldata->options.cartesianNElevs*MISTNET_DIMENSION*MISTNET_DIMENSION;
     float *mistnetTensorOutput = (float *) malloc(mistnetTensorSize*sizeof(float));
-    //float**** mistnetTensorOutput4D = create4DTensor(3,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION);
     fprintf(stderr, "START MISTNET...");
     run_mistnet(mistnetTensorInput, &mistnetTensorOutput, MISTNET_PATH, mistnetTensorSize);
     fprintf(stderr, "done\n");
@@ -627,6 +676,7 @@ int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){
     // add segmentation to polar volume
     int result = 0;
     //XXX TODO 
+    // 0) refactor: first select 5-scan polar volume, because we need to add fields to it in the end.
     // 1) map tensor to cartesian object (not essential), or a list of cartesian objects.
     // 2) map tensor to polar volume
     
@@ -638,7 +688,7 @@ int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){
         free3DTensor(mistnetTensorInput3D,nCartesianParam,MISTNET_RESOLUTION);
         free4DTensor(mistnetTensorOutput4D, 3, alldata->options.cartesianNElevs, MISTNET_RESOLUTION);
     }
-    
+        
     return result;
 }   // segmentScansUsingMistnet
 

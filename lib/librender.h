@@ -1,7 +1,7 @@
 #include "cartesian.h"
 #include "polarvolume.h"
 
-Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, float elevs[], int nElevs, long dim, long res, double init);
+Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, long dim, long res, double init);
 
 double distance2height(double distance,double elev);
 
@@ -11,7 +11,9 @@ double*** init3DTensor(int dim1, int dim2, int dim3, double init);
 
 float**** create4DTensor(float *array, int dim1, int dim2, int dim3, int dim4);
 
-int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, float elevs[], int nElevs, int dim, double res, int nParam);
+PolarVolume_t* PolarVolume_selectScansByElevation(PolarVolume_t* volume, float elevs[], int nElevs);
+
+int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, int dim, double res, int nParam);
 
 int fill3DTensor(double ***tensor, RaveObjectList_t* list, int dim1, int dim2, int dim3);
 
