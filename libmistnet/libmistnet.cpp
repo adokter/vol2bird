@@ -5,11 +5,7 @@
 using namespace std;
 
 extern "C" int run_mistnet(float* tensor_in, float** tensor_out, const char* model_path, int tensor_size) {
-        if (2 != 2) {
-                std::cerr << "usage: example-app <path-to-exported-script-module>\n";
-                return -1;
-        }
-
+    
         // ***************************************************************************
         // *************************                           ***********************
         // ************************* the code to use the model ***********************
@@ -32,7 +28,7 @@ extern "C" int run_mistnet(float* tensor_in, float** tensor_out, const char* mod
         
         // copy result
         for (int i=0; i<3*5*608*608; i++) (*tensor_out)[i] = output_array[i];
-
+        
         return 0;
 }
 

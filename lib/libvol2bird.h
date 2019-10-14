@@ -138,6 +138,8 @@ struct vol2birdOptions {
     int resampleNrays;              /* resampled number of azimuth bins */
     float cartesianElevs[100];      /* array of elevation angles in degrees to use in Cartesian projection*/
     int cartesianNElevs;            /* array of elevation angles in degrees to use in Cartesian projection*/
+    int useMistNet;                 /* whether to use MistNet segmentation model */
+    char mistNetPath[1000];         /* path and filename of the MistNet segmentation model to use, expects libtorch format */
 
 };
 typedef struct vol2birdOptions vol2birdOptions_t;
@@ -411,6 +413,8 @@ PolarVolume_t* vol2birdGetVolume(char* filenames[], int nInputFiles, float range
 PolarVolume_t* PolarVolume_resample(PolarVolume_t* volume, double rscale_proj, long nbins_proj, long nrays_proj);
 
 PolarScanParam_t* PolarScanParam_project_on_scan(PolarScanParam_t* param, PolarScan_t* scan, double rscale);
+
+PolarScanParam_t* PolarScan_newParam(PolarScan_t *scan, const char *quantity, RaveDataType type);
 
 int vol2birdGetNColsProfile(vol2bird_t* alldata);
 

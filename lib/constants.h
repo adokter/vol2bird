@@ -7,6 +7,8 @@
 // when analyzing cells, AREACELL determines the minimum size of a
 // cell to be considered in the rest of the analysis [km^2]
 #define AREACELL 0.5
+// initialization value of rain segmentation field (CELL)
+#define CELLINIT -1
 // minimum standard deviation of the fit
 #define CHISQMIN 1e-5
 // cells with clutter fractions above this value are likely not birds
@@ -82,6 +84,27 @@
 #endif
 
 //-------------------------------------------------------//
+//            MistNet hard-coded options                 //
+//-------------------------------------------------------//
+// resolution of the Cartesian grid in meter for Mistnet
+#define MISTNET_RESOLUTION 500
+// X and Y dimension of the Cartesian grid for Mistnet,
+// including a 4 pixel padding around the image, i.e. 8
+// additional pixels.
+#define MISTNET_DIMENSION 608
+// predict a pixel as rain if the class probability for rain exceeds this threshold
+#define MISTNET_WEATHER_THRESHOLD 0.45
+// predict a pixel as rain if the average class probability for rain across
+// all five elevations at that spatial location exceeds this threshold
+#define MISTNET_SCAN_AVERAGE_WEATHER_THRESHOLD 0.45
+// MistNet tensor indices for the background, biology and weather class probabilities
+#define MISTNET_BACKGROUND_INDEX 0
+#define MISTNET_BIOLOGY_INDEX 1
+#define MISTNET_WEATHER_INDEX 2
+// value reserved in the weather cell map for pixels identified by MistNet as weather
+#define MISTNET_WEATHER_CELL_VALUE 2
+
+//-------------------------------------------------------//
 //             other hard-coded options                  //
 //-------------------------------------------------------//
 
@@ -104,6 +127,7 @@
 #define VERSION "0.4.1"
 // Date of latest version of the program
 #define VERSIONDATE "06-Sep-2019"
+
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //
@@ -211,14 +235,9 @@
 #define RESAMPLE_NBINS 100
 // resampled number of azimuth bins
 #define RESAMPLE_NRAYS 360
+// whether to use mistnet segmentation model
+#define USE_MISTNET 0
 // elevations to use in Cartesian projection for Mistnet
 #define MISTNET_ELEVATIONS "{0.5, 1.5, 2.5, 3.5, 4.5}"
-// resolution of the Cartesian grid in meter for Mistnet
-#define MISTNET_RESOLUTION 500
-// X and Y dimension of the Cartesian grid for Mistnet,
-// including a 4 pixel padding around the image, i.e. 8
-// additional pixels.
-#define MISTNET_DIMENSION 608
 // location of mistnet model in pytorch format
-// FIXME: change to user option
 #define MISTNET_PATH "/Users/amd427/git/vol2bird/libmistnet/mistnet_v4.pt"

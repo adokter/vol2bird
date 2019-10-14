@@ -1274,7 +1274,7 @@ static int findWeatherCells(PolarScan_t *scan, const char* quantity, float quant
         quantityThres = (float) ((quantityThreshold - quantityValueOffset) / quantityValueScale);
     }
 
-    cellImageInitialValue = -1;
+    cellImageInitialValue = CELLINIT;
 	if(initialize){
 		for (int iAzim = 0; iAzim < nAzim; iAzim++) {
 			for (int iRang = 0; iRang < nRang; iRang++) {
@@ -2721,6 +2721,8 @@ static int readUserConfigOptions(cfg_t** cfg, const char * optsConfFilename) {
         CFG_INT("RESAMPLE_NBINS",RESAMPLE_NBINS,CFGF_NONE),
         CFG_INT("RESAMPLE_NRAYS",RESAMPLE_NRAYS,CFGF_NONE),
         CFG_FLOAT_LIST("MISTNET_ELEVATIONS", MISTNET_ELEVATIONS, CFGF_NONE),
+        CFG_BOOL("USE_MISTNET", USE_MISTNET, CFGF_NONE),
+        CFG_STR("MISTNET_PATH",MISTNET_PATH,CFGF_NONE),
         CFG_END()
     };
     
@@ -4629,8 +4631,8 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     for(int i=0; i<alldata->options.cartesianNElevs; i++){
         alldata->options.cartesianElevs[i] = cfg_getnfloat(*cfg, "MISTNET_ELEVATIONS",i);
     }
-    
-//    alldata->options.cartesianElevs = cfg_getnfloat(*cfg, "MISTNET_ELEVATIONS");
+    alldata->options.useMistNet = cfg_getbool(*cfg, "USE_MISTNET");
+    strcpy(alldata->options.mistNetPath,cfg_getstr(*cfg,"MISTNET_PATH"));
 
 
     // ------------------------------------------------------------- //
@@ -4739,6 +4741,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     // if a wavelength attribute is present. Therefore the task_args string is
     // set here and not in vol2birdLoadConfig(), which has no access to the volume    
     
+    //FIXME: add cartesianNElevs (mistnet elevations) to the task_args string
     sprintf(alldata->misc.task_args,
         "azimMax=%f,azimMin=%f,layerThickness=%f,nLayers=%i,rangeMax=%f,"
         "rangeMin=%f,elevMax=%f,elevMin=%f,radarWavelength=%f,"
@@ -4747,6 +4750,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         "cellEtaMin=%f,etaMax=%f,dbzType=%s,requireVrad=%i,"
         "dealiasVrad=%i,dealiasRecycle=%i,dualPol=%i,singlePol=%i,rhohvThresMin=%f,"
         "resample=%i,resampleRscale=%f,resampleNbins=%i,resampleNrays=%i,"
+        "cartesianNElevs=%i,useMistNet=%i,mistNetPath=%s,"
     
         "areaCellMin=%f,cellClutterFractionMax=%f,"
         "chisqMin=%f,clutterValueMin=%f,dbzThresMin=%f,"
@@ -4784,6 +4788,9 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         alldata->options.resampleRscale,
         alldata->options.resampleNbins,
         alldata->options.resampleNrays,
+        alldata->options.cartesianNElevs,
+        alldata->options.useMistNet,
+        alldata->options.mistNetPath,
 
         alldata->constants.areaCellMin,
         alldata->constants.cellClutterFractionMax,

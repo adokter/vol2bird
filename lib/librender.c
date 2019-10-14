@@ -19,6 +19,10 @@ double distance2range(double distance,double elev);
 
 double distance2height(double distance,double elev);
 
+double range2distance(double range,double elev);
+
+double range2height(double range,double elev);
+
 Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, long dim, long res, double init);
 
 RaveObjectList_t* polarVolumeToCartesianList(PolarVolume_t* pvol, long dim, long res, double init, int *nParam);
@@ -29,7 +33,7 @@ void free4DTensor(float ****tensor, int dim1, int dim2, int dim3);
 
 float**** create4DTensor(float *array, int dim1, int dim2, int dim3, int dim4);
 
-RaveObjectList_t* tensorToCartesianList(float ****tensor, int dim1, int dim2, int dim3);
+int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int dim2, int dim3, int dim4, long res);
 
 double*** init3DTensor(int dim1, int dim2, int dim3, double init);
 
@@ -39,7 +43,7 @@ int fill3DTensor(double ***tensor, RaveObjectList_t* list, int dim1, int dim2, i
 
 float* flatten3DTensor(double ***tensor, int dim1, int dim2, int dim3);
 
-int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, int dim, double res, int nParam);
+int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, int dim, long res, int nParam);
 
 PolarVolume_t* PolarVolume_selectScansByElevation(PolarVolume_t* volume, float elevs[], int nElevs);
 
@@ -56,7 +60,7 @@ PolarVolume_t* PolarVolume_selectScansByElevation(PolarVolume_t* volume, float e
  * See alo Doviak and Zrnic 1993 Eqs. (2.28b) and (2.28c)
  * 
  * @param distance - range along ground (great circle distance)
- * @param elev - beam elevation in degrees
+ * @param elev - beam elevation in radians
  * @return range along radar path in meter
  */
 double distance2range(double distance,double elev){
@@ -116,6 +120,54 @@ double distance2height(double distance,double elev){
     height = effectiveEarthRadius * (sin(alpha)/sin(beta)) - effectiveEarthRadius;
     
     return height;
+}
+
+/**
+ * Convert from slant range and elevation to ground distance.
+ *
+ * Uses spherical earth
+ *
+ * See also:
+ * Doviak and Zrnic 1993 Eqs. (2.28b) and (2.28c)
+ * https://bitbucket.org/deeplycloudy/lmatools/src/3ad332f9171e/coordinateSystems.py?at=default
+ * 
+ * @param range - slant range along radar line of sight in meter
+ * @param elev - beam elevation in radians
+ * @return distance range along ground (great circle distance) in meter
+ */
+double range2distance(double range,double elev){
+    
+    double effectiveEarthRadius = EARTH_RADIUS * REFRACTION_COEFFICIENT;
+    double distance;
+    double height;
+
+    height = range2height(range, elev);
+    distance = effectiveEarthRadius * asin(range * cos(elev) / ( effectiveEarthRadius + height ) );
+    
+    return(distance);
+}
+
+/**
+ * Convert from slant range and elevation to ground distance.
+ *
+ * Uses spherical earth
+ *
+ * See also:
+ * Doviak and Zrnic 1993 Eqs. (2.28b) and (2.28c)
+ * https://bitbucket.org/deeplycloudy/lmatools/src/3ad332f9171e/coordinateSystems.py?at=default
+ * 
+ * @param range - slant range along radar line of sight in meter
+ * @param elev - beam elevation in radians
+ * @return height above ground in meter
+ */
+double range2height(double range,double elev){
+    
+    double effectiveEarthRadius = EARTH_RADIUS * REFRACTION_COEFFICIENT;
+    double height;
+
+    height = sqrt(SQUARE(range) + SQUARE(effectiveEarthRadius) + (2 * effectiveEarthRadius * range * sin(elev))) - effectiveEarthRadius;
+    
+    return(height);
 }
 
 
@@ -390,10 +442,6 @@ void free4DTensor(float ****tensor, int dim1, int dim2, int dim3){
 	free(tensor);
 }
 
-RaveObjectList_t* tensorToCartesianList(float ****tensor, int dim1, int dim2, int dim3){
-    
-}
-
 double*** init3DTensor(int dim1, int dim2, int dim3, double init){
     
     double ***tensor = (double ***)malloc(dim1*sizeof(double**));
@@ -555,7 +603,7 @@ float* flatten3DTensor(double ***tensor, int dim1, int dim2, int dim3){
 }
 
 
-int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, int dim, double res, int nParam){
+int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, int dim, long res, int nParam){
     //Un-comment these two lines to save a rendering to file
     //Cartesian_t *cartesian = NULL;
     //cartesian = polarVolumeToCartesian(pvol, elevs, nElevs, dim, res, 0);            
@@ -586,12 +634,20 @@ int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, int dim, doubl
     // clean up
     RAVE_OBJECT_RELEASE(list);
     
-    fprintf(stderr,"DONE\n");
-    
     return(nCartesianParam);
 }
 
 
+/**
+ * Return a polar volume containing a selection of scans by elevation
+ * 
+ * @param volume - a polar volume
+ * @param elevs - array with elevation angles of scans to be selected
+ * @param nElevs - length of the elevation angle array
+ * @return a polar volume containing only the selected scans. Note:
+ * the returned volume is NOT a copy of the input volume, both objects
+ * reference the same scan objects.
+ */
 PolarVolume_t* PolarVolume_selectScansByElevation(PolarVolume_t* volume, float elevs[], int nElevs){
     int iScan;
     int nScans;
@@ -639,6 +695,80 @@ PolarVolume_t* PolarVolume_selectScansByElevation(PolarVolume_t* volume, float e
     return(volume_select);
 }
 
+int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int dim2, int dim3, int dim4, long res){
+    
+    RAVE_ASSERT((pvol != NULL), "pvol == NULL");
+
+    PolarScan_t* scan = NULL;
+
+    int nScans;
+    // determine how many scan elevations the volume object contains
+    nScans = PolarVolume_getNumberOfScans(pvol);
+    
+    if(nScans != dim2){
+        fprintf(stderr, "Error: polar volume has %i scans, while tensor has data for %i scans.\n", nScans, dim2);
+    }
+
+   // iterate over the selected scans in 'volume'
+    for (int iScan = 0; iScan < nScans; iScan++) {
+        // extract the scan object from the volume object
+        scan = PolarVolume_getScan(pvol,iScan);
+        
+        PolarScanParam_t *mistnetParamWeather = PolarScan_newParam(scan, "WEATHER", RaveDataType_FLOAT);
+        PolarScanParam_t *mistnetParamBiology = PolarScan_newParam(scan, "BIOLOGY", RaveDataType_FLOAT);
+        PolarScanParam_t *mistnetParamBackground= PolarScan_newParam(scan, "BACKGROUND", RaveDataType_FLOAT);
+        PolarScanParam_t *mistnetParamClassification= PolarScan_newParam(scan, "MISTNET", RaveDataType_INT);
+        
+        long nRang = PolarScan_getNbins(scan);
+        long nAzim = PolarScan_getNrays(scan);
+        double elev = PolarScan_getElangle(scan);
+        double rangeScale = PolarScan_getRscale(scan);
+        
+        for(int iRang=0; iRang<nRang; iRang++){
+            for(int iAzim=0; iAzim<nAzim; iAzim++){
+                //range in meter
+                double range = iRang*rangeScale;
+                //azimuth in radials
+                double azim = iAzim*2*PI/nAzim;
+                // ground distance in meter
+                double distance=range2distance(range,elev);
+                // Cartesian x coordinate, with radar at center
+                double xx=distance*cos(azim);
+                // Cartesian y coordinate, with radar at center
+                double yy=distance*sin(azim);
+                // Cartesian grid index x
+                int x=MIN(dim3-1,MAX(0,ROUND(xx/res+dim3/2)));
+                // Cartesian grid index y
+                int y=MIN(dim4-1,MAX(0,ROUND(yy/res+dim4/2)));
+                //
+                float valueBackground=tensor[MISTNET_BACKGROUND_INDEX][iScan][x][y];
+                float valueBiology=tensor[MISTNET_BIOLOGY_INDEX][iScan][x][y];
+                float valueWeather=tensor[MISTNET_WEATHER_INDEX][iScan][x][y];
+                float valueWeatherAvg=0;
+                for(int i=0; i<nScans; i++){
+                    valueWeatherAvg+=(tensor[MISTNET_WEATHER_INDEX][i][x][y]/nScans);
+                }
+                int valueClassification = CELLINIT;
+                // post-processing prediction rules for weather, as defined in Lin et al. 2019, doi 10.1111/2041-210X.13280
+                if(valueWeather > MISTNET_WEATHER_THRESHOLD || valueWeatherAvg > MISTNET_SCAN_AVERAGE_WEATHER_THRESHOLD){
+                    valueClassification=MISTNET_WEATHER_CELL_VALUE;
+                }
+                PolarScanParam_setValue(mistnetParamBackground, iRang, iAzim, valueBackground);
+                PolarScanParam_setValue(mistnetParamBiology, iRang, iAzim, valueBiology);
+                PolarScanParam_setValue(mistnetParamWeather, iRang, iAzim, valueWeather);
+                PolarScanParam_setValue(mistnetParamClassification, iRang, iAzim, valueClassification);                
+            }            
+        }
+        
+        PolarScan_addParameter(scan, mistnetParamWeather);
+        PolarScan_addParameter(scan, mistnetParamBiology);
+        PolarScan_addParameter(scan, mistnetParamBackground);
+    }
+    
+    return(0);
+
+}
+
 
 #ifdef MISTNET
 
@@ -648,7 +778,6 @@ int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){
     // volume with only the 5 selected elevations
     PolarVolume_t* volume_mistnet = NULL;
 
-    fprintf(stderr, "select relevant elevations...\n");
     volume_mistnet = PolarVolume_selectScansByElevation(volume, alldata->options.cartesianElevs, alldata->options.cartesianNElevs);
     
     if (PolarVolume_getNumberOfScans(volume_mistnet) != alldata->options.cartesianNElevs){
@@ -659,36 +788,31 @@ int segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){
 
     // convert polar volume into 3D tensor array
     double ***mistnetTensorInput3D = NULL;
-    fprintf(stderr, "convert pvol to 3D tensor...\n");
-    int nCartesianParam = polarVolumeTo3DTensor(volume,&mistnetTensorInput3D,MISTNET_DIMENSION,MISTNET_RESOLUTION,3*alldata->options.cartesianNElevs);
+    int nCartesianParam = polarVolumeTo3DTensor(volume_mistnet,&mistnetTensorInput3D,MISTNET_DIMENSION,MISTNET_RESOLUTION,3*alldata->options.cartesianNElevs);
     // flatten 3D tensor into a 1D array
     float *mistnetTensorInput;
-    fprintf(stderr, "flatten 3D tensor...\n");
     mistnetTensorInput = flatten3DTensor(mistnetTensorInput3D,3*alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION);
     // run mistnet, which outputs a 1D array
     int mistnetTensorSize=3*alldata->options.cartesianNElevs*MISTNET_DIMENSION*MISTNET_DIMENSION;
     float *mistnetTensorOutput = (float *) malloc(mistnetTensorSize*sizeof(float));
-    fprintf(stderr, "START MISTNET...");
+    fprintf(stderr, "Running MistNet...");
     run_mistnet(mistnetTensorInput, &mistnetTensorOutput, MISTNET_PATH, mistnetTensorSize);
     fprintf(stderr, "done\n");
     // convert mistnet 1D array into a 4D tensor
     float ****mistnetTensorOutput4D = create4DTensor(mistnetTensorOutput,3,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION);
     // add segmentation to polar volume
+    addTensorToPolarVolume(volume_mistnet, mistnetTensorOutput4D,3,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION,MISTNET_RESOLUTION);
+
     int result = 0;
-    //XXX TODO 
-    // 0) refactor: first select 5-scan polar volume, because we need to add fields to it in the end.
-    // 1) map tensor to cartesian object (not essential), or a list of cartesian objects.
-    // 2) map tensor to polar volume
     
     //clean up 3D array
     if(nCartesianParam > 0){
-        fprintf(stderr,"DONE WITH MISTNET, cleaning up %i params\n",nCartesianParam);
         free(mistnetTensorInput);
         free(mistnetTensorOutput);
         free3DTensor(mistnetTensorInput3D,nCartesianParam,MISTNET_RESOLUTION);
         free4DTensor(mistnetTensorOutput4D, 3, alldata->options.cartesianNElevs, MISTNET_RESOLUTION);
     }
-        
+            
     return result;
 }   // segmentScansUsingMistnet
 
