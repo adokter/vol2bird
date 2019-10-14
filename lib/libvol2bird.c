@@ -4833,6 +4833,19 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     if(alldata->options.radarWavelength > 7.5 && !alldata->options.dualPol){
         fprintf(stderr,"Warning: using experimental SINGLE polarization mode on S-band data, results may be unreliable!\n");
     }
+
+    // Print warning for mistnet mode
+    if(alldata->options.useMistNet && alldata->options.radarWavelength < 7.5){
+        fprintf(stderr,"Warning: MistNet segmentation model has been trained on S-band data, results at other radar wavelengths may be unreliable!\n");
+    }
+
+    // Print warning for mistnet mode
+    if(alldata->options.useMistNet && (alldata->options.dualPol || alldata->options.singlePol)){
+        fprintf(stderr,"Warning: using Mistnet, disabling other segmentation methods\n");
+        alldata->options.singlePol = FALSE;
+        alldata->options.dualPol = FALSE;
+    }
+
 	
     // ------------------------------------------------------------- //
     //             lists of indices into the 'points' array:         //
@@ -4937,7 +4950,9 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
 
     // segment precipitation using Mistnet deep convolutional neural net
     #ifdef MISTNET
-    segmentScansUsingMistnet(volume, alldata);
+    if(alldata->options.useMistNet){
+        segmentScansUsingMistnet(volume, alldata);
+    }
     #endif
 
     // construct the 'points' array
