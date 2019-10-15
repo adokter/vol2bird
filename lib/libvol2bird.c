@@ -2730,7 +2730,8 @@ static int readUserConfigOptions(cfg_t** cfg, const char * optsConfFilename) {
         CFG_FLOAT("RESAMPLE_RSCALE",RESAMPLE_RSCALE,CFGF_NONE),
         CFG_INT("RESAMPLE_NBINS",RESAMPLE_NBINS,CFGF_NONE),
         CFG_INT("RESAMPLE_NRAYS",RESAMPLE_NRAYS,CFGF_NONE),
-        CFG_FLOAT_LIST("MISTNET_ELEVATIONS", MISTNET_ELEVATIONS, CFGF_NONE),
+        CFG_FLOAT_LIST("MISTNET_ELEVS", MISTNET_ELEVS, CFGF_NONE),
+        CFG_BOOL("MISTNET_ELEVS_ONLY", MISTNET_ELEVS_ONLY, CFGF_NONE),
         CFG_BOOL("USE_MISTNET", USE_MISTNET, CFGF_NONE),
         CFG_STR("MISTNET_PATH",MISTNET_PATH,CFGF_NONE),
         CFG_END()
@@ -3908,12 +3909,10 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                             parameterVector[1] = NAN;
                             parameterVector[2] = NAN;
                             // FIXME: if this happens, profile fields are not updated from UNDETECT to NODATA
-                            // continue; // with for (iPass = 0; iPass < nPasses; iPass++)
                         } 
                         else {
                             
                             chi = sqrt(chisq);
-                            //hSpeed = sqrt(pow(parameterVector[0],2) + pow(parameterVector[1],2));
                             hSpeed = sqrt(pow(parameterVector[0],2) + pow(parameterVector[1],2));
                             hDir = (atan2(parameterVector[0],parameterVector[1])*RAD2DEG);
                             
@@ -4637,10 +4636,11 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.resampleRscale = cfg_getfloat(*cfg,"RESAMPLE_RSCALE");
     alldata->options.resampleNbins = cfg_getint(*cfg,"RESAMPLE_NBINS");
     alldata->options.resampleNrays = cfg_getint(*cfg,"RESAMPLE_NRAYS");
-    alldata->options.cartesianNElevs = cfg_size(*cfg, "MISTNET_ELEVATIONS");
-    for(int i=0; i<alldata->options.cartesianNElevs; i++){
-        alldata->options.cartesianElevs[i] = cfg_getnfloat(*cfg, "MISTNET_ELEVATIONS",i);
+    alldata->options.mistNetNElevs = cfg_size(*cfg, "MISTNET_ELEVS");
+    for(int i=0; i<alldata->options.mistNetNElevs; i++){
+        alldata->options.mistNetElevs[i] = cfg_getnfloat(*cfg, "MISTNET_ELEVS",i);
     }
+    alldata->options.mistNetElevsOnly = cfg_getbool(*cfg, "MISTNET_ELEVS_ONLY");
     alldata->options.useMistNet = cfg_getbool(*cfg, "USE_MISTNET");
     strcpy(alldata->options.mistNetPath,cfg_getstr(*cfg,"MISTNET_PATH"));
 
@@ -4751,7 +4751,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     // if a wavelength attribute is present. Therefore the task_args string is
     // set here and not in vol2birdLoadConfig(), which has no access to the volume    
     
-    //FIXME: add cartesianNElevs (mistnet elevations) to the task_args string
+    //FIXME: add mistNetNElevs (mistnet elevations) to the task_args string
     sprintf(alldata->misc.task_args,
         "azimMax=%f,azimMin=%f,layerThickness=%f,nLayers=%i,rangeMax=%f,"
         "rangeMin=%f,elevMax=%f,elevMin=%f,radarWavelength=%f,"
@@ -4760,7 +4760,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         "cellEtaMin=%f,etaMax=%f,dbzType=%s,requireVrad=%i,"
         "dealiasVrad=%i,dealiasRecycle=%i,dualPol=%i,singlePol=%i,rhohvThresMin=%f,"
         "resample=%i,resampleRscale=%f,resampleNbins=%i,resampleNrays=%i,"
-        "cartesianNElevs=%i,useMistNet=%i,mistNetPath=%s,"
+        "mistNetNElevs=%i,mistNetElevsOnly=%i,useMistNet=%i,mistNetPath=%s,"
     
         "areaCellMin=%f,cellClutterFractionMax=%f,"
         "chisqMin=%f,clutterValueMin=%f,dbzThresMin=%f,"
@@ -4798,7 +4798,8 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         alldata->options.resampleRscale,
         alldata->options.resampleNbins,
         alldata->options.resampleNrays,
-        alldata->options.cartesianNElevs,
+        alldata->options.mistNetNElevs,
+        alldata->options.mistNetElevsOnly,
         alldata->options.useMistNet,
         alldata->options.mistNetPath,
 
@@ -4960,8 +4961,9 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
 
     // segment precipitation using Mistnet deep convolutional neural net
     #ifdef MISTNET
+    PolarVolume_t* volume_mistnet;
     if(alldata->options.useMistNet){
-        PolarVolume_t* volume_mistnet = segmentScansUsingMistnet(volume, alldata);
+        volume_mistnet = segmentScansUsingMistnet(volume, scanUse, alldata);
         if(TRUE){
             // FIXME: this should be user option, TRUE when only using segmentation scans for profile
             // BUG: if I change the volume, scanUse is no longer correct below.

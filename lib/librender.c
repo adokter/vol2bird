@@ -682,7 +682,7 @@ PolarVolume_t* PolarVolume_selectScansByElevation(PolarVolume_t* volume, float e
         // extract the scan object from the volume object
         scan = PolarVolume_getScanClosestToElevation(volume,DEG2RAD*elevs[iElev],0);
         
-        if (ABS(RAD2DEG*PolarScan_getElangle(scan)-elevs[iElev]) > 0.05){
+        if (ABS(RAD2DEG*PolarScan_getElangle(scan)-elevs[iElev]) > 0.1){
             fprintf(stderr,"Warning: Requested elevation scan at %f degrees but selected scan at %f degrees\n",
                 elevs[iElev],RAD2DEG*PolarScan_getElangle(scan));
         }
@@ -840,37 +840,37 @@ int addClassificationToPolarVolume(PolarVolume_t* pvol, float ****tensor, int di
 #ifdef MISTNET
 
 // segments biology from precipitation using mistnet deep convolution net.
-PolarVolume_t* segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){    
+PolarVolume_t* segmentScansUsingMistnet(PolarVolume_t* volume, vol2birdScanUse_t *scanUse, vol2bird_t* alldata){    
     // volume with only the 5 selected elevations
     PolarVolume_t* volume_mistnet = NULL;
 
-    volume_mistnet = PolarVolume_selectScansByElevation(volume, alldata->options.cartesianElevs, alldata->options.cartesianNElevs);
+    volume_mistnet = PolarVolume_selectScansByElevation(volume, alldata->options.mistNetElevs, alldata->options.mistNetNElevs);
     
-    if (PolarVolume_getNumberOfScans(volume_mistnet) != alldata->options.cartesianNElevs){
+    if (PolarVolume_getNumberOfScans(volume_mistnet) != alldata->options.mistNetNElevs){
         fprintf(stderr,"Error: found only %i/%i scans required by mistnet segmentation model\n",
-            PolarVolume_getNumberOfScans(volume_mistnet),alldata->options.cartesianNElevs);
+            PolarVolume_getNumberOfScans(volume_mistnet),alldata->options.mistNetNElevs);
             return -1;
     }
 
     // convert polar volume into 3D tensor array
     double ***mistnetTensorInput3D = NULL;
-    int nCartesianParam = polarVolumeTo3DTensor(volume_mistnet,&mistnetTensorInput3D,MISTNET_DIMENSION,MISTNET_RESOLUTION,3*alldata->options.cartesianNElevs);
+    int nCartesianParam = polarVolumeTo3DTensor(volume_mistnet,&mistnetTensorInput3D,MISTNET_DIMENSION,MISTNET_RESOLUTION,3*alldata->options.mistNetNElevs);
     // flatten 3D tensor into a 1D array
     float *mistnetTensorInput;
-    mistnetTensorInput = flatten3DTensor(mistnetTensorInput3D,3*alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION);
+    mistnetTensorInput = flatten3DTensor(mistnetTensorInput3D,3*alldata->options.mistNetNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION);
     // run mistnet, which outputs a 1D array
-    int mistnetTensorSize=3*alldata->options.cartesianNElevs*MISTNET_DIMENSION*MISTNET_DIMENSION;
+    int mistnetTensorSize=3*alldata->options.mistNetNElevs*MISTNET_DIMENSION*MISTNET_DIMENSION;
     float *mistnetTensorOutput = (float *) malloc(mistnetTensorSize*sizeof(float));
     fprintf(stderr, "Running MistNet...");
     run_mistnet(mistnetTensorInput, &mistnetTensorOutput, MISTNET_PATH, mistnetTensorSize);
     fprintf(stderr, "done\n");
     // convert mistnet 1D array into a 4D tensor
-    float ****mistnetTensorOutput4D = create4DTensor(mistnetTensorOutput,3,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION);
+    float ****mistnetTensorOutput4D = create4DTensor(mistnetTensorOutput,3,alldata->options.mistNetNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION);
     // add segmentation to polar volume
-    addTensorToPolarVolume(volume_mistnet, mistnetTensorOutput4D,3,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION,MISTNET_RESOLUTION);
+    addTensorToPolarVolume(volume_mistnet, mistnetTensorOutput4D,3,alldata->options.mistNetNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION,MISTNET_RESOLUTION);
     // add segmentation for scans that weren't input to the segmentation model to polar volume
     // note: all scans in 'volume_mistnet' are also contained in 'volume', i.e. its scan pointers point to the same objects
-    addClassificationToPolarVolume(volume, mistnetTensorOutput4D,3,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION,MISTNET_RESOLUTION);
+    addClassificationToPolarVolume(volume, mistnetTensorOutput4D,3,alldata->options.mistNetNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION,MISTNET_RESOLUTION);
 
     int result = 0;
     
@@ -879,7 +879,7 @@ PolarVolume_t* segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* allda
         free(mistnetTensorInput);
         free(mistnetTensorOutput);
         free3DTensor(mistnetTensorInput3D,nCartesianParam,MISTNET_RESOLUTION);
-        free4DTensor(mistnetTensorOutput4D, 3, alldata->options.cartesianNElevs, MISTNET_RESOLUTION);
+        free4DTensor(mistnetTensorOutput4D, 3, alldata->options.mistNetNElevs, MISTNET_RESOLUTION);
     }
             
     return volume_mistnet;

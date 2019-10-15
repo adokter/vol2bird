@@ -238,6 +238,9 @@
 // whether to use mistnet segmentation model
 #define USE_MISTNET 0
 // elevations to use in Cartesian projection for Mistnet
-#define MISTNET_ELEVATIONS "{0.5, 1.5, 2.5, 3.5, 4.5}"
+#define MISTNET_ELEVS "{0.5, 1.5, 2.5, 3.5, 4.5}"
+// use only the specified elevation scans for mistnet to calculate profile if TRUE
+// otherwise, use all available elevation scans
+#define MISTNET_ELEVS_ONLY 1
 // location of mistnet model in pytorch format
 #define MISTNET_PATH "/Users/amd427/git/vol2bird/libmistnet/mistnet_v4.pt"

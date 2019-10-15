@@ -136,8 +136,10 @@ struct vol2birdOptions {
     float resampleRscale;           /* resampled range gate length in m */
     int resampleNbins;              /* resampled number of range bins */
     int resampleNrays;              /* resampled number of azimuth bins */
-    float cartesianElevs[100];      /* array of elevation angles in degrees to use in Cartesian projection*/
-    int cartesianNElevs;            /* array of elevation angles in degrees to use in Cartesian projection*/
+    float mistNetElevs[100];        /* array of elevation angles in degrees to use in Cartesian projection*/
+    int mistNetNElevs;              /* array of elevation angles in degrees to use in Cartesian projection*/
+    int mistNetElevsOnly;           /* use only the specified elevation scans for mistnet to calculate profile if TRUE */
+                                    /* otherwise, use all available elevation scans*/
     int useMistNet;                 /* whether to use MistNet segmentation model */
     char mistNetPath[1000];         /* path and filename of the MistNet segmentation model to use, expects libtorch format */
 
