@@ -932,7 +932,7 @@ int segmentScansUsingMistnet(PolarVolume_t* volume, vol2birdScanUse_t *scanUse, 
     int mistnetTensorSize=3*alldata->options.mistNetNElevs*MISTNET_DIMENSION*MISTNET_DIMENSION;
     float *mistnetTensorOutput = (float *) malloc(mistnetTensorSize*sizeof(float));
     fprintf(stderr, "Running MistNet...");
-    run_mistnet(mistnetTensorInput, &mistnetTensorOutput, MISTNET_PATH, mistnetTensorSize);
+    run_mistnet(mistnetTensorInput, &mistnetTensorOutput, alldata->options.mistNetPath, mistnetTensorSize);
     fprintf(stderr, "done\n");
     // convert mistnet 1D array into a 4D tensor
     float ****mistnetTensorOutput4D = create4DTensor(mistnetTensorOutput,3,alldata->options.mistNetNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION);
