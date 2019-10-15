@@ -721,13 +721,7 @@ PolarVolume_t* PolarVolume_selectScansByScanUse(PolarVolume_t* volume, vol2birdS
         fprintf(stderr,"Error: polar volume contains no scans\n");
         return volume;
     }
-    
-    // get the number of elevations.
-    if(nScansUsed != nScans){
-        fprintf(stderr,"Error: differing dimensions of scanUse (%i) and polar volume (%i)\n", nScansUsed, nScans);
-        return volume;
-    }
-         
+             
     // empty the scans in the cloned volume 
     for (iScan = nScans-1; iScan>=0 ; iScan--) {
             PolarVolume_removeScan(volume_select,iScan);
@@ -768,6 +762,11 @@ int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int 
     for (int iScan = 0; iScan < nScans; iScan++) {
         // extract the scan object from the volume object
         scan = PolarVolume_getScan(pvol,iScan);
+        
+        if(PolarScan_hasParameter(scan, "WEATHER")){
+            fprintf(stderr, "Warning: scan used multiple times as MistNet input, ignoring segmentation %i/%i\n", iScan+1, MISTNET_N_ELEV);
+            continue;
+        }
         
         PolarScanParam_t *mistnetParamWeather = PolarScan_newParam(scan, "WEATHER", RaveDataType_FLOAT);
         PolarScanParam_t *mistnetParamBiology = PolarScan_newParam(scan, "BIOLOGY", RaveDataType_FLOAT);
@@ -914,7 +913,7 @@ int segmentScansUsingMistnet(PolarVolume_t* volume, vol2birdScanUse_t *scanUse, 
         int printWarning = TRUE;
         for(int iScan = 0; iScan < PolarVolume_getNumberOfScans(volume); iScan++){
             if(PolarVolume_indexOf(volume_mistnet, PolarVolume_getScan(volume, iScan)) == -1){
-                if(printWarning) fprintf(stderr,"Warning: Ignoring scan(s) ");
+                if(printWarning) fprintf(stderr,"Warning: Ignoring scan(s) not used as MistNet input: ");
                 fprintf(stderr, "%i ", iScan + 1);
                 printWarning = FALSE;
                 scanUse[iScan].useScan = FALSE;

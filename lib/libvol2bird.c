@@ -4845,6 +4845,11 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         fprintf(stderr,"Warning: using experimental SINGLE polarization mode on S-band data, results may be unreliable!\n");
     }
 
+    if(alldata->options.mistNetNElevs != MISTNET_N_ELEV){
+        fprintf(stderr, "Error: MistNet segmentation model expects %i elevations, but %i are specified.\n", MISTNET_N_ELEV, alldata->options.mistNetNElevs);
+        return -1;
+    }
+
     // Print warning for mistnet mode
     if(alldata->options.useMistNet && alldata->options.radarWavelength < 7.5){
         fprintf(stderr,"Warning: MistNet segmentation model has been trained on S-band data, results at other radar wavelengths may be unreliable!\n");
