@@ -4963,14 +4963,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     #ifdef MISTNET
     PolarVolume_t* volume_mistnet;
     if(alldata->options.useMistNet){
-        volume_mistnet = segmentScansUsingMistnet(volume, alldata);
-        if(TRUE){
-            // FIXME: this should be user option, TRUE when only using segmentation scans for profile
-            // BUG: if I change the volume, scanUse is no longer correct below.
-            // BUG: segmentScansUsingMistnet should take into account scanUse as well
-            // Suggested fix: set scanUse of non-mistnet sweeps to false, by passing it to segmentScansUsingMistnet
-            volume=volume_mistnet;
-        }
+        segmentScansUsingMistnet(volume, scanUse, alldata);
     }
     #endif
 
@@ -5050,9 +5043,6 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     }
     
     free(scanUse);
-    #ifdef MISTNET
-    RAVE_OBJECT_RELEASE(volume_mistnet);
-    #endif
 
     return 0;
 

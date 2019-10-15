@@ -17,6 +17,8 @@ float**** create4DTensor(float *array, int dim1, int dim2, int dim3, int dim4);
 
 PolarVolume_t* PolarVolume_selectScansByElevation(PolarVolume_t* volume, float elevs[], int nElevs);
 
+PolarVolume_t* PolarVolume_selectScansByScanUse(PolarVolume_t* volume, vol2birdScanUse_t *scanUse, int nScansUsed);
+
 int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, int dim, long res, int nParam);
 
 int fill3DTensor(double ***tensor, RaveObjectList_t* list, int dim1, int dim2, int dim3);
@@ -28,6 +30,6 @@ void free3DTensor(double ***tensor, int dim1, int dim2);
 void free4DTensor(float ****tensor, int dim1, int dim2, int dim3);
 
 #ifdef MISTNET 
-PolarVolume_t* segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata);
+int segmentScansUsingMistnet(PolarVolume_t* volume, vol2birdScanUse_t *scanUse, vol2bird_t* alldata);
 #endif
 
