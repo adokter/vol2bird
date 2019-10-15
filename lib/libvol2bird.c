@@ -468,8 +468,13 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 // extract the scan object from the volume object
                 scan = PolarVolume_getScan(volume, iScan);
                 
-                PolarScanParam_t *cellScanParam = PolarScan_newParam(scan, scanUse[iScan].cellName, RaveDataType_INT);
+                PolarScanParam_t *cellScanParam = NULL;
                 PolarScanParam_t *texScanParam = NULL;
+                
+                // check that CELL parameter is not present, which might be after running MistNet
+                if (!PolarScan_hasParameter(scan, CELLNAME)){
+                    cellScanParam = PolarScan_newParam(scan, scanUse[iScan].cellName, RaveDataType_INT);
+                }
                 
                 // only when dealing with normal (non-dual pol) data, generate a vrad texture field
 				if (alldata->options.singlePol){
@@ -488,7 +493,7 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
 				//        find (weather) cells in the reflectivity image         //
 				// ------------------------------------------------------------- //
 				
-                if (alldata->options.dualPol){
+                if (alldata->options.dualPol && !alldata->options.useMistNet){
                     
                     if (alldata->options.singlePol){
 						
@@ -506,10 +511,14 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                     }
 
                 }
-                else{
+                if (!alldata->options.dualPol && !alldata->options.useMistNet){
                     
                     nCells = findWeatherCells(scan,scanUse[iScan].dbzName,alldata->options.dbzThresMin,TRUE,2,TRUE,alldata);
 
+                }
+                
+                if (alldata->options.useMistNet){
+                    nCells = 2;
                 }
                 
                 if (nCells<0){
@@ -524,8 +533,9 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 // ------------------------------------------------------------- //
                 //                      analyze cells                            //
                 // ------------------------------------------------------------- //
-    
-                nCells=analyzeCells(scan, scanUse[iScan], nCells, alldata->options.dualPol, alldata);
+                if (!alldata->options.useMistNet){
+                    nCells=analyzeCells(scan, scanUse[iScan], nCells, alldata->options.dualPol, alldata);
+                }
     
                 // ------------------------------------------------------------- //
                 //                     calculate fringe                          //
@@ -4951,7 +4961,14 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     // segment precipitation using Mistnet deep convolutional neural net
     #ifdef MISTNET
     if(alldata->options.useMistNet){
-        segmentScansUsingMistnet(volume, alldata);
+        PolarVolume_t* volume_mistnet = segmentScansUsingMistnet(volume, alldata);
+        if(TRUE){
+            // FIXME: this should be user option, TRUE when only using segmentation scans for profile
+            // BUG: if I change the volume, scanUse is no longer correct below.
+            // BUG: segmentScansUsingMistnet should take into account scanUse as well
+            // Suggested fix: set scanUse of non-mistnet sweeps to false, by passing it to segmentScansUsingMistnet
+            volume=volume_mistnet;
+        }
     }
     #endif
 
@@ -5031,6 +5048,9 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     }
     
     free(scanUse);
+    #ifdef MISTNET
+    RAVE_OBJECT_RELEASE(volume_mistnet);
+    #endif
 
     return 0;
 

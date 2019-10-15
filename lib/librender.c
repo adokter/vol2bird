@@ -719,7 +719,7 @@ int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int 
         PolarScanParam_t *mistnetParamWeather = PolarScan_newParam(scan, "WEATHER", RaveDataType_FLOAT);
         PolarScanParam_t *mistnetParamBiology = PolarScan_newParam(scan, "BIOLOGY", RaveDataType_FLOAT);
         PolarScanParam_t *mistnetParamBackground= PolarScan_newParam(scan, "BACKGROUND", RaveDataType_FLOAT);
-        PolarScanParam_t *mistnetParamClassification= PolarScan_newParam(scan, "MISTNET", RaveDataType_INT);
+        PolarScanParam_t *mistnetParamClassification= PolarScan_newParam(scan, CELLNAME, RaveDataType_INT);
         
         long nRang = PolarScan_getNbins(scan);
         long nAzim = PolarScan_getNrays(scan);
@@ -787,11 +787,11 @@ int addClassificationToPolarVolume(PolarVolume_t* pvol, float ****tensor, int di
         // extract the scan object from the volume object
         scan = PolarVolume_getScan(pvol,iScan);
 
-        if(PolarScan_hasParameter(scan, "MISTNET")){
+        if(PolarScan_hasParameter(scan, CELLNAME)){
             continue;
         }
 
-        PolarScanParam_t *mistnetParamClassification= PolarScan_newParam(scan, "MISTNET", RaveDataType_INT);
+        PolarScanParam_t *mistnetParamClassification= PolarScan_newParam(scan, CELLNAME, RaveDataType_INT);
         
         long nRang = PolarScan_getNbins(scan);
         long nAzim = PolarScan_getNrays(scan);
@@ -868,7 +868,8 @@ PolarVolume_t* segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* allda
     float ****mistnetTensorOutput4D = create4DTensor(mistnetTensorOutput,3,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION);
     // add segmentation to polar volume
     addTensorToPolarVolume(volume_mistnet, mistnetTensorOutput4D,3,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION,MISTNET_RESOLUTION);
-    // add segmentation to polar volume for scans not part of segmentation model input
+    // add segmentation for scans that weren't input to the segmentation model to polar volume
+    // note: all scans in 'volume_mistnet' are also contained in 'volume', i.e. its scan pointers point to the same objects
     addClassificationToPolarVolume(volume, mistnetTensorOutput4D,3,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION,MISTNET_RESOLUTION);
 
     int result = 0;
