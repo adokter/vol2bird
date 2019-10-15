@@ -33,7 +33,9 @@ void free4DTensor(float ****tensor, int dim1, int dim2, int dim3);
 
 float**** create4DTensor(float *array, int dim1, int dim2, int dim3, int dim4);
 
-int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int dim2, int dim3, int dim4, long res, int pass);
+int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int dim2, int dim3, int dim4, long res);
+
+int addClassificationToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int dim2, int dim3, int dim4, long res);
 
 double*** init3DTensor(int dim1, int dim2, int dim3, double init);
 
@@ -695,9 +697,7 @@ PolarVolume_t* PolarVolume_selectScansByElevation(PolarVolume_t* volume, float e
     return(volume_select);
 }
 
-int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int dim2, int dim3, int dim4, long res, int pass){
-    // pass == 0: pvol expected to be a volume containing only the sweeps entering the MistNet segmentation model
-    // pass > 0: pvol can contain other sweeps, to project rain segmentation to other elevation scans as well
+int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int dim2, int dim3, int dim4, long res){
     
     RAVE_ASSERT((pvol != NULL), "pvol == NULL");
 
@@ -707,7 +707,7 @@ int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int 
     // determine how many scan elevations the volume object contains
     nScans = PolarVolume_getNumberOfScans(pvol);
     
-    if(pass == 0 && nScans != dim2){
+    if(nScans != dim2){
         fprintf(stderr, "Error: polar volume has %i scans, while tensor has data for %i scans.\n", nScans, dim2);
     }
 
@@ -715,22 +715,11 @@ int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int 
     for (int iScan = 0; iScan < nScans; iScan++) {
         // extract the scan object from the volume object
         scan = PolarVolume_getScan(pvol,iScan);
-
-        if(pass > 0 && PolarScan_hasParameter(scan, "MISTNET")){
-            continue;
-        }
         
-        PolarScanParam_t *mistnetParamWeather;
-        PolarScanParam_t *mistnetParamBiology;
-        PolarScanParam_t *mistnetParamBackground;
-        PolarScanParam_t *mistnetParamClassification;
-
-        if(pass == 0){
-            mistnetParamWeather = PolarScan_newParam(scan, "WEATHER", RaveDataType_FLOAT);
-            mistnetParamBiology = PolarScan_newParam(scan, "BIOLOGY", RaveDataType_FLOAT);
-            mistnetParamBackground = PolarScan_newParam(scan, "BACKGROUND", RaveDataType_FLOAT);            
-        }
-        mistnetParamClassification= PolarScan_newParam(scan, "MISTNET", RaveDataType_INT);
+        PolarScanParam_t *mistnetParamWeather = PolarScan_newParam(scan, "WEATHER", RaveDataType_FLOAT);
+        PolarScanParam_t *mistnetParamBiology = PolarScan_newParam(scan, "BIOLOGY", RaveDataType_FLOAT);
+        PolarScanParam_t *mistnetParamBackground= PolarScan_newParam(scan, "BACKGROUND", RaveDataType_FLOAT);
+        PolarScanParam_t *mistnetParamClassification= PolarScan_newParam(scan, "MISTNET", RaveDataType_INT);
         
         long nRang = PolarScan_getNbins(scan);
         long nAzim = PolarScan_getNrays(scan);
@@ -754,41 +743,92 @@ int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int 
                 // Cartesian grid index y
                 int y=MIN(dim4-1,MAX(0,ROUND(yy/res+dim4/2)));
                 //
-                float valueBackground;
-                float valueBiology;
-                float valueWeather;
-                if(pass == 0){
-                    float valueBackground=tensor[MISTNET_BACKGROUND_INDEX][iScan][x][y];
-                    float valueBiology=tensor[MISTNET_BIOLOGY_INDEX][iScan][x][y];
-                    float valueWeather=tensor[MISTNET_WEATHER_INDEX][iScan][x][y];
+                float valueBackground=tensor[MISTNET_BACKGROUND_INDEX][iScan][x][y];
+                float valueBiology=tensor[MISTNET_BIOLOGY_INDEX][iScan][x][y];
+                float valueWeather=tensor[MISTNET_WEATHER_INDEX][iScan][x][y];
+                float valueWeatherAvg=0;
+                for(int i=0; i<nScans; i++){
+                    valueWeatherAvg+=(tensor[MISTNET_WEATHER_INDEX][i][x][y]/nScans);
                 }
+                int valueClassification = CELLINIT;
+                // post-processing prediction rules for weather, as defined in Lin et al. 2019, doi 10.1111/2041-210X.13280
+                if(valueWeather > MISTNET_WEATHER_THRESHOLD || valueWeatherAvg > MISTNET_SCAN_AVERAGE_WEATHER_THRESHOLD){
+                    valueClassification=MISTNET_WEATHER_CELL_VALUE;
+                }
+                PolarScanParam_setValue(mistnetParamBackground, iRang, iAzim, valueBackground);
+                PolarScanParam_setValue(mistnetParamBiology, iRang, iAzim, valueBiology);
+                PolarScanParam_setValue(mistnetParamWeather, iRang, iAzim, valueWeather);
+                PolarScanParam_setValue(mistnetParamClassification, iRang, iAzim, valueClassification);                
+            }            
+        }
+        
+        PolarScan_addParameter(scan, mistnetParamWeather);
+        PolarScan_addParameter(scan, mistnetParamBiology);
+        PolarScan_addParameter(scan, mistnetParamBackground);
+        PolarScan_addParameter(scan, mistnetParamClassification);        
+    }
+    
+    return(0);
+
+}
+
+int addClassificationToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int dim2, int dim3, int dim4, long res){
+    
+    RAVE_ASSERT((pvol != NULL), "pvol == NULL");
+
+    PolarScan_t* scan = NULL;
+
+    int nScans;
+    // determine how many scan elevations the volume object contains
+    nScans = PolarVolume_getNumberOfScans(pvol);
+    
+   // iterate over the selected scans in 'volume'
+    for (int iScan = 0; iScan < nScans; iScan++) {
+        // extract the scan object from the volume object
+        scan = PolarVolume_getScan(pvol,iScan);
+
+        if(PolarScan_hasParameter(scan, "MISTNET")){
+            continue;
+        }
+
+        PolarScanParam_t *mistnetParamClassification= PolarScan_newParam(scan, "MISTNET", RaveDataType_INT);
+        
+        long nRang = PolarScan_getNbins(scan);
+        long nAzim = PolarScan_getNrays(scan);
+        double elev = PolarScan_getElangle(scan);
+        double rangeScale = PolarScan_getRscale(scan);
+        
+        for(int iRang=0; iRang<nRang; iRang++){
+            for(int iAzim=0; iAzim<nAzim; iAzim++){
+                //range in meter
+                double range = iRang*rangeScale;
+                //azimuth in radials
+                double azim = iAzim*2*PI/nAzim;
+                // ground distance in meter
+                double distance=range2distance(range,elev);
+                // Cartesian x coordinate, with radar at center
+                double xx=distance*cos(azim);
+                // Cartesian y coordinate, with radar at center
+                double yy=distance*sin(azim);
+                // Cartesian grid index x
+                int x=MIN(dim3-1,MAX(0,ROUND(xx/res+dim3/2)));
+                // Cartesian grid index y
+                int y=MIN(dim4-1,MAX(0,ROUND(yy/res+dim4/2)));
+                //
                 float valueWeatherAvg=0;
                 for(int i=0; i<dim2; i++){
                     valueWeatherAvg+=(tensor[MISTNET_WEATHER_INDEX][i][x][y]/dim2);
                 }
                 int valueClassification = CELLINIT;
-                // post-processing prediction rules for weather, as defined in Lin et al. 2019, doi 10.1111/2041-210X.13280
-                if(pass == 0 && (valueWeather > MISTNET_WEATHER_THRESHOLD || valueWeatherAvg > MISTNET_SCAN_AVERAGE_WEATHER_THRESHOLD)){
+                // post-processing prediction rules for weather, modified for scans not
+                // part of the segmentation model, after Lin et al. 2019, doi 10.1111/2041-210X.13280
+                if(valueWeatherAvg > MISTNET_SCAN_AVERAGE_WEATHER_THRESHOLD){
                     valueClassification=MISTNET_WEATHER_CELL_VALUE;
-                }
-                // post-processing prediction rule for additional scans not fed into the MistNet segmentation model
-                if(pass > 0 && valueWeatherAvg > MISTNET_SCAN_AVERAGE_WEATHER_THRESHOLD){
-                    valueClassification=MISTNET_WEATHER_CELL_VALUE;
-                }
-                
-                if(pass == 0){
-                    PolarScanParam_setValue(mistnetParamBackground, iRang, iAzim, valueBackground);
-                    PolarScanParam_setValue(mistnetParamBiology, iRang, iAzim, valueBiology);
-                    PolarScanParam_setValue(mistnetParamWeather, iRang, iAzim, valueWeather);                    
                 }
                 PolarScanParam_setValue(mistnetParamClassification, iRang, iAzim, valueClassification);                
             }            
         }
-        if(pass == 0){
-            PolarScan_addParameter(scan, mistnetParamWeather);
-            PolarScan_addParameter(scan, mistnetParamBiology);
-            PolarScan_addParameter(scan, mistnetParamBackground);
-        }
+        
         PolarScan_addParameter(scan, mistnetParamClassification);
     }
     
@@ -797,15 +837,12 @@ int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int 
 }
 
 
-
 #ifdef MISTNET
 
 // segments biology from precipitation using mistnet deep convolution net.
-PolarVolume_t* segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){
-    
+PolarVolume_t* segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* alldata){    
     // volume with only the 5 selected elevations
     PolarVolume_t* volume_mistnet = NULL;
-    PolarVolume_t* volume_input = volume;
 
     volume_mistnet = PolarVolume_selectScansByElevation(volume, alldata->options.cartesianElevs, alldata->options.cartesianNElevs);
     
@@ -830,9 +867,9 @@ PolarVolume_t* segmentScansUsingMistnet(PolarVolume_t* volume, vol2bird_t* allda
     // convert mistnet 1D array into a 4D tensor
     float ****mistnetTensorOutput4D = create4DTensor(mistnetTensorOutput,3,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION);
     // add segmentation to polar volume
-    addTensorToPolarVolume(volume_mistnet, mistnetTensorOutput4D,3,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION,MISTNET_RESOLUTION,0);
-    // add classification of other sweeps to polar volume
-    //addTensorToPolarVolume(volume, mistnetTensorOutput4D,3,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION,MISTNET_RESOLUTION,1);
+    addTensorToPolarVolume(volume_mistnet, mistnetTensorOutput4D,3,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION,MISTNET_RESOLUTION);
+    // add segmentation to polar volume for scans not part of segmentation model input
+    addClassificationToPolarVolume(volume, mistnetTensorOutput4D,3,alldata->options.cartesianNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION,MISTNET_RESOLUTION);
 
     int result = 0;
     
