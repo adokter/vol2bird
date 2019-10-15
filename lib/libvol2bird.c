@@ -4963,7 +4963,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     #ifdef MISTNET
     PolarVolume_t* volume_mistnet;
     if(alldata->options.useMistNet){
-        volume_mistnet = segmentScansUsingMistnet(volume, scanUse, alldata);
+        volume_mistnet = segmentScansUsingMistnet(volume, alldata);
         if(TRUE){
             // FIXME: this should be user option, TRUE when only using segmentation scans for profile
             // BUG: if I change the volume, scanUse is no longer correct below.
