@@ -4859,7 +4859,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     }
     
     // check that MistNet segmentation model can be found on disk
-    if(!isRegularFile(alldata->options.mistNetPath)){
+    if(alldata->options.useMistNet && !isRegularFile(alldata->options.mistNetPath)){
         fprintf(stderr, "Error: MistNet segmentation model '%s' not found.\n", alldata->options.mistNetPath);
         return -1;
     }
