@@ -932,7 +932,20 @@ int segmentScansUsingMistnet(PolarVolume_t* volume, vol2birdScanUse_t *scanUse, 
     int mistnetTensorSize=3*alldata->options.mistNetNElevs*MISTNET_DIMENSION*MISTNET_DIMENSION;
     float *mistnetTensorOutput = (float *) malloc(mistnetTensorSize*sizeof(float));
     fprintf(stderr, "Running MistNet...");
-    run_mistnet(mistnetTensorInput, &mistnetTensorOutput, alldata->options.mistNetPath, mistnetTensorSize);
+    int result = 0;
+    result = run_mistnet(mistnetTensorInput, &mistnetTensorOutput, alldata->options.mistNetPath, mistnetTensorSize);
+
+    // if mistnet run failed, clean up and exit
+    if(result < 0){
+        if(nCartesianParam > 0){
+            free(mistnetTensorInput);
+            free3DTensor(mistnetTensorInput3D,nCartesianParam,MISTNET_RESOLUTION);
+        }
+        RAVE_OBJECT_RELEASE(volume_select);
+        RAVE_OBJECT_RELEASE(volume_mistnet);
+        return -1;
+    }
+    
     fprintf(stderr, "done\n");
     // convert mistnet 1D array into a 4D tensor
     float ****mistnetTensorOutput4D = create4DTensor(mistnetTensorOutput,3,alldata->options.mistNetNElevs,MISTNET_DIMENSION,MISTNET_DIMENSION);
@@ -953,7 +966,7 @@ int segmentScansUsingMistnet(PolarVolume_t* volume, vol2birdScanUse_t *scanUse, 
     RAVE_OBJECT_RELEASE(volume_select);
     RAVE_OBJECT_RELEASE(volume_mistnet);
     
-    return 0;
+    return result;
 }   // segmentScansUsingMistnet
 
 #endif
