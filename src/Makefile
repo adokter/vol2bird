@@ -29,7 +29,7 @@ SRC_VOL2BIRD_DIR         = ./
 all :
 
 ifeq ($(RSL_CFLAG),-DRSL)
-all : vol2bird.o vol2bird rsl2odim
+all : vol2bird.o vol2bird rsl2odim.o rsl2odim
 else
 all : vol2bird.o vol2bird
 endif
@@ -49,6 +49,17 @@ vol2bird.o : vol2bird.c
 	$(CC) -c $(CFLAGS) vol2bird.c \
 	-I. \
 	$(RAVE_MODULE_CFLAGS) \
+
+rsl2odim.o : rsl2odim.c
+	#
+	# ------------------------------------
+	#       making rsl2odim.o
+	# ------------------------------------
+	#
+	$(CC) -c $(CFLAGS) rsl2odim.c \
+	-I. \
+	$(RAVE_MODULE_CFLAGS) \
+
 
 vol2bird : ../lib/libvol2bird.so $(VOL2BIRD_DEPS)
 	#
@@ -70,14 +81,14 @@ rsl2odim : ../lib/libvol2bird.so $(RSL2ODIM_DEPS)
 	#       making rsl2odim 
 	# ------------------------------------
 	#
-	$(CC) $(CFLAGS) rsl2odim.c \
-	-I. \
-	$(RAVE_MODULE_CFLAGS) \
+	$(CXX) -o rsl2odim rsl2odim.o \
 	$(RAVE_MODULE_LDFLAGS) \
 	$(PROJ_LIBRARY_FLAG) \
 	$(RSL_LIBRARY_FLAG) \
 	$(IRIS_LIBRARY_FLAG) \
-	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) $(IRIS_LIB) -o rsl2odim $(LDFLAGS)
+	$(MISTNET_INCLUDE_FLAG) \
+	$(MISTNET_LIBRARY_FLAG) \
+	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) $(IRIS_LIB) $(LDFLAGS) $(MISTNET_LIB)
 	
 	#
 	# (You may still have to change your LD_LIBRARY_PATH)
