@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 MAINTAINER Adriaan Dokter
 
 # installs using apt-get:
@@ -14,6 +14,6 @@ MAINTAINER Adriaan Dokter
 # * proj4 library
 # * flex, otherwise configure script of RSL library does not function properly
 RUN apt-get update && apt-get install --no-install-recommends -y libconfuse-dev \
-    libhdf5-dev gcc make zlib1g-dev python-dev python-numpy libproj-dev flex file \
+    libhdf5-dev gcc g++ make zlib1g-dev python-dev python-numpy libproj-dev flex file \
     && apt-get install -y git && apt-get install -y libgsl-dev && apt-get install -y libbz2-dev
 
