@@ -1,7 +1,8 @@
 # Install instructions for Ubuntu 16.04 LTS
 
 ```
-# the directory in which we will install 
+# the directory in which we will install
+# (${PWD} = the current working directory)
 RADAR_ROOT_DIR=${PWD}
 
 # prepare a directory structure:
@@ -49,38 +50,53 @@ sudo make install
 
 cd ${RADAR_ROOT_DIR}/src 
 
-# get a copy of iris2odim:
+# (optional) get a copy of iris2odim:
+# adds support for Vaisala IRIS format
 git clone https://github.com/adokter/iris2odim.git \
     && cd iris2odim && export RAVEROOT=${RADAR_ROOT_DIR}/opt/ \
     && make 
 sudo make install
 
-
-
 cd ${RADAR_ROOT_DIR}/src 
 
-# get a copy of RSL:
+# (optional) get a copy of RSL:
 # RSL installation is optional, only required for reading US NEXRAD data
-sudo git clone https://github.com/adokter/rsl.git && cd rsl \
-    && cd decode_ar2v && ./configure --prefix=/usr && make && make install && cd .. \
-    && ./configure --prefix=${RADAR_ROOT_DIR}/opt/rsl && make AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=: \
-    && make install AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=: 
+git clone https://github.com/adokter/rsl.git && cd rsl \
+    && ./configure --prefix=${RADAR_ROOT_DIR}/opt/rsl && make AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
+sudo make install AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=: 
     
 cd ${RADAR_ROOT_DIR}/src 
 
+# (optional) get a copy of libtorch:
+# only needed for running MistNet
+wget https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.3.0%2Bcpu.zip \
+    && unzip libtorch-shared-with-deps-1.3.0+cpu.zip -d ${RADAR_ROOT_DIR}/opt/ \
+    && rm libtorch-shared-with-deps-1.3.0+cpu.zip
+
 # get a copy of vol2bird
 # (if not installing RSL, remove --with-rsl flag below)
+# (if not installing MistNet, remove --with-libtorch flag below)
 git clone https://github.com/adokter/vol2bird.git \
     && cd vol2bird && ./configure --prefix=${RADAR_ROOT_DIR}/opt/vol2bird \
     --with-rave=${RADAR_ROOT_DIR}/opt/rave --with-rsl=${RADAR_ROOT_DIR}/opt/rsl \
     --with-gsl=/usr/include/gsl,/usr/lib/x86_64-linux-gnu \
+    --with-libtorch=${RADAR_ROOT_DIR}/opt/libtorch \
     && make
 sudo make install
+
+cd ${RADAR_ROOT_DIR}/opt
+
+# get a copy of MistNet
+git lfs clone https://github.com/adokter/MistNet.git
 
 cd ${RADAR_ROOT_DIR}
 
 # set the paths to installed libraries and executables
 # set these each time you run vol2bird, or add to .bashrc
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/hlhdf/lib:${RADAR_ROOT_DIR}/opt/rave/lib:${RADAR_ROOT_DIR}/opt/rsl/lib:${RADAR_ROOT_DIR}/opt/vol2bird/lib
-export PATH=${PATH}:${RADAR_ROOT_DIR}/opt/vol2bird/bin
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/hlhdf/lib:${RADAR_ROOT_DIR}/opt/rave/lib:${RADAR_ROOT_DIR}/opt/rsl/lib:${RADAR_ROOT_DIR}/opt/vol2bird/lib:${RADAR_ROOT_DIR}/opt/libtorch/lib
+export PATH=${PATH}:${RADAR_ROOT_DIR}/opt/rsl/bin:${RADAR_ROOT_DIR}/opt/vol2bird/bin
+
+# (optional) to run MistNet, add these two lines to your options.conf file and place it in the directory from which you run vol2bird:
+# MISTNET_PATH=${RADAR_ROOT_DIR}/opt/MistNet/mistnet_nexrad.pt
+# USE_MISTNET=TRUE
 ```
