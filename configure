@@ -3049,7 +3049,7 @@ $as_echo "found" >&6; }
 			TORCH_DIR="`echo $withval`"
 			TORCH_INCLUDE_FLAG="-I$TORCH_DIR/include"
 			TORCH_LIBRARY_FLAG="-L$TORCH_DIR/lib"
-			MISTNET_LIB="-lmistnet -ltorch -lc10 -lcaffe2"
+			MISTNET_LIB="-lmistnet -ltorch -lc10"
 			MISTNET_CFLAG=-DMISTNET
 		else
       			as_fn_error $? "\"Odd argument passed for libtorch\"" "$LINENO" 5

@@ -12,7 +12,7 @@ extern "C" int run_mistnet(float* tensor_in, float** tensor_out, const char* mod
         // *************************                           ***********************
         // ***************************************************************************
         
-        std::shared_ptr<torch::jit::script::Module> module;
+        torch::jit::script::Module module;
         try {
             module = torch::jit::load(model_path);
         }
@@ -21,8 +21,6 @@ extern "C" int run_mistnet(float* tensor_in, float** tensor_out, const char* mod
             return -1;
         }
 
-        assert(module != nullptr);
-                
         // if you already have a 1d floating point array that is the tensor of size 15 x 608 x 608
         // pointed by a pointer (float*) tensor_in, you can convert it to a torch tensor by:
         at::Tensor inputs = torch::from_blob(tensor_in, {1, 15, 608, 608}, at::kFloat);
@@ -30,7 +28,7 @@ extern "C" int run_mistnet(float* tensor_in, float** tensor_out, const char* mod
         std::vector<torch::jit::IValue> inputs_;
         inputs_.push_back(inputs);
 
-        at::Tensor output = module->forward(inputs_).toTensor();
+        at::Tensor output = module.forward(inputs_).toTensor();
 
         float *output_array = output.data<float>();
         

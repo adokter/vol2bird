@@ -45,7 +45,7 @@ case $withval in
 			TORCH_DIR="`echo $withval`"
 			TORCH_INCLUDE_FLAG="-I$TORCH_DIR/include"
 			TORCH_LIBRARY_FLAG="-L$TORCH_DIR/lib"
-			MISTNET_LIB="-lmistnet -ltorch -lc10 -lcaffe2"
+			MISTNET_LIB="-lmistnet -ltorch -lc10"
 			MISTNET_CFLAG=-DMISTNET
 		else
       			AC_MSG_ERROR("Odd argument passed for libtorch")
