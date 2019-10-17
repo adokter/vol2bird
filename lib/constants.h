@@ -245,4 +245,4 @@
 // otherwise, use all available elevation scans
 #define MISTNET_ELEVS_ONLY 1
 // location of mistnet model in pytorch format
-#define MISTNET_PATH "/Users/amd427/git/vol2bird/libmistnet/mistnet_v4.pt"
+#define MISTNET_PATH "/MistNet/mistnet_nexrad.pt"
