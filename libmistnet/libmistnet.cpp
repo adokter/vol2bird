@@ -30,7 +30,7 @@ extern "C" int run_mistnet(float* tensor_in, float** tensor_out, const char* mod
 
         at::Tensor output = module.forward(inputs_).toTensor();
 
-        float *output_array = output.data<float>();
+        float *output_array = output.data_ptr<float>();
         
         // copy result
         for (int i=0; i<3*5*608*608; i++) (*tensor_out)[i] = output_array[i];
