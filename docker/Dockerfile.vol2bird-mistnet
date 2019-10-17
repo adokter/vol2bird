@@ -41,7 +41,6 @@ RUN git clone -b develop https://github.com/adokter/vol2bird.git \
     && make && make install && cd .. && rm -rf vol2bird
 
 # get a copy of MistNet
-RUN pwd
 RUN git lfs clone https://github.com/adokter/MistNet.git
 
 # clean up
@@ -52,7 +51,7 @@ RUN apt-get remove -y git gcc g++ wget unzip make cmake python-numpy -y python-d
 RUN mkdir data
 
 # set the paths to installed libraries and executables
-ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/radar/lib:/opt/radar/rave/lib:/opt/radar/rsl/lib:/opt/radar/vol2bird/lib:/usr/lib/x86_64-linux-gnu
+ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/radar/lib:/opt/radar/rave/lib:/opt/radar/rsl/lib:/opt/radar/vol2bird/lib:/usr/lib/x86_64-linux-gnu:/opt/radar/libtorch/lib
 ENV PATH=${PATH}:/opt/radar/vol2bird/bin:/opt/radar/rsl/bin
 
 CMD vol2bird

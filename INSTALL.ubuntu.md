@@ -8,27 +8,33 @@ RADAR_ROOT_DIR=${PWD}
 mkdir ${RADAR_ROOT_DIR}/opt
 mkdir ${RADAR_ROOT_DIR}/src
 
-# installs using apt-get:
+## installs using apt-get:
 # * libconfuse: library for parsing options
 # * libhdf5: HDF5, Hierarchichal Data Format library
+# * libgsl: the GNU Scientific Library
 # * git, for fetching repositories from Github
-# * compiler (gcc, make, etc)
+# * git-lfs, for fetching large file repositories from Github
+# * wget for downloading files, specifically libtorch
+# * unzip 
+# * compiler (gcc, g++, make, cmake, etc)
 # * zlib (gzip archiving library)
-# * python2.7
+# * libbz2 (bzip2 archiving library)
+# * python
 # * numpy 
 # * proj4 library
-# * flex, otherwise configure script of RSL library does not function properly
-sudo apt-get update && sudo apt-get install -y libconfuse-dev \
-    libhdf5-dev gcc make zlib1g-dev python-dev python-numpy libproj-dev flex file git libgsl-dev
+# * flexold, otherwise configure script of RSL library does not function properly
+apt-get update && apt-get install --no-install-recommends -y libconfuse-dev \
+    libhdf5-dev gcc g++ wget unzip make cmake zlib1g-dev python-dev python-numpy libproj-dev flex-old file \
+    && apt-get install -y git git-lfs && apt-get install -y libgsl-dev && apt-get install -y libbz2-dev
 
 # change to the source directory...
 cd ${RADAR_ROOT_DIR}/src
 
 # get a copy of hlhdf:
 # configure and build hlhdf
-git clone git://git.baltrad.eu/hlhdf.git \
+git clone git://github.com/adokter/hlhdf.git \
     && cd hlhdf && ./configure --prefix=${RADAR_ROOT_DIR}/opt/hlhdf \
-    --with-hdf5=/usr/include/hdf5/serial,/usr/lib/x86_64-linux-gnu/hdf5/serial \
+	--with-hdf5=/usr/include/hdf5/serial,/usr/lib/x86_64-linux-gnu/hdf5/serial \
     && make
 sudo make install
 
@@ -36,10 +42,20 @@ cd ${RADAR_ROOT_DIR}/src
 
 # get a copy of rave:
 # cd into rave source directory and configure
-sudo git clone git://git.baltrad.eu/rave.git \
+git clone https://github.com/adokter/rave.git \
     && cd rave && ./configure --prefix=${RADAR_ROOT_DIR}/opt/rave --with-hlhdf=${RADAR_ROOT_DIR}/opt/hlhdf \
+    && make
+sudo make install
+
+cd ${RADAR_ROOT_DIR}/src 
+
+# get a copy of iris2odim:
+git clone https://github.com/adokter/iris2odim.git \
+    && cd iris2odim && export RAVEROOT=${RADAR_ROOT_DIR}/opt/ \
     && make 
 sudo make install
+
+
 
 cd ${RADAR_ROOT_DIR}/src 
 
