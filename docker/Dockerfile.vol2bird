@@ -35,7 +35,7 @@ RUN git clone -b develop https://github.com/adokter/vol2bird.git \
     && make && make install && cd .. && rm -rf vol2bird
 
 # clean up
-RUN apt-get remove -y git git-lfs gcc g++ wget unzip make cmake python-numpy -y python-dev flex \
+RUN apt-get remove -y git git-lfs gcc g++ wget unzip make cmake python-numpy -y python-dev flex-old \
     && apt-get clean && apt -y autoremove && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # prepare mount points
