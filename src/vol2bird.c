@@ -47,10 +47,32 @@ void usage(char* programName, int verbose){
     fprintf(stderr,"   usage: %s --help\n", programName);
 
     if(verbose){
+
         fprintf(stderr,"\n   Supported radar data formats:\n");
-        fprintf(stderr,"   * OPERA ODIM hdf5 input format, see <http://www.eumetnet.eu/opera-software>\n");
-        fprintf(stderr,"   * input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>\n");
-        fprintf(stderr,"   * Vaisala Sigmet IRIS format, see <ftp://ftp.sigmet.com/outgoing/manuals/IRIS_Programmers_Manual.pdf>\n\n");
+        fprintf(stderr,"   * OPERA ODIM hdf5 input format, see <http://www.eumetnet.eu/opera-software> [enabled]\n");
+        fprintf(stderr,"   * input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>");
+        #ifdef RSL 
+        fprintf(stderr, " [enabled]\n");
+        #endif
+        #ifndef RSL 
+        fprintf(stderr, " [disabled]\n");
+        #endif
+        fprintf(stderr,"   * Vaisala Sigmet IRIS format, see <ftp://ftp.sigmet.com/outgoing/manuals/IRIS_Programmers_Manual.pdf>");
+        #ifdef  IRIS
+        fprintf(stderr, " [enabled]\n\n");
+        #endif
+        #ifndef IRIS
+        fprintf(stderr, " [disabled]\n\n");
+        #endif
+
+        fprintf(stderr, "   Support for MistNet:");
+        #ifdef MISTNET
+        fprintf(stderr, " [enabled]\n\n");
+        #endif
+        #ifndef MISTNET
+        fprintf(stderr, " [disabled]\n\n");
+        #endif
+ 
         fprintf(stderr,"   Output fields to stdout:\n");
         fprintf(stderr,"   date      - date [UTC]\n");
         fprintf(stderr,"   time      - time [UTC]\n");
