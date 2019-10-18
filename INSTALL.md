@@ -14,7 +14,6 @@ mkdir ${RADAR_ROOT_DIR}/src
 # * libhdf5: HDF5, Hierarchichal Data Format library
 # * libgsl: the GNU Scientific Library
 # * git, for fetching repositories from Github
-# * git-lfs, for fetching large file repositories from Github
 # * wget for downloading files, specifically libtorch
 # * unzip 
 # * compiler (gcc, g++, make, cmake, etc)
@@ -28,10 +27,10 @@ mkdir ${RADAR_ROOT_DIR}/src
 # On Ubuntu/Linux apt-get can be used to install dependencies:
 apt-get update && apt-get install --no-install-recommends -y libconfuse-dev \
     libhdf5-dev gcc g++ wget unzip make cmake zlib1g-dev python-dev python-numpy libproj-dev flex-old file \
-    && apt-get install -y git git-lfs && apt-get install -y libgsl-dev && apt-get install -y libbz2-dev
+    && apt-get install -y git && apt-get install -y libgsl-dev && apt-get install -y libbz2-dev
 # On Mac OSX Macports (https://www.macports.org/) can be used to install dependencies:
 sudo port selfupdate
-sudo port install python27, zlib, hdf5, libproj4, proj47, libconfuse, py27-numpy, gsl, bzip2, flex
+sudo port install python27 zlib hdf5 libproj4 proj47 libconfuse py27-numpy gsl bzip2 flex
 
 # On Mac OSX, install XCode command line tools
 xcode-select --install
