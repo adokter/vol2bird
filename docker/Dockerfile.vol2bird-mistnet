@@ -41,7 +41,8 @@ RUN git clone -b develop https://github.com/adokter/vol2bird.git \
     && make && make install && cd .. && rm -rf vol2bird
 
 # get a copy of MistNet
-RUN git lfs clone https://github.com/adokter/MistNet.git
+RUN mkdir MistNet && cd MistNet && wget http://mistnet.s3.amazonaws.com/mistnet_nexrad.pt \
+    && cd ..
 
 # clean up
 RUN apt-get remove -y git gcc g++ wget unzip make cmake python-numpy -y python-dev flex-old \
