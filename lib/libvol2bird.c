@@ -642,7 +642,7 @@ static int detNumberOfGates(const int iLayer,
             // the gate is too close to the radar, or too far away
             continue;
         }
-        beamHeight = range * sin(elevAngle * DEG2RAD) + radarHeight;
+        beamHeight = range2height(range, elevAngle) + radarHeight;
         if (fabs(layerHeight - beamHeight) > 0.5*alldata->options.layerThickness) {
             // the gate is not close enough to the altitude layer of interest
             continue;
@@ -689,7 +689,7 @@ static int detSvdfitArraySize(PolarVolume_t* volume, vol2birdScanUse_t* scanUse,
                 
                 int nRang = (int) PolarScan_getNbins(scan);
                 int nAzim = (int) PolarScan_getNrays(scan);
-                float elevAngle = (float) (360 * PolarScan_getElangle(scan) / 2 / PI );
+                float elevAngle = (float) PolarScan_getElangle(scan);
                 float rangeScale = (float) PolarScan_getRscale(scan);
                 float radarHeight = (float) PolarScan_getHeight(scan);
 
@@ -1866,7 +1866,7 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
         gateRange = ((float) iRang + 0.5f) * rangeScale;
 
         // note that "sin(elevAngle*DEG2RAD)" is equivalent to = "cos((90 - elevAngle)*DEG2RAD)":
-        gateHeight = gateRange * (float) sin(elevAngle) + radarHeight;
+        gateHeight = range2height(gateRange, elevAngle) + radarHeight;
 
         if (gateRange < alldata->options.rangeMin || gateRange > alldata->options.rangeMax) {
             // the current gate is either 
