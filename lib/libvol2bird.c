@@ -3944,7 +3944,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = (float) nPointsIncluded;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = (float) nPointsIncludedZ;
                 
-                // fill below profile fields when (1) VVP fit was not performed becasue of azimuthal data gap
+                // fill below profile fields when (1) VVP fit was not performed because of azimuthal data gap
                 // and (2) layer contains range gates within the volume sampled by the radar.
                 if (hasGap && nPointsIncludedZ>alldata->constants.nPointsIncludedMin){
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = UNDETECT;
@@ -3978,10 +3978,11 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 free((void*) includedIndex);
         
             } // endfor (iPass = 0; iPass < nPasses; iPass++)
-            
             // You need some of the results of iProfileType == 3 in order 
             // to calculate iProfileType == 1, therefore iProfileType == 3 is executed first
             if (iProfileType == 3) {
+                // NOTE: chi can have NAN or numeric value at this point
+                // when NAN, below condition evaluates to FALSE, i.e. scatterersAreNotBirds is set to FALSE
                 if (chi < alldata->options.stdDevMinBird) {
                     alldata->misc.scatterersAreNotBirds[iLayer] = TRUE;
                 }
