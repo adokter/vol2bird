@@ -3972,8 +3972,8 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
   
                 free((void*) yObs);
                 free((void*) yFitted);
-				free((void*) yNyquist);
-				free((void*) yDealias);
+                free((void*) yNyquist);
+                free((void*) yDealias);
                 free((void*) pointsSelection);
                 free((void*) includedIndex);
         
@@ -3992,10 +3992,6 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
             if (iProfileType == 1) {
                 // set the bird density to zero if radial velocity stdev below threshold:
                 if (alldata->misc.scatterersAreNotBirds[iLayer] == TRUE){
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = 0.0;
-                }
-                // set bird density values to zero if hasGap:
-                if (hasGap && birdDensity>0){
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = 0.0;
                 }
             }
