@@ -2712,7 +2712,8 @@ static int readUserConfigOptions(cfg_t** cfg, const char * optsConfFilename) {
         CFG_BOOL("PRINT_POINTS_ARRAY",PRINT_POINTS_ARRAY,CFGF_NONE),
         CFG_FLOAT("MIN_NYQUIST_VELOCITY",MIN_NYQUIST_VELOCITY,CFGF_NONE),
         CFG_FLOAT("MAX_NYQUIST_DEALIAS",MAX_NYQUIST_DEALIAS,CFGF_NONE),
-        CFG_FLOAT("STDEV_BIRD",STDEV_BIRD,CFGF_NONE),
+        /* initialize STDEV_BIRD to -FLT_MAX, final initialization will depend on radar wavelength */
+        CFG_FLOAT("STDEV_BIRD",-FLT_MAX,CFGF_NONE),
         CFG_FLOAT("STDEV_CELL",STDEV_CELL,CFGF_NONE),
         CFG_FLOAT("SIGMA_BIRD",SIGMA_BIRD,CFGF_NONE),
         CFG_FLOAT("ETAMAX",ETAMAX,CFGF_NONE),
@@ -2720,10 +2721,10 @@ static int readUserConfigOptions(cfg_t** cfg, const char * optsConfFilename) {
         CFG_STR("DBZTYPE",DBZTYPE,CFGF_NONE),
         CFG_BOOL("REQUIRE_VRAD",REQUIRE_VRAD,CFGF_NONE),
         CFG_BOOL("DEALIAS_VRAD",DEALIAS_VRAD,CFGF_NONE),
-		CFG_BOOL("DEALIAS_RECYCLE",DEALIAS_RECYCLE,CFGF_NONE),
+        CFG_BOOL("DEALIAS_RECYCLE",DEALIAS_RECYCLE,CFGF_NONE),
         CFG_BOOL("EXPORT_BIRD_PROFILE_AS_JSON",FALSE,CFGF_NONE),
         CFG_BOOL("DUALPOL",DUALPOL,CFGF_NONE),
-		CFG_BOOL("SINGLEPOL",SINGLEPOL,CFGF_NONE),
+        CFG_BOOL("SINGLEPOL",SINGLEPOL,CFGF_NONE),
         CFG_FLOAT("DBZMIN",DBZMIN,CFGF_NONE),
         CFG_FLOAT("RHOHVMIN",RHOHVMIN,CFGF_NONE),
         CFG_BOOL("RESAMPLE",RESAMPLE,CFGF_NONE),
@@ -4629,7 +4630,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.dealiasVrad = cfg_getbool(*cfg,"DEALIAS_VRAD");
     alldata->options.dealiasRecycle = cfg_getbool(*cfg,"DEALIAS_RECYCLE");
     alldata->options.dualPol = cfg_getbool(*cfg,"DUALPOL");
-	alldata->options.singlePol = cfg_getbool(*cfg,"SINGLEPOL");
+    alldata->options.singlePol = cfg_getbool(*cfg,"SINGLEPOL");
     alldata->options.dbzThresMin = cfg_getfloat(*cfg,"DBZMIN");
     alldata->options.rhohvThresMin = cfg_getfloat(*cfg,"RHOHVMIN");
     alldata->options.resample = cfg_getbool(*cfg,"RESAMPLE");
@@ -4712,6 +4713,17 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->misc.dbzFactor = (pow(alldata->constants.refracIndex,2) * 1000 * pow(PI,5))/pow(alldata->options.radarWavelength,4);
     alldata->misc.dbzMax = 10*log(alldata->options.etaMax / alldata->misc.dbzFactor)/log(10);
     alldata->misc.cellDbzMin = 10*log(alldata->options.cellEtaMin / alldata->misc.dbzFactor)/log(10);
+    // if stdDevMinBird not set by STDEV_BIRD in options.conf, initialize it depending on wavelength:
+    if (alldata->options.stdDevMinBird == -FLT_MAX){
+        if (alldata->options.radarWavelength < 7.5){
+            //C-band default:
+            alldata->options.stdDevMinBird = STDEV_BIRD;
+        }
+        else{
+            //S-band default:
+            alldata->options.stdDevMinBird = STDEV_BIRD_S;
+        }
+    }
     
     // Extract the vcp attribute if present (i.e. NEXRAD only)
     RaveAttribute_t *attr;

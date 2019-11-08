@@ -197,8 +197,10 @@
 // (aka the texture) is less than cellStdDevMax are considered in the
 // rest of the analysis
 #define STDEV_CELL 5.0f
-// VVP Radial velocity standard deviation threshold
+// default VVP Radial velocity standard deviation threshold C-band (< 7.5 cm)
 #define STDEV_BIRD 2.0f
+// default VVP Radial velocity standard deviation threshold S-band (>= 7.5 cm)
+#define STDEV_BIRD_S 1.0f
 // Bird radar cross section [cm^2]
 #define SIGMA_BIRD 11.0f
 // Maximum mean reflectivity [cm^2/km^3] for cells containing birds
