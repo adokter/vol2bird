@@ -147,8 +147,11 @@ cd ${RADAR_ROOT_DIR}
 # set the paths to installed libraries and executables
 # set these each time you run vol2bird, or add to .bashrc
 # to load automatically in each new shell session
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/hlhdf/lib:${RADAR_ROOT_DIR}/opt/rave/lib:${RADAR_ROOT_DIR}/opt/rsl/lib:${RADAR_ROOT_DIR}/opt/vol2bird/lib:${RADAR_ROOT_DIR}/opt/libtorch/lib
 export PATH=${PATH}:${RADAR_ROOT_DIR}/opt/rsl/bin:${RADAR_ROOT_DIR}/opt/vol2bird/bin
+# On Ubuntu/Linux:
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/hlhdf/lib:${RADAR_ROOT_DIR}/opt/rave/lib:${RADAR_ROOT_DIR}/opt/rsl/lib:${RADAR_ROOT_DIR}/opt/vol2bird/lib:${RADAR_ROOT_DIR}/opt/libtorch/lib
+# On Mac OSX:
+export DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/hlhdf/lib:${RADAR_ROOT_DIR}/opt/rave/lib:${RADAR_ROOT_DIR}/opt/rsl/lib:${RADAR_ROOT_DIR}/opt/vol2bird/lib:${RADAR_ROOT_DIR}/opt/libtorch/lib
 
 # (optional) to run MistNet, add these two lines to your options.conf file and place it in the directory from which you run vol2bird:
 # MISTNET_PATH=${RADAR_ROOT_DIR}/MistNet/mistnet_nexrad.pt
