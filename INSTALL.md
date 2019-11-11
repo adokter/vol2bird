@@ -94,14 +94,20 @@ sudo make install AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
     
 cd ${RADAR_ROOT_DIR}/src 
 
-# (optional) get a copy of libtorch:
-# only needed for running MistNet
+# (optional) install functionality to run MistNet rain segmentation model
+# get a copy of libtorch:
 # on Ubuntu/Linux:
 wget https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.3.0%2Bcpu.zip \
     && unzip libtorch-shared-with-deps-1.3.0+cpu.zip -d ${RADAR_ROOT_DIR}/opt/ \
 # on Mac OSX:
 wget https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.3.0.zip \
     && unzip libtorch-macos-1.3.0.zip -d ${RADAR_ROOT_DIR}/opt/
+# change to radar root directory
+cd ${RADAR_ROOT_DIR}
+# get a copy of the MistNet model
+RUN mkdir MistNet && cd MistNet && wget http://mistnet.s3.amazonaws.com/mistnet_nexrad.pt
+
+cd ${RADAR_ROOT_DIR}/src 
 
 # get a copy of vol2bird
 git clone https://github.com/adokter/vol2bird.git \
@@ -145,6 +151,6 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/hlhdf/lib:${RADA
 export PATH=${PATH}:${RADAR_ROOT_DIR}/opt/rsl/bin:${RADAR_ROOT_DIR}/opt/vol2bird/bin
 
 # (optional) to run MistNet, add these two lines to your options.conf file and place it in the directory from which you run vol2bird:
-# MISTNET_PATH=${RADAR_ROOT_DIR}/opt/MistNet/mistnet_nexrad.pt
+# MISTNET_PATH=${RADAR_ROOT_DIR}/MistNet/mistnet_nexrad.pt
 # USE_MISTNET=TRUE
 ```
