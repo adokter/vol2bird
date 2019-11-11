@@ -47,10 +47,32 @@ void usage(char* programName, int verbose){
     fprintf(stderr,"   usage: %s --help\n", programName);
 
     if(verbose){
+
         fprintf(stderr,"\n   Supported radar data formats:\n");
-        fprintf(stderr,"   * OPERA ODIM hdf5 input format, see <http://www.eumetnet.eu/opera-software>\n");
-        fprintf(stderr,"   * input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>\n");
-        fprintf(stderr,"   * Vaisala Sigmet IRIS format, see <ftp://ftp.sigmet.com/outgoing/manuals/IRIS_Programmers_Manual.pdf>\n\n");
+        fprintf(stderr,"   * OPERA ODIM hdf5 input format, see <http://www.eumetnet.eu/opera-software> [enabled]\n");
+        fprintf(stderr,"   * input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>");
+        #ifdef RSL 
+        fprintf(stderr, " [enabled]\n");
+        #endif
+        #ifndef RSL 
+        fprintf(stderr, " [disabled]\n");
+        #endif
+        fprintf(stderr,"   * Vaisala Sigmet IRIS format, see <ftp://ftp.sigmet.com/outgoing/manuals/IRIS_Programmers_Manual.pdf>");
+        #ifdef  IRIS
+        fprintf(stderr, " [enabled]\n\n");
+        #endif
+        #ifndef IRIS
+        fprintf(stderr, " [disabled]\n\n");
+        #endif
+
+        fprintf(stderr, "   Support for MistNet:");
+        #ifdef MISTNET
+        fprintf(stderr, " [enabled]\n\n");
+        #endif
+        #ifndef MISTNET
+        fprintf(stderr, " [disabled]\n\n");
+        #endif
+ 
         fprintf(stderr,"   Output fields to stdout:\n");
         fprintf(stderr,"   date      - date [UTC]\n");
         fprintf(stderr,"   time      - time [UTC]\n");
@@ -74,6 +96,7 @@ void usage(char* programName, int verbose){
         fprintf(stderr,"   vol2bird home page: <http://github.com/adokter/vol2bird>\n");
     }
 }
+
 
 int main(int argc, char** argv) {
 //    cfg_t* cfg;
@@ -261,15 +284,16 @@ int main(int argc, char** argv) {
     // read in data up to a distance of alldata.misc.rCellMax
     // we do not read in the full volume for speed/memory
     PolarVolume_t* volume = NULL;
-    
-    volume = vol2birdGetVolume(fileIn, nInputFiles, alldata.misc.rCellMax,1);
-         
+
+    volume = vol2birdGetVolume(fileIn, nInputFiles, 1000000,1);
+    //volume = vol2birdGetVolume(fileIn, nInputFiles, alldata.misc.rCellMax,1);
+        
     if (volume == NULL) {
         fprintf(stderr,"Error: failed to read radar volume\n");
         return -1;
     }
     
-    // loading static clutter map upon request
+   // loading static clutter map upon request
     if (alldata.options.useClutterMap){
         int clutterSuccessful = vol2birdLoadClutterMap(volume, alldata.options.clutterMap,alldata.misc.rCellMax) == 0;
         
@@ -310,7 +334,7 @@ int main(int argc, char** argv) {
     
     
     // ------------------------------------------------------------------- //
-    //  example of how the getters can be used to get at the profile data  //
+    //  using getter functions to access at the profile data               //
     // ------------------------------------------------------------------- //
     const char* date;
     const char* time;
@@ -361,7 +385,7 @@ int main(int argc, char** argv) {
             free((void*) profileBio);
 
         //}
-    } // getter example scope end
+    } // getter scope end
 
 
 

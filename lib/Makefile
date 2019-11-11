@@ -1,4 +1,3 @@
-#
 # Copyright 2013 Netherlands eScience Center
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,23 +15,29 @@
 -include ../def.mk 
  
 # use gcc if not set already
-CC      ?= gcc
+CC      = /usr/bin/gcc
 #CFLAGS  += $(RSL_CFLAG) -fPIC -x c -DFPRINTFON
-CFLAGS  += $(RSL_CFLAG) $(IRIS_CFLAG) -fPIC -g -x c
+CFLAGS  += $(RSL_CFLAG) $(IRIS_CFLAG) -fPIC -g -x c 
 LDFLAGS += -shared -Wall
+
+# set linker flag on OSX
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+	LDFLAGS += -undefined dynamic_lookup
+endif
 
 # define where the vol2bird stuff is
 SRC_VOL2BIRD_DIR = .
 
 all : libvol2bird.so
 
-LIBVOL2BIRD_DEPS = constants.h libsvdfit.h libdealias.h librsl.h libvol2bird.h libsvdfit.c libdealias.c librsl.c libvol2bird.c
+LIBVOL2BIRD_DEPS = librender.h constants.h libsvdfit.h libdealias.h librsl.h libvol2bird.h librender.c libsvdfit.c libdealias.c librsl.c libvol2bird.c
 
 libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	# ------------------------------------
 	#        making libvol2bird.so        
 	# ------------------------------------
-	$(CC) $(CFLAGS) \
+	$(CC) $(CFLAGS) $(MISTNET_CFLAG) \
 	$(RAVE_MODULE_CFLAGS) \
 	-I. \
 	$(CONFUSE_INCLUDE_FLAG) \
@@ -47,8 +52,9 @@ libvol2bird.so : $(LIBVOL2BIRD_DEPS)
 	$(SRC_VOL2BIRD_DIR)/libsvdfit.c \
 	$(SRC_VOL2BIRD_DIR)/libdealias.c \
 	$(SRC_VOL2BIRD_DIR)/librsl.c \
+	$(SRC_VOL2BIRD_DIR)/librender.c \
 	$(LDFLAGS) \
-	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lgsl -lgslcblas $(RSL_LIB) $(IRIS_LIB) -lm
+	-Wall -o libvol2bird.so $(RAVE_MODULE_LIBRARIES) -lconfuse -lgsl -lgslcblas $(RSL_LIB) $(IRIS_LIB)
 
 .PHONY : install
 install : libvol2bird.so

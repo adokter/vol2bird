@@ -136,6 +136,13 @@ struct vol2birdOptions {
     float resampleRscale;           /* resampled range gate length in m */
     int resampleNbins;              /* resampled number of range bins */
     int resampleNrays;              /* resampled number of azimuth bins */
+    float mistNetElevs[100];        /* array of elevation angles in degrees to use in Cartesian projection*/
+    int mistNetNElevs;              /* array of elevation angles in degrees to use in Cartesian projection*/
+    int mistNetElevsOnly;           /* use only the specified elevation scans for mistnet to calculate profile if TRUE */
+                                    /* otherwise, use all available elevation scans*/
+    int useMistNet;                 /* whether to use MistNet segmentation model */
+    char mistNetPath[1000];         /* path and filename of the MistNet segmentation model to use, expects libtorch format */
+
 };
 typedef struct vol2birdOptions vol2birdOptions_t;
 
@@ -357,6 +364,8 @@ struct vol2birdScanUse {
     char dbzName[10];
     // the radial velocity quantity used for this scan
     char vradName[10];
+    // the spectrum width quantity used for this scan
+    char wradName[10];
     // the correlation coefficient quantity used for this scan
     char rhohvName[10];
     // the texture field quantity used for this scan
@@ -406,6 +415,8 @@ PolarVolume_t* vol2birdGetVolume(char* filenames[], int nInputFiles, float range
 PolarVolume_t* PolarVolume_resample(PolarVolume_t* volume, double rscale_proj, long nbins_proj, long nrays_proj);
 
 PolarScanParam_t* PolarScanParam_project_on_scan(PolarScanParam_t* param, PolarScan_t* scan, double rscale);
+
+PolarScanParam_t* PolarScan_newParam(PolarScan_t *scan, const char *quantity, RaveDataType type);
 
 int vol2birdGetNColsProfile(vol2bird_t* alldata);
 

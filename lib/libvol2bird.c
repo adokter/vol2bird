@@ -36,8 +36,8 @@
 #include "constants.h"
 #undef RAD2DEG // to suppress redefine warning, also defined in dealias.h
 #undef DEG2RAD // to suppress redefine warning, also defined in dealias.h
-//#include "dealias.h"
 #include "libdealias.h"
+#include "librender.h"
 
 #ifdef RSL
 #include "rsl.h"
@@ -449,7 +449,6 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
 
 
 
-
 static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanUse, vol2bird_t* alldata) {
     
         // iterate over the scans in 'volume'
@@ -469,8 +468,13 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 // extract the scan object from the volume object
                 scan = PolarVolume_getScan(volume, iScan);
                 
-                PolarScanParam_t *cellScanParam = PolarScan_newParam(scan, scanUse[iScan].cellName, RaveDataType_INT);
+                PolarScanParam_t *cellScanParam = NULL;
                 PolarScanParam_t *texScanParam = NULL;
+                
+                // check that CELL parameter is not present, which might be after running MistNet
+                if (!PolarScan_hasParameter(scan, CELLNAME)){
+                    cellScanParam = PolarScan_newParam(scan, scanUse[iScan].cellName, RaveDataType_INT);
+                }
                 
                 // only when dealing with normal (non-dual pol) data, generate a vrad texture field
 				if (alldata->options.singlePol){
@@ -489,7 +493,7 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
 				//        find (weather) cells in the reflectivity image         //
 				// ------------------------------------------------------------- //
 				
-                if (alldata->options.dualPol){
+                if (alldata->options.dualPol && !alldata->options.useMistNet){
                     
                     if (alldata->options.singlePol){
 						
@@ -507,10 +511,14 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                     }
 
                 }
-                else{
+                if (!alldata->options.dualPol && !alldata->options.useMistNet){
                     
                     nCells = findWeatherCells(scan,scanUse[iScan].dbzName,alldata->options.dbzThresMin,TRUE,2,TRUE,alldata);
 
+                }
+                
+                if (alldata->options.useMistNet){
+                    nCells = 2;
                 }
                 
                 if (nCells<0){
@@ -525,8 +533,9 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                 // ------------------------------------------------------------- //
                 //                      analyze cells                            //
                 // ------------------------------------------------------------- //
-    
-                nCells=analyzeCells(scan, scanUse[iScan], nCells, alldata->options.dualPol, alldata);
+                if (!alldata->options.useMistNet){
+                    nCells=analyzeCells(scan, scanUse[iScan], nCells, alldata->options.dualPol, alldata);
+                }
     
                 // ------------------------------------------------------------- //
                 //                     calculate fringe                          //
@@ -633,7 +642,7 @@ static int detNumberOfGates(const int iLayer,
             // the gate is too close to the radar, or too far away
             continue;
         }
-        beamHeight = range * sin(elevAngle * DEG2RAD) + radarHeight;
+        beamHeight = range2height(range, elevAngle) + radarHeight;
         if (fabs(layerHeight - beamHeight) > 0.5*alldata->options.layerThickness) {
             // the gate is not close enough to the altitude layer of interest
             continue;
@@ -680,7 +689,7 @@ static int detSvdfitArraySize(PolarVolume_t* volume, vol2birdScanUse_t* scanUse,
                 
                 int nRang = (int) PolarScan_getNbins(scan);
                 int nAzim = (int) PolarScan_getNrays(scan);
-                float elevAngle = (float) (360 * PolarScan_getElangle(scan) / 2 / PI );
+                float elevAngle = (float) PolarScan_getElangle(scan);
                 float rangeScale = (float) PolarScan_getRscale(scan);
                 float radarHeight = (float) PolarScan_getHeight(scan);
 
@@ -831,6 +840,22 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
                 scanUse[iScan].useScan = FALSE;
             }
         }
+        
+        // check whether spectrum width parameter is present, and store its name
+        sprintf(scanUse[iScan].wradName,"");
+		if (PolarScan_hasParameter(scan, "WRAD")){
+			sprintf(scanUse[iScan].wradName,"WRAD");	
+		}
+		else{
+			if (PolarScan_hasParameter(scan, "WRADH")){
+				sprintf(scanUse[iScan].wradName,"WRADH");	
+			}
+			else{
+				if (PolarScan_hasParameter(scan, "WRADV")){
+					sprintf(scanUse[iScan].vradName,"WRADV");	
+				}
+			}
+		}
         
         // check that elevation is not too high or too low
         if (scanUse[iScan].useScan)
@@ -1259,7 +1284,7 @@ static int findWeatherCells(PolarScan_t *scan, const char* quantity, float quant
         quantityThres = (float) ((quantityThreshold - quantityValueOffset) / quantityValueScale);
     }
 
-    cellImageInitialValue = -1;
+    cellImageInitialValue = CELLINIT;
 	if(initialize){
 		for (int iAzim = 0; iAzim < nAzim; iAzim++) {
 			for (int iRang = 0; iRang < nRang; iRang++) {
@@ -1841,7 +1866,7 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
         gateRange = ((float) iRang + 0.5f) * rangeScale;
 
         // note that "sin(elevAngle*DEG2RAD)" is equivalent to = "cos((90 - elevAngle)*DEG2RAD)":
-        gateHeight = gateRange * (float) sin(elevAngle) + radarHeight;
+        gateHeight = range2height(gateRange, elevAngle) + radarHeight;
 
         if (gateRange < alldata->options.rangeMin || gateRange > alldata->options.rangeMax) {
             // the current gate is either 
@@ -2687,7 +2712,8 @@ static int readUserConfigOptions(cfg_t** cfg, const char * optsConfFilename) {
         CFG_BOOL("PRINT_POINTS_ARRAY",PRINT_POINTS_ARRAY,CFGF_NONE),
         CFG_FLOAT("MIN_NYQUIST_VELOCITY",MIN_NYQUIST_VELOCITY,CFGF_NONE),
         CFG_FLOAT("MAX_NYQUIST_DEALIAS",MAX_NYQUIST_DEALIAS,CFGF_NONE),
-        CFG_FLOAT("STDEV_BIRD",STDEV_BIRD,CFGF_NONE),
+        /* initialize STDEV_BIRD to -FLT_MAX, final initialization will depend on radar wavelength */
+        CFG_FLOAT("STDEV_BIRD",-FLT_MAX,CFGF_NONE),
         CFG_FLOAT("STDEV_CELL",STDEV_CELL,CFGF_NONE),
         CFG_FLOAT("SIGMA_BIRD",SIGMA_BIRD,CFGF_NONE),
         CFG_FLOAT("ETAMAX",ETAMAX,CFGF_NONE),
@@ -2695,16 +2721,20 @@ static int readUserConfigOptions(cfg_t** cfg, const char * optsConfFilename) {
         CFG_STR("DBZTYPE",DBZTYPE,CFGF_NONE),
         CFG_BOOL("REQUIRE_VRAD",REQUIRE_VRAD,CFGF_NONE),
         CFG_BOOL("DEALIAS_VRAD",DEALIAS_VRAD,CFGF_NONE),
-		CFG_BOOL("DEALIAS_RECYCLE",DEALIAS_RECYCLE,CFGF_NONE),
+        CFG_BOOL("DEALIAS_RECYCLE",DEALIAS_RECYCLE,CFGF_NONE),
         CFG_BOOL("EXPORT_BIRD_PROFILE_AS_JSON",FALSE,CFGF_NONE),
         CFG_BOOL("DUALPOL",DUALPOL,CFGF_NONE),
-		CFG_BOOL("SINGLEPOL",SINGLEPOL,CFGF_NONE),
+        CFG_BOOL("SINGLEPOL",SINGLEPOL,CFGF_NONE),
         CFG_FLOAT("DBZMIN",DBZMIN,CFGF_NONE),
         CFG_FLOAT("RHOHVMIN",RHOHVMIN,CFGF_NONE),
         CFG_BOOL("RESAMPLE",RESAMPLE,CFGF_NONE),
         CFG_FLOAT("RESAMPLE_RSCALE",RESAMPLE_RSCALE,CFGF_NONE),
         CFG_INT("RESAMPLE_NBINS",RESAMPLE_NBINS,CFGF_NONE),
         CFG_INT("RESAMPLE_NRAYS",RESAMPLE_NRAYS,CFGF_NONE),
+        CFG_FLOAT_LIST("MISTNET_ELEVS", MISTNET_ELEVS, CFGF_NONE),
+        CFG_BOOL("MISTNET_ELEVS_ONLY", MISTNET_ELEVS_ONLY, CFGF_NONE),
+        CFG_BOOL("USE_MISTNET", USE_MISTNET, CFGF_NONE),
+        CFG_STR("MISTNET_PATH",MISTNET_PATH,CFGF_NONE),
         CFG_END()
     };
     
@@ -3194,7 +3224,6 @@ void printImage(PolarScan_t* scan, const char* quantity) {
     }
         
 } // printImageInt
-
 
 
 
@@ -3881,12 +3910,10 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                             parameterVector[1] = NAN;
                             parameterVector[2] = NAN;
                             // FIXME: if this happens, profile fields are not updated from UNDETECT to NODATA
-                            // continue; // with for (iPass = 0; iPass < nPasses; iPass++)
                         } 
                         else {
                             
                             chi = sqrt(chisq);
-                            //hSpeed = sqrt(pow(parameterVector[0],2) + pow(parameterVector[1],2));
                             hSpeed = sqrt(pow(parameterVector[0],2) + pow(parameterVector[1],2));
                             hDir = (atan2(parameterVector[0],parameterVector[1])*RAD2DEG);
                             
@@ -3917,7 +3944,7 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 10] = (float) nPointsIncluded;
                 alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 13] = (float) nPointsIncludedZ;
                 
-                // fill below profile fields when (1) VVP fit was not performed becasue of azimuthal data gap
+                // fill below profile fields when (1) VVP fit was not performed because of azimuthal data gap
                 // and (2) layer contains range gates within the volume sampled by the radar.
                 if (hasGap && nPointsIncludedZ>alldata->constants.nPointsIncludedMin){
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile +  2] = UNDETECT;
@@ -3945,16 +3972,17 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
   
                 free((void*) yObs);
                 free((void*) yFitted);
-				free((void*) yNyquist);
-				free((void*) yDealias);
+                free((void*) yNyquist);
+                free((void*) yDealias);
                 free((void*) pointsSelection);
                 free((void*) includedIndex);
         
             } // endfor (iPass = 0; iPass < nPasses; iPass++)
-            
             // You need some of the results of iProfileType == 3 in order 
             // to calculate iProfileType == 1, therefore iProfileType == 3 is executed first
             if (iProfileType == 3) {
+                // NOTE: chi can have NAN or numeric value at this point
+                // when NAN, below condition evaluates to FALSE, i.e. scatterersAreNotBirds is set to FALSE
                 if (chi < alldata->options.stdDevMinBird) {
                     alldata->misc.scatterersAreNotBirds[iLayer] = TRUE;
                 }
@@ -3965,10 +3993,6 @@ void vol2birdCalcProfiles(vol2bird_t* alldata) {
             if (iProfileType == 1) {
                 // set the bird density to zero if radial velocity stdev below threshold:
                 if (alldata->misc.scatterersAreNotBirds[iLayer] == TRUE){
-                    alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = 0.0;
-                }
-                // set bird density values to zero if hasGap:
-                if (hasGap && birdDensity>0){
                     alldata->profiles.profile[iLayer*alldata->profiles.nColsProfile + 12] = 0.0;
                 }
             }
@@ -4269,6 +4293,8 @@ PolarVolume_t* vol2birdGetVolume(char* filenames[], int nInputFiles, float range
     #endif
     
     volume = vol2birdGetODIMVolume(filenames, nInputFiles);
+    
+    PolarVolume_sortByElevations(volume,1);
     
     done:
         return volume;
@@ -4601,13 +4627,21 @@ int vol2birdLoadConfig(vol2bird_t* alldata) {
     alldata->options.dealiasVrad = cfg_getbool(*cfg,"DEALIAS_VRAD");
     alldata->options.dealiasRecycle = cfg_getbool(*cfg,"DEALIAS_RECYCLE");
     alldata->options.dualPol = cfg_getbool(*cfg,"DUALPOL");
-	alldata->options.singlePol = cfg_getbool(*cfg,"SINGLEPOL");
+    alldata->options.singlePol = cfg_getbool(*cfg,"SINGLEPOL");
     alldata->options.dbzThresMin = cfg_getfloat(*cfg,"DBZMIN");
     alldata->options.rhohvThresMin = cfg_getfloat(*cfg,"RHOHVMIN");
     alldata->options.resample = cfg_getbool(*cfg,"RESAMPLE");
     alldata->options.resampleRscale = cfg_getfloat(*cfg,"RESAMPLE_RSCALE");
     alldata->options.resampleNbins = cfg_getint(*cfg,"RESAMPLE_NBINS");
     alldata->options.resampleNrays = cfg_getint(*cfg,"RESAMPLE_NRAYS");
+    alldata->options.mistNetNElevs = cfg_size(*cfg, "MISTNET_ELEVS");
+    for(int i=0; i<alldata->options.mistNetNElevs; i++){
+        alldata->options.mistNetElevs[i] = cfg_getnfloat(*cfg, "MISTNET_ELEVS",i);
+    }
+    alldata->options.mistNetElevsOnly = cfg_getbool(*cfg, "MISTNET_ELEVS_ONLY");
+    alldata->options.useMistNet = cfg_getbool(*cfg, "USE_MISTNET");
+    strcpy(alldata->options.mistNetPath,cfg_getstr(*cfg,"MISTNET_PATH"));
+
 
     // ------------------------------------------------------------- //
     //              vol2bird options from constants.h                //
@@ -4676,6 +4710,17 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->misc.dbzFactor = (pow(alldata->constants.refracIndex,2) * 1000 * pow(PI,5))/pow(alldata->options.radarWavelength,4);
     alldata->misc.dbzMax = 10*log(alldata->options.etaMax / alldata->misc.dbzFactor)/log(10);
     alldata->misc.cellDbzMin = 10*log(alldata->options.cellEtaMin / alldata->misc.dbzFactor)/log(10);
+    // if stdDevMinBird not set by STDEV_BIRD in options.conf, initialize it depending on wavelength:
+    if (alldata->options.stdDevMinBird == -FLT_MAX){
+        if (alldata->options.radarWavelength < 7.5){
+            //C-band default:
+            alldata->options.stdDevMinBird = STDEV_BIRD;
+        }
+        else{
+            //S-band default:
+            alldata->options.stdDevMinBird = STDEV_BIRD_S;
+        }
+    }
     
     // Extract the vcp attribute if present (i.e. NEXRAD only)
     RaveAttribute_t *attr;
@@ -4715,6 +4760,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     // if a wavelength attribute is present. Therefore the task_args string is
     // set here and not in vol2birdLoadConfig(), which has no access to the volume    
     
+    //FIXME: add mistNetNElevs (mistnet elevations) to the task_args string
     sprintf(alldata->misc.task_args,
         "azimMax=%f,azimMin=%f,layerThickness=%f,nLayers=%i,rangeMax=%f,"
         "rangeMin=%f,elevMax=%f,elevMin=%f,radarWavelength=%f,"
@@ -4723,6 +4769,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         "cellEtaMin=%f,etaMax=%f,dbzType=%s,requireVrad=%i,"
         "dealiasVrad=%i,dealiasRecycle=%i,dualPol=%i,singlePol=%i,rhohvThresMin=%f,"
         "resample=%i,resampleRscale=%f,resampleNbins=%i,resampleNrays=%i,"
+        "mistNetNElevs=%i,mistNetElevsOnly=%i,useMistNet=%i,mistNetPath=%s,"
     
         "areaCellMin=%f,cellClutterFractionMax=%f,"
         "chisqMin=%f,clutterValueMin=%f,dbzThresMin=%f,"
@@ -4760,6 +4807,10 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         alldata->options.resampleRscale,
         alldata->options.resampleNbins,
         alldata->options.resampleNrays,
+        alldata->options.mistNetNElevs,
+        alldata->options.mistNetElevsOnly,
+        alldata->options.useMistNet,
+        alldata->options.mistNetPath,
 
         alldata->constants.areaCellMin,
         alldata->constants.cellClutterFractionMax,
@@ -4802,6 +4853,31 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     if(alldata->options.radarWavelength > 7.5 && !alldata->options.dualPol){
         fprintf(stderr,"Warning: using experimental SINGLE polarization mode on S-band data, results may be unreliable!\n");
     }
+
+    // Print warning for MistNet mode
+    if(alldata->options.useMistNet && (alldata->options.dualPol || alldata->options.singlePol)){
+        fprintf(stderr,"Warning: using Mistnet, disabling other segmentation methods\n");
+        alldata->options.singlePol = FALSE;
+        alldata->options.dualPol = FALSE;
+    }
+
+    // check that we are requesting the right number of elevation scans for MistNet segmentation model
+    if(alldata->options.mistNetNElevs != MISTNET_N_ELEV){
+        fprintf(stderr, "Error: MistNet segmentation model expects %i elevations, but %i are specified.\n", MISTNET_N_ELEV, alldata->options.mistNetNElevs);
+        return -1;
+    }
+    
+    // check that MistNet segmentation model can be found on disk
+    if(alldata->options.useMistNet && !isRegularFile(alldata->options.mistNetPath)){
+        fprintf(stderr, "Error: MistNet segmentation model '%s' not found.\n", alldata->options.mistNetPath);
+        return -1;
+    }
+
+    // Print warning for mistnet mode
+    if(alldata->options.useMistNet && alldata->options.radarWavelength < 7.5){
+        fprintf(stderr,"Warning: MistNet segmentation model has been trained on S-band data, results at other radar wavelengths may be unreliable!\n");
+    }
+
 	
     // ------------------------------------------------------------- //
     //             lists of indices into the 'points' array:         //
@@ -4904,6 +4980,15 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->flags.flagPositionAzimTooLow = 7;
     alldata->flags.flagPositionAzimTooHigh = 8;
 
+    // segment precipitation using Mistnet deep convolutional neural net
+    #ifdef MISTNET
+    PolarVolume_t* volume_mistnet;
+    if(alldata->options.useMistNet){
+        int result = segmentScansUsingMistnet(volume, scanUse, alldata);
+        if (result < 0) return -1;
+    }
+    #endif
+
     // construct the 'points' array
     constructPointsArray(volume, scanUse, alldata);
 
@@ -4984,8 +5069,6 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     return 0;
 
 } // vol2birdSetUp
-
-
 
 
 void vol2birdTearDown(vol2bird_t* alldata) {

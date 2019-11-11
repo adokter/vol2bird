@@ -27,22 +27,32 @@ RUN git clone https://github.com/adokter/rsl.git && cd rsl \
     && make install AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=: \
     && cd .. && rm -rf rsl
 
+# get a copy of libtorch:
+RUN wget https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.3.0%2Bcpu.zip \
+    && unzip libtorch-shared-with-deps-1.3.0+cpu.zip -d /opt/radar \
+    && rm libtorch-shared-with-deps-1.3.0+cpu.zip
+
 # get a copy of vol2bird
 # configure vol2bird
 RUN git clone -b develop https://github.com/adokter/vol2bird.git \
     && cd vol2bird && ./configure --prefix=/opt/radar/vol2bird --with-rave=/opt/radar/rave --with-rsl=/opt/radar/rsl \
     --with-gsl=/usr/include/gsl,/usr/lib/x86_64-linux-gnu \
+    --with-libtorch=/opt/radar/libtorch \
     && make && make install && cd .. && rm -rf vol2bird
 
+# get a copy of MistNet
+RUN mkdir MistNet && cd MistNet && wget http://mistnet.s3.amazonaws.com/mistnet_nexrad.pt \
+    && cd ..
+
 # clean up
-RUN apt-get remove -y git git-lfs gcc g++ wget unzip make cmake python-numpy -y python-dev flex-old \
+RUN apt-get remove -y git gcc g++ wget unzip make cmake python-numpy -y python-dev flex-old \
     && apt-get clean && apt -y autoremove && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # prepare mount points
 RUN mkdir data
 
 # set the paths to installed libraries and executables
-ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/radar/lib:/opt/radar/rave/lib:/opt/radar/rsl/lib:/opt/radar/vol2bird/lib:/usr/lib/x86_64-linux-gnu
+ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/radar/lib:/opt/radar/rave/lib:/opt/radar/rsl/lib:/opt/radar/vol2bird/lib:/usr/lib/x86_64-linux-gnu:/opt/radar/libtorch/lib
 ENV PATH=${PATH}:/opt/radar/vol2bird/bin:/opt/radar/rsl/bin
 
 CMD vol2bird

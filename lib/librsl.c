@@ -117,7 +117,8 @@ PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDE
         return param;
     }
 
-    rslRay = RSL_get_first_ray_of_volume(rslVolume);
+    rslRay = RSL_get_first_ray_of_sweep(rslSweep);
+    
 
     if(rslRay == NULL) {
         fprintf(stderr, "Warning: RSL first ray of volume %i not found by PolarScanParam_RSL2Rave...\n",RSL_INDEX);
@@ -480,7 +481,7 @@ PolarVolume_t* vol2birdGetRSLVolume(char* filename, float rangeMax, int small) {
 
     // if small, only read reflectivity, velocity, Rho_HV        
     // else select all scans
-    if(small) RSL_select_fields("dz","vr","rh", NULL);
+    if(small) RSL_select_fields("dz","vr","sw","rh", NULL);
     else RSL_select_fields("dz","vr","sw","zt","dr","rh","ph","kd", NULL);
     
     RSL_read_these_sweeps("all",NULL);

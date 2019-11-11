@@ -621,6 +621,11 @@ ac_includes_default="\
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 LD_PRINTOUT
+MISTNET_CFLAG
+MISTNET_LIB
+TORCH_LIBRARY_FLAG
+TORCH_INCLUDE_FLAG
+TORCH_DIR
 GOT_RAINBOW_LIB
 RAINBOW_LIB
 RAINBOW_CFLAG
@@ -682,6 +687,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -704,6 +710,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+with_libtorch
 with_confuse
 with_gsl
 with_rsl
@@ -758,6 +765,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1010,6 +1018,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1147,7 +1164,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1300,6 +1317,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1328,6 +1346,7 @@ if test -n "$ac_init_help"; then
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-libtorch=DIR	  The libtorch root installation directory. Specify to enable Mistnet
   --with-confuse=DIR	  The confuse root installation directory
   --with-gsl=DIR|INC,LIB  The GSL (GNU Scientific Library) installation directory
   --with-rsl=DIR	  The RSL root installation directory
@@ -2994,6 +3013,49 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 LIBS=-lm
+
+TORCH_DIR=
+TORCH_SUPPRESSED=no
+TORCH_INCLUDE_FLAG=
+TORCH_LIBRARY_FLAG=
+MISTNET_LIB=
+MISTNET_CFLAG=
+
+# Check whether --with-libtorch was given.
+if test "${with_libtorch+set}" = set; then :
+  withval=$with_libtorch;
+else
+  withval=no
+fi
+
+
+case $withval in
+	yes)
+		as_fn_error $? "\"path of libtorch installation not specified by --with-libtorch=<libtorch path>\"" "$LINENO" 5
+		;;
+	no)
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libtorch lib" >&5
+$as_echo_n "checking for libtorch lib... " >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: suppressed" >&5
+$as_echo "suppressed" >&6; }
+		TORCH_SUPPRESSED=yes
+		;;
+	*)
+		if [ "$withval" != "" ]; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libtorch library path" >&5
+$as_echo_n "checking for libtorch library path... " >&6; }
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
+$as_echo "found" >&6; }
+			TORCH_DIR="`echo $withval`"
+			TORCH_INCLUDE_FLAG="-I$TORCH_DIR/include"
+			TORCH_LIBRARY_FLAG="-L$TORCH_DIR/lib"
+			MISTNET_LIB="-lmistnet -ltorch -lc10"
+			MISTNET_CFLAG=-DMISTNET
+		else
+      			as_fn_error $? "\"Odd argument passed for libtorch\"" "$LINENO" 5
+		fi
+		;;
+esac
 
 CONFUSE_INCLUDE_DIR=
 CONFUSE_LIB_DIR=
@@ -4789,8 +4851,16 @@ fi
 
 
 
+
+
+
+
 ac_config_files="$ac_config_files def.mk"
 
+if [ "x$TORCH_SUPPRESSED" = "xno" ]; then
+	ac_config_files="$ac_config_files libmistnet/configure"
+
+fi
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -5497,6 +5567,7 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "def.mk") CONFIG_FILES="$CONFIG_FILES def.mk" ;;
+    "libmistnet/configure") CONFIG_FILES="$CONFIG_FILES libmistnet/configure" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -5947,3 +6018,12 @@ $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
 
+if [ "x$TORCH_SUPPRESSED" = "xno" ]; then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: starting CMake configuration of libmistnet" >&5
+$as_echo "$as_me: starting CMake configuration of libmistnet" >&6;}
+	cd libmistnet
+	chmod 755 configure
+	./configure
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
+$as_echo "done" >&6; }
+fi

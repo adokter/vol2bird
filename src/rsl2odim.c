@@ -18,14 +18,36 @@ void usage(char* programName, int verbose){
     fprintf(stderr,"usage: %s --help\n", programName);
 
     if (verbose){
-        fprintf(stderr,"\n   Expects input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>\n");
-        fprintf(stderr,"   or Vaisala Sigmet IRIS format, see <ftp://ftp.sigmet.com/outgoing/manuals/IRIS_Programmers_Manual.pdf>\n");
-        fprintf(stderr,"   Outputs OPERA ODIM hdf5 input format, see <http://www.eumetnet.eu/opera-software>\n");
+		fprintf(stderr,"\n   Supported radar data formats:\n");
+        fprintf(stderr,"   * OPERA ODIM hdf5 input format, see <http://www.eumetnet.eu/opera-software> [enabled]\n");
+        fprintf(stderr,"   * input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>");
+        #ifdef RSL
+        fprintf(stderr, " [enabled]\n");
+        #endif
+        #ifndef RSL
+        fprintf(stderr, " [disabled]\n");
+        #endif
+        fprintf(stderr,"   * Vaisala Sigmet IRIS format, see <ftp://ftp.sigmet.com/outgoing/manuals/IRIS_Programmers_Manual.pdf>");
+        #ifdef  IRIS
+        fprintf(stderr, " [enabled]\n\n");
+        #endif
+        #ifndef IRIS
+        fprintf(stderr, " [disabled]\n\n");
+        #endif
+
+        fprintf(stderr, "   Support for MistNet:");
+        #ifdef MISTNET
+        fprintf(stderr, " [enabled]\n\n");
+        #endif
+        #ifndef MISTNET
+        fprintf(stderr, " [disabled]\n\n");
+        #endif
     }
 }
 
 int main(int argc, char** argv) {
 //    cfg_t* cfg;
+    vol2bird_t alldata;
 
     // print default message when no input arguments
     if (argc == 1) {
@@ -171,18 +193,38 @@ int main(int argc, char** argv) {
             return -1;
         }
     }
-        
+
+    // read configuration options
+    int configSuccessful = vol2birdLoadConfig(&alldata) == 0;
+
+    if (configSuccessful == FALSE) {
+        fprintf(stderr,"Error: failed to load configuration\n");
+        return -1;
+    }
+
     // read in data for the full range of distances.
     PolarVolume_t* volume = NULL;
     volume = vol2birdGetVolume(fileIn, nInputFiles, 1000000, 0);
-    
+
     if (volume == NULL) {
         fprintf(stderr,"Error: failed to read radar volume\n");
         return -1;
     }
     
+	if(alldata.options.useMistNet){
+         // initialize volbird library to run MistNet
+        int initSuccessful = vol2birdSetUp(volume, &alldata) == 0;
+
+        if (initSuccessful == FALSE) {
+            fprintf(stderr,"Error: failed to initialize vol2bird\n");
+            return -1;
+        }
+	}
+
     saveToODIM((RaveCoreObject*) volume, fileVolOut);
     
+    // tear down vol2bird, give memory back
+    if(alldata.options.useMistNet) vol2birdTearDown(&alldata);
     RAVE_OBJECT_RELEASE(volume);
      
     return 0;

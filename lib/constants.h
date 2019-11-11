@@ -7,6 +7,8 @@
 // when analyzing cells, AREACELL determines the minimum size of a
 // cell to be considered in the rest of the analysis [km^2]
 #define AREACELL 0.5
+// initialization value of rain segmentation field (CELL)
+#define CELLINIT -1
 // minimum standard deviation of the fit
 #define CHISQMIN 1e-5
 // cells with clutter fractions above this value are likely not birds
@@ -40,6 +42,10 @@
 #define NTEXMIN 4
 // the refractive index of water
 #define REFRACTIVE_INDEX_OF_WATER 0.964
+// standard refraction coefficient (4/3)
+#define REFRACTION_COEFFICIENT 1.333333f
+// earth's radius (taken from NARR GRIB file)
+#define EARTH_RADIUS 6371200 
 // range gates up to a distance of RANGE_MAX+RCELLMAX_OFFSET are read into memory
 // the extra offset allows for the raincell search to extend somewhat further
 // than the maximum range used in the profile generation (RANGE_MAX).
@@ -51,7 +57,6 @@
 #define VDIFMAX 10.0
 // When analyzing cells, radial velocities lower than VRADMIN are treated as clutter
 #define VRADMIN 1.0
-
 
 //-------------------------------------------------------//
 //       hard-coded options for use RSL library          //
@@ -79,6 +84,29 @@
 #endif
 
 //-------------------------------------------------------//
+//            MistNet hard-coded options                 //
+//-------------------------------------------------------//
+// resolution of the Cartesian grid in meter for Mistnet
+#define MISTNET_RESOLUTION 500
+// X and Y dimension of the Cartesian grid for Mistnet,
+// including a 4 pixel padding around the image, i.e. 8
+// additional pixels.
+#define MISTNET_DIMENSION 608
+// number of MistNet elevation scans expected
+#define MISTNET_N_ELEV 5
+// predict a pixel as rain if the class probability for rain exceeds this threshold
+#define MISTNET_WEATHER_THRESHOLD 0.45
+// predict a pixel as rain if the average class probability for rain across
+// all five elevations at that spatial location exceeds this threshold
+#define MISTNET_SCAN_AVERAGE_WEATHER_THRESHOLD 0.45
+// MistNet tensor indices for the background, biology and weather class probabilities
+#define MISTNET_BACKGROUND_INDEX 0
+#define MISTNET_BIOLOGY_INDEX 1
+#define MISTNET_WEATHER_INDEX 2
+// value reserved in the weather cell map for pixels identified by MistNet as weather
+#define MISTNET_WEATHER_CELL_VALUE 2
+
+//-------------------------------------------------------//
 //             other hard-coded options                  //
 //-------------------------------------------------------//
 
@@ -98,9 +126,10 @@
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
-#define VERSION "0.4.1"
+#define VERSION "0.5.0"
 // Date of latest version of the program
-#define VERSIONDATE "06-Sep-2019"
+#define VERSIONDATE "11-Nov-2019"
+
 
 //-------------------------------------------------------//
 //  user options defaults (to be set in options.conf)    //
@@ -168,8 +197,10 @@
 // (aka the texture) is less than cellStdDevMax are considered in the
 // rest of the analysis
 #define STDEV_CELL 5.0f
-// VVP Radial velocity standard deviation threshold
+// default VVP Radial velocity standard deviation threshold C-band (< 7.5 cm)
 #define STDEV_BIRD 2.0f
+// default VVP Radial velocity standard deviation threshold S-band (>= 7.5 cm)
+#define STDEV_BIRD_S 1.0f
 // Bird radar cross section [cm^2]
 #define SIGMA_BIRD 11.0f
 // Maximum mean reflectivity [cm^2/km^3] for cells containing birds
@@ -208,3 +239,12 @@
 #define RESAMPLE_NBINS 100
 // resampled number of azimuth bins
 #define RESAMPLE_NRAYS 360
+// whether to use mistnet segmentation model
+#define USE_MISTNET 0
+// elevations to use in Cartesian projection for Mistnet
+#define MISTNET_ELEVS "{0.5, 1.5, 2.5, 3.5, 4.5}"
+// use only the specified elevation scans for mistnet to calculate profile if TRUE
+// otherwise, use all available elevation scans
+#define MISTNET_ELEVS_ONLY 1
+// location of mistnet model in pytorch format
+#define MISTNET_PATH "/MistNet/mistnet_nexrad.pt"

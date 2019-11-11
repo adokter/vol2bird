@@ -28,6 +28,9 @@ def.mk:
 
 .PHONY:build 
 build: def.mk
+	if [ -f "./libmistnet/Makefile" ]; then \
+		$(MAKE) -C libmistnet; \
+	fi
 	$(MAKE) -C lib
 	$(MAKE) -C src
 	$(MAKE) -C pyvol2bird
@@ -39,6 +42,9 @@ install: def.mk
 	$(MAKE) -C src install
 	$(MAKE) -C pyvol2bird install
 	$(MAKE) -C pgfplugin install
+	@if [ -f "./libmistnet/Makefile" ]; then \
+		$(MAKE) -C libmistnet install; \
+	fi
 	@echo "################################################################"
 	@echo "To run the binaries you will need to setup your library path to"
 	@echo "LD_LIBRARY_PATH="`cat def.mk | grep LD_PRINTOUT | sed -e"s/LD_PRINTOUT=//"`
@@ -58,6 +64,9 @@ clean:
 	$(MAKE) -C src clean
 	$(MAKE) -C pyvol2bird clean
 	$(MAKE) -C tests clean
+	@if [ -f "./libmistnet/Makefile" ]; then \
+		$(MAKE) -C libmistnet clean; \
+	fi
 	@\rm -f *~
 
 .PHONY:distclean
@@ -66,4 +75,6 @@ distclean:
 	$(MAKE) -C src distclean
 	$(MAKE) -C pyvol2bird distclean
 	$(MAKE) -C tests distclean
+	@\rm -rf libmistnet/CMakeFiles libmistnet/Makefile libmistnet/configure libmistnet/cmake_install.cmake
+	@\rm -f libmistnet/CMakeCache.txt libmistnet/install_manifest.txt libmistnet/libmistnet.so
 	@\rm -f *~ config.log config.status def.mk
