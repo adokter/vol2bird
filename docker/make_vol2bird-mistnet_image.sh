@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # build the docker image
-docker build -f Dockerfile.vol2bird -t vol2bird/uncompacted .
+docker build -f Dockerfile.vol2bird-mistnet -t vol2bird-mistnet/uncompacted .
 
 echo "compacting the image..."
 # get the image ID
-ID=$(docker run -d vol2bird/uncompacted /bin/bash)
+ID=$(docker run -d vol2bird-mistnet/uncompacted /bin/bash)
 # export and import
 # all ENV and CMD statements are deleted in this process
 # put them back with --change options
-docker export $ID | docker import --change="ENV LD_LIBRARY_PATH=/opt/radar/lib:/opt/radar/rave/lib:/opt/radar/rsl/lib:/opt/radar/vol2bird/lib" --change="ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/radar/rsl/bin:/opt/radar/vol2bird/bin" --change="CMD vol2bird" - vol2bird
+docker export $ID | docker import --change="ENV LD_LIBRARY_PATH=/opt/radar/lib:/opt/radar/rave/lib:/opt/radar/rsl/lib:/opt/radar/vol2bird/lib:/opt/radar/libtorch/lib" --change="ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/radar/rsl/bin:/opt/radar/vol2bird/bin" --change="CMD vol2bird" - vol2bird-mistnet
 
 # stop running instances of vol2bird container
 docker stop vol2bird
