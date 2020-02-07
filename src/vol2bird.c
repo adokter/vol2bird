@@ -49,7 +49,7 @@ void usage(char* programName, int verbose){
     if(verbose){
 
         fprintf(stderr,"\n   Supported radar data formats:\n");
-        fprintf(stderr,"   * OPERA ODIM hdf5 input format, see <http://www.eumetnet.eu/opera-software> [enabled]\n");
+        fprintf(stderr,"   * OPERA ODIM hdf5 input format, see <https://www.eumetnet.eu/wp-content/uploads/2019/01/ODIM_H5_v23.pdf> [enabled]\n");
         fprintf(stderr,"   * input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>");
         #ifdef RSL 
         fprintf(stderr, " [enabled]\n");
