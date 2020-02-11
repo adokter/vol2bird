@@ -4434,7 +4434,7 @@ PolarVolume_t* vol2birdGetODIMVolume(char* filenames[], int nInputFiles) {
     int rot = Rave_ObjectType_UNDEFINED;
 
     for (int i=0; i<nInputFiles; i++){
-        // read the iris file
+        // read the file
         RaveIO_t* raveio = RaveIO_open(filenames[i]);
 
         if(raveio == NULL){
@@ -4527,7 +4527,6 @@ PolarVolume_t* vol2birdGetODIMVolume(char* filenames[], int nInputFiles) {
     done:
     
         // clean up
-        RAVE_OBJECT_RELEASE(volume); 
         RAVE_OBJECT_RELEASE(volume);            
         RAVE_OBJECT_RELEASE(scan);
         
@@ -4856,7 +4855,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
 
     // Print warning for MistNet mode
     if(alldata->options.useMistNet && (alldata->options.dualPol || alldata->options.singlePol)){
-        fprintf(stderr,"Warning: using Mistnet, disabling other segmentation methods\n");
+        fprintf(stderr,"Warning: using MistNet, disabling other segmentation methods\n");
         alldata->options.singlePol = FALSE;
         alldata->options.dualPol = FALSE;
     }

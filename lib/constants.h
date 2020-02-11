@@ -248,3 +248,5 @@
 #define MISTNET_ELEVS_ONLY 1
 // location of mistnet model in pytorch format
 #define MISTNET_PATH "/MistNet/mistnet_nexrad.pt"
+// initializing value of mistnet tensor
+#define MISTNET_INIT 0
