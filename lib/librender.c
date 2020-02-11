@@ -523,6 +523,9 @@ int fill3DTensor(double ***tensor, RaveObjectList_t* list, int dim1, int dim2, i
         RaveList_t* cartesianParameterNames = Cartesian_getParameterNames(cartesian);
         double value;
         RaveValueType valueType;
+        int dbz_count = 0;
+        int vrad_count = 0;
+        int wrad_count = 0;
         
         for(int iOrder = 0; iOrder < 3; iOrder++){
             for(int iCartesianParam = 0; iCartesianParam < nCartesianParam; iCartesianParam++){
@@ -559,12 +562,16 @@ int fill3DTensor(double ***tensor, RaveObjectList_t* list, int dim1, int dim2, i
                 fprintf(stderr,"Writing Cartesian parameter %s at index %i (scan=%i, param=%i) \n",
                     parameterName,iScan+nScan*iOrder, iScan, iOrder);
                 #endif
-                
+
                 if(iScan+nScan*iOrder>=dim1){
                    fprintf(stderr, "Error: exceeding 3D tensor dimension\n"); 
                    RAVE_OBJECT_RELEASE(cartesianParam);
                    return(-1);
                 }
+                
+                if(iOrder == 0) dbz_count+=1;
+                if(iOrder == 1) vrad_count+=1;
+                if(iOrder == 2) wrad_count+=1;
                 
                 // fill tensor
                 for(int x = 0; x < xSize; x++){
@@ -581,9 +588,12 @@ int fill3DTensor(double ***tensor, RaveObjectList_t* list, int dim1, int dim2, i
                 
                 RAVE_OBJECT_RELEASE(cartesianParam);
                 
-            } //iScan
-        }   
-    }
+            } // iParam
+        } // iOrder
+        if(dbz_count == 0) fprintf(stderr, "Warning: no reflectivity data found for MistNet input scan %i, initializing with values %i instead.\n", iScan, MISTNET_INIT);
+        if(vrad_count == 0) fprintf(stderr, "Warning: no radial velocity data found for MistNet input scan %i, initializing with values %i instead.\n", iScan, MISTNET_INIT);
+        if(wrad_count == 0) fprintf(stderr, "Warning: no spectrum width data found for MistNet input scan %i, initializing with values %i instead.\n", iScan, MISTNET_INIT);
+    }  // iScan
     
     return 0;
 }
@@ -629,7 +639,7 @@ int polarVolumeTo3DTensor(PolarVolume_t* pvol, double ****tensor, int dim, long 
     }
 
     // initialize a 3D tensor, and fill it
-    *tensor = init3DTensor(nCartesianParam,dim,dim,0);
+    *tensor = init3DTensor(nCartesianParam,dim,dim,MISTNET_INIT);
     fill3DTensor(*tensor, list, nCartesianParam, dim, dim);
 
     // clean up
