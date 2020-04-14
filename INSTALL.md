@@ -69,7 +69,7 @@ mdfind -name projects.h
 # using Macports the location is /opt/local/lib/proj47
 export PROJ4ROOT=/opt/local/lib/proj47
 # now we're ready to configure the install
-./configure --prefix=${RADAR_ROOT_DIR}/opt/rave  --with-proj=${PROJ4ROOT} --with-hlhdf=${HLDIR}	
+./configure --prefix=${RADAR_ROOT_DIR}/opt/rave  --with-proj=${PROJ4ROOT} --with-hlhdf=${RADAR_ROOT_DIR}/opt/hlhdf	
 # build and install:
 make
 sudo make install
