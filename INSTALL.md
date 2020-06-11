@@ -82,7 +82,7 @@ cd ${RADAR_ROOT_DIR}/src
 git clone https://github.com/adokter/iris2odim.git \
     && cd iris2odim && export RAVEROOT=${RADAR_ROOT_DIR}/opt/ \
     && make 
-sudo make install
+sudo make install RAVEROOT=${RADAR_ROOT_DIR}/opt/
 
 cd ${RADAR_ROOT_DIR}/src 
 
