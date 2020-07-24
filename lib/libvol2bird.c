@@ -1984,7 +1984,7 @@ int vol2birdLoadClutterMap(PolarVolume_t* volume, char* file, float rangeMax){
         
         // extract the cluttermap scan parameter closest in elevation
         elev = PolarScan_getElangle(scan); 	
-        clutScan = PolarVolume_getScanClosestToElevation(clutVol,elev,0);
+        clutScan = PolarVolume_getScanClosestToElevation_vol2bird(clutVol,elev);
         param = PolarScan_getParameter(clutScan,CLUTNAME);
         
         if(param == NULL){

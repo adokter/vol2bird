@@ -51,6 +51,8 @@ PolarVolume_t* PolarVolume_selectScansByElevation(PolarVolume_t* volume, float e
 
 PolarVolume_t* PolarVolume_selectScansByScanUse(PolarVolume_t* volume, vol2birdScanUse_t *scanUse, int nScansUsed);
 
+PolarScan_t* PolarVolume_getScanClosestToElevation_vol2bird(PolarVolume_t* volume, double elev);
+
 /**
  * FUNCTION BODIES
  **/
@@ -689,8 +691,7 @@ PolarVolume_t* PolarVolume_selectScansByElevation(PolarVolume_t* volume, float e
     // iterate over the selected scans in 'volume' and add them to 'volume_select'
     for (int iElev = 0; iElev < nElevs; iElev++) {
         // extract the scan object from the volume object
-        scan = PolarVolume_getScanClosestToElevation(volume,DEG2RAD*elevs[iElev],0);
-        
+        scan = PolarVolume_getScanClosestToElevation_vol2bird(volume,DEG2RAD*elevs[iElev]);
         if (ABS(RAD2DEG*PolarScan_getElangle(scan)-elevs[iElev]) > 0.1){
             fprintf(stderr,"Warning: Requested elevation scan at %f degrees but selected scan at %f degrees\n",
                 elevs[iElev],RAD2DEG*PolarScan_getElangle(scan));
@@ -753,6 +754,53 @@ PolarVolume_t* PolarVolume_selectScansByScanUse(PolarVolume_t* volume, vol2birdS
     return(volume_select);
 }
 
+
+/**
+ * Return the polar scan of a volume closest to a given elevation
+ * This is a replacement function for PolarVolume_getScanClosestToElevation
+ * available in RAVE, which fails when there are multiple scans at the same elevation. 
+ *
+ * @param volume - a polar volume
+ * @param elev - an elevation angle in radians
+ * @return a polar scan
+ */
+PolarScan_t* PolarVolume_getScanClosestToElevation_vol2bird(PolarVolume_t* volume, double elev){
+    int iScan;
+    int nScans;
+    double elevDifference = 1000;
+    double elevDifferenceCandidate = 1000;
+
+    nScans = PolarVolume_getNumberOfScans(volume);
+
+    PolarScan_t* scan = NULL;
+    PolarScan_t* scanCandidate = NULL;
+
+    if(nScans<=0){
+        fprintf(stderr,"Error: polar volume contains no scans\n");
+        return scan;
+    }
+
+    for (int iScan = 0; iScan < nScans; iScan++) {
+        // extract the scan object from the volume object
+        scanCandidate = PolarVolume_getScan(volume,iScan);
+        elevDifferenceCandidate = ABS(elev - PolarScan_getElangle(scanCandidate));
+        
+        // this happens when there are two elevation scans at the same elevation
+        if(elevDifferenceCandidate == elevDifference){
+            // pick the higest resolution scan
+            if (PolarScan_getRscale(scanCandidate) < PolarScan_getRscale(scan)){
+                scan = scanCandidate;
+            }
+        }
+    
+        if(elevDifferenceCandidate < elevDifference){
+            elevDifference = elevDifferenceCandidate;
+            scan = scanCandidate;
+        }
+    }
+        
+    return(scan);
+}
 
 int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int dim2, int dim3, int dim4, long res){
     
