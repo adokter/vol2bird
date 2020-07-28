@@ -126,9 +126,9 @@
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
-#define VERSION "0.5.0.9148"
+#define VERSION "0.5.0.9151"
 // Date of latest version of the program
-#define VERSIONDATE "24-Jul-2020"
+#define VERSIONDATE "28-Jul-2020"
 
 
 //-------------------------------------------------------//
@@ -142,7 +142,7 @@
 // the minimum range [m] used for constructing the bird density profile
 #define RANGEMIN 5000.0f
 // the maximum range [m] used for constructing the bird density profile
-#define RANGEMAX 25000.0f
+#define RANGEMAX 35000.0f
 // the minimum azimuth [degrees] used for constructing the bird density profile
 #define AZIMMIN 0.0f
 // the maximum range [degrees] used for constructing the bird density profile
