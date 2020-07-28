@@ -142,7 +142,7 @@
 // the minimum range [m] used for constructing the bird density profile
 #define RANGEMIN 5000.0f
 // the maximum range [m] used for constructing the bird density profile
-#define RANGEMAX 25000.0f
+#define RANGEMAX 35000.0f
 // the minimum azimuth [degrees] used for constructing the bird density profile
 #define AZIMMIN 0.0f
 // the maximum range [degrees] used for constructing the bird density profile
