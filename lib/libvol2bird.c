@@ -1947,6 +1947,7 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
 
 int vol2birdLoadClutterMap(PolarVolume_t* volume, char* file, float rangeMax){
     PolarVolume_t* clutVol = NULL;
+
     clutVol = vol2birdGetVolume(&file, 1, rangeMax,1);
             
     if(clutVol == NULL){
@@ -1983,8 +1984,12 @@ int vol2birdLoadClutterMap(PolarVolume_t* volume, char* file, float rangeMax){
         scan = PolarVolume_getScan(volume, iScan);
         
         // extract the cluttermap scan parameter closest in elevation
-        elev = PolarScan_getElangle(scan); 	
-        clutScan = PolarVolume_getScanClosestToElevation_vol2bird(clutVol,elev);
+        elev = PolarScan_getElangle(scan);
+
+        //FIXME: here PolarVolume_getScanClosestToElevation_vol2bird leads to a segmentation fault. It finds the correct scan, but
+        //any operation here on the pointer leads to segfault...
+        //clutScan = PolarVolume_getScanClosestToElevation_vol2bird(clutVol,elev);
+        clutScan = PolarVolume_getScanClosestToElevation(clutVol,elev,0);
         param = PolarScan_getParameter(clutScan,CLUTNAME);
         
         if(param == NULL){

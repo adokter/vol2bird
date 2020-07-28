@@ -765,7 +765,6 @@ PolarVolume_t* PolarVolume_selectScansByScanUse(PolarVolume_t* volume, vol2birdS
  * @return a polar scan
  */
 PolarScan_t* PolarVolume_getScanClosestToElevation_vol2bird(PolarVolume_t* volume, double elev){
-    int iScan;
     int nScans;
     double elevDifference = 1000;
     double elevDifferenceCandidate = 1000;
@@ -798,7 +797,7 @@ PolarScan_t* PolarVolume_getScanClosestToElevation_vol2bird(PolarVolume_t* volum
             scan = scanCandidate;
         }
     }
-        
+
     return(scan);
 }
 
