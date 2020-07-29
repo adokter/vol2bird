@@ -550,6 +550,10 @@ if [[ "$TORCH_LIBRARY_FLAG" != "" ]]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$TORCH_LIBRARY_FLAG" | sed -e"s/[[ \t]]*-L//"`
 fi
 
+if [[ "$RSL_LIBRARY_FLAG" != "" ]]; then
+  LD_PRINTOUT=$LD_PRINTOUT:`echo "$RSL_LIBRARY_FLAG" | sed -e"s/[[ \t]]*-L//"`
+fi
+
 AC_SUBST(RAVE_ROOT_DIR)
 AC_SUBST(RAVE_INCLUDE_FLAG)
 AC_SUBST(RAVE_LIB_FLAG)
