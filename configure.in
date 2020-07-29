@@ -2,7 +2,7 @@ dnl	This file is an input file used by the GNU "autoconf" program to
 dnl	generate the file "configure", which is run during vol2bird 
 dnl	installation to configure the system for the local environment.
 
-AC_INIT([vol2bird],[0.4.1])
+AC_INIT([vol2bird],[0.5.0])
 
 if test "${prefix}" = "NONE"; then
 	prefix=/opt/radar/vol2bird
@@ -546,6 +546,14 @@ if [[ "$HLHDF_SZLIB_LIB" != "" ]]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$HLHDF_SZLIB_LIB" | sed -e"s/[[ \t]]*-L//"`
 fi
 
+if [[ "$TORCH_LIBRARY_FLAG" != "" ]]; then
+  LD_PRINTOUT=$LD_PRINTOUT:`echo "$TORCH_LIBRARY_FLAG" | sed -e"s/[[ \t]]*-L//"`
+fi
+
+if [[ "$RSL_LIBRARY_FLAG" != "" ]]; then
+  LD_PRINTOUT=$LD_PRINTOUT:`echo "$RSL_LIBRARY_FLAG" | sed -e"s/[[ \t]]*-L//"`
+fi
+
 AC_SUBST(RAVE_ROOT_DIR)
 AC_SUBST(RAVE_INCLUDE_FLAG)
 AC_SUBST(RAVE_LIB_FLAG)
@@ -586,10 +594,14 @@ AC_SUBST(MISTNET_CFLAG)
 
 AC_SUBST(LD_PRINTOUT)
 AC_CONFIG_FILES(def.mk)
+AC_CONFIG_FILES(vol2bird.sh)
 if [[ "x$TORCH_SUPPRESSED" = "xno" ]]; then
+
 	AC_CONFIG_FILES(libmistnet/configure)
 fi
 AC_OUTPUT
+
+chmod 755 ./vol2bird.sh
 
 if [[ "x$TORCH_SUPPRESSED" = "xno" ]]; then
 	AC_MSG_NOTICE(starting CMake configuration of libmistnet)
@@ -598,3 +610,4 @@ if [[ "x$TORCH_SUPPRESSED" = "xno" ]]; then
 	./configure
 	AC_MSG_RESULT(done)
 fi
+
