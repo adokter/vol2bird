@@ -1,0 +1,4 @@
+#!/bin/bash
+export DYLD_LIBRARY_PATH=@LD_PRINTOUT@:../lib
+export LD_LIBRARY_PATH=@LD_PRINTOUT@:../lib
+./src/vol2bird $@
