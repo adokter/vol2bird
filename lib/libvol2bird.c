@@ -1990,6 +1990,7 @@ int vol2birdLoadClutterMap(PolarVolume_t* volume, char* file, float rangeMax){
         //any operation here on the pointer leads to segfault...
         //clutScan = PolarVolume_getScanClosestToElevation_vol2bird(clutVol,elev);
         clutScan = PolarVolume_getScanClosestToElevation(clutVol,elev,0);
+
         param = PolarScan_getParameter(clutScan,CLUTNAME);
         
         if(param == NULL){
@@ -2004,6 +2005,7 @@ int vol2birdLoadClutterMap(PolarVolume_t* volume, char* file, float rangeMax){
         
         // add the clutter map scan parameter to the polar volume
         result = PolarScan_addParameter(scan, param_proj);
+
         if(result == 0){
             fprintf(stderr, "Warning in loadClutterMap: failed to add cluttermap for scan %i\n",iScan+1); 
         }
@@ -2375,13 +2377,17 @@ PolarScanParam_t* PolarScanParam_resample(PolarScanParam_t* param, double rscale
     long nrays = PolarScanParam_getNrays(param);
     
     double bin_scaling = rscale_proj/rscale;
-    double ray_scaling = nrays/nrays_proj;
+    double ray_scaling = (double) nrays/nrays_proj;
     
     param_proj = RAVE_OBJECT_NEW(&PolarScanParam_TYPE);
     
+    if (param_proj == NULL || !PolarScanParam_createData(param_proj, nbins_proj, nrays_proj, RaveDataType_DOUBLE)) {
+        RAVE_ERROR0("Failed to create resampled polar scan parameter");
+        goto error;
+    }
+    
     // copy the metadata
     PolarScanParam_setQuantity(param_proj, PolarScanParam_getQuantity(param));
-    PolarScanParam_createData(param_proj,nbins_proj,nrays_proj,RaveDataType_DOUBLE);
     PolarScanParam_setOffset(param_proj,PolarScanParam_getOffset(param));
     PolarScanParam_setGain(param_proj,PolarScanParam_getGain(param));
     PolarScanParam_setNodata(param_proj,PolarScanParam_getNodata(param));
@@ -2396,15 +2402,15 @@ PolarScanParam_t* PolarScanParam_resample(PolarScanParam_t* param, double rscale
             // initialize to nodata
             PolarScanParam_setValue(param_proj, iBin, iRay, PolarScanParam_getNodata(param));
             // read data from the scan parameter
-            valueType = PolarScanParam_getValue(param, round(iBin*bin_scaling), round(iRay*ray_scaling), &value);
+            valueType = PolarScanParam_getValue(param, round(iBin*bin_scaling - 0.499999), round(iRay*ray_scaling - 0.499999), &value);
             // write data from the source scan parameter, to the newly projected scan paramter
             if (valueType != RaveValueType_UNDEFINED){
                 PolarScanParam_setValue(param_proj, iBin, iRay, value);
             }
         }
     }
-
-    return param_proj;
+    error:
+        return param_proj;
 }
 
 
