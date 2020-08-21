@@ -127,6 +127,7 @@ dnl Check that we have libgsl installed
 dnl
 GSL_INCLUDE_DIR=
 GSL_LIB_DIR=
+GSL_LIB=
 GOT_GSL_INC=no
 GOT_GSL_LIB=no
 GSL_SUPPRESSED=no
@@ -147,7 +148,7 @@ case $withval in
 	*)
    if [[ "$withval" != "" ]]; then
       if [[ "`echo $withval | grep ','`" = "" ]]; then
-        gsl_inc=$withval/include/gsl
+        gsl_inc=$withval/include
         gsl_lib=$withval/lib
       else
         gsl_inc="`echo $withval |cut -f1 -d,`"
@@ -157,14 +158,14 @@ case $withval in
       if [[ "$gsl_inc" != "" ]]; then
         saved_CPPFLAGS="$CPPFLAGS"
         CPPFLAGS="$CPPFLAGS -I$gsl_inc"
-        AC_CHECK_HEADERS(gsl_multimin.h,GOT_GSL_INC=yes)
+        AC_CHECK_HEADERS(gsl/gsl_multimin.h,GOT_GSL_INC=yes)
         if [[ "$GOT_GSL_INC" = "yes" ]]; then
           GSL_INCLUDE_DIR="-I$gsl_inc"
         else
           CPPFLAGS="$saved_CPPFLAGS"
         fi
       else
-        AC_CHECK_HEADERS(gsl_multimin.h,GOT_GSL_INC=yes)
+        AC_CHECK_HEADERS(gsl/gsl_multimin.h,GOT_GSL_INC=yes)
       fi
 
       if [[ "$gsl_lib" != "" ]]; then
@@ -197,7 +198,7 @@ fi
 
 GSL_LIBRARY_FLAG=${GSL_LIB_DIR}
 GSL_INCLUDE_FLAG=${GSL_INCLUDE_DIR}
-
+GSL_LIB=-lgsl
 
 
 dnl Check that we have librsl installed
@@ -550,6 +551,10 @@ if [[ "$TORCH_LIBRARY_FLAG" != "" ]]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$TORCH_LIBRARY_FLAG" | sed -e"s/[[ \t]]*-L//"`
 fi
 
+if [[ "$GSL_LIBRARY_FLAG" != "" ]]; then
+  LD_PRINTOUT=$LD_PRINTOUT:`echo "$GSL_LIBRARY_FLAG" | sed -e"s/[[ \t]]*-L//"`
+fi
+
 if [[ "$RSL_LIBRARY_FLAG" != "" ]]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$RSL_LIBRARY_FLAG" | sed -e"s/[[ \t]]*-L//"`
 fi
@@ -575,6 +580,7 @@ AC_SUBST(CONFUSE_INCLUDE_FLAG)
 AC_SUBST(CONFUSE_LIBRARY_FLAG)
 AC_SUBST(GSL_INCLUDE_FLAG)
 AC_SUBST(GSL_LIBRARY_FLAG)
+AC_SUBST(GSL_LIB)
 AC_SUBST(RSL_INCLUDE_FLAG)
 AC_SUBST(RSL_LIBRARY_FLAG)
 AC_SUBST(RSL_CFLAG)
