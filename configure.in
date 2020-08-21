@@ -148,7 +148,7 @@ case $withval in
 	*)
    if [[ "$withval" != "" ]]; then
       if [[ "`echo $withval | grep ','`" = "" ]]; then
-        gsl_inc=$withval/include/gsl
+        gsl_inc=$withval/include
         gsl_lib=$withval/lib
       else
         gsl_inc="`echo $withval |cut -f1 -d,`"
@@ -158,14 +158,14 @@ case $withval in
       if [[ "$gsl_inc" != "" ]]; then
         saved_CPPFLAGS="$CPPFLAGS"
         CPPFLAGS="$CPPFLAGS -I$gsl_inc"
-        AC_CHECK_HEADERS(gsl_multimin.h,GOT_GSL_INC=yes)
+        AC_CHECK_HEADERS(gsl/gsl_multimin.h,GOT_GSL_INC=yes)
         if [[ "$GOT_GSL_INC" = "yes" ]]; then
           GSL_INCLUDE_DIR="-I$gsl_inc"
         else
           CPPFLAGS="$saved_CPPFLAGS"
         fi
       else
-        AC_CHECK_HEADERS(gsl_multimin.h,GOT_GSL_INC=yes)
+        AC_CHECK_HEADERS(gsl/gsl_multimin.h,GOT_GSL_INC=yes)
       fi
 
       if [[ "$gsl_lib" != "" ]]; then

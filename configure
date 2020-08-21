@@ -3704,7 +3704,7 @@ $as_echo "suppressed" >&6; }
 	*)
    if [ "$withval" != "" ]; then
       if [ "`echo $withval | grep ','`" = "" ]; then
-        gsl_inc=$withval/include/gsl
+        gsl_inc=$withval/include
         gsl_lib=$withval/lib
       else
         gsl_inc="`echo $withval |cut -f1 -d,`"
@@ -3714,12 +3714,12 @@ $as_echo "suppressed" >&6; }
       if [ "$gsl_inc" != "" ]; then
         saved_CPPFLAGS="$CPPFLAGS"
         CPPFLAGS="$CPPFLAGS -I$gsl_inc"
-        for ac_header in gsl_multimin.h
+        for ac_header in gsl/gsl_multimin.h
 do :
-  ac_fn_c_check_header_mongrel "$LINENO" "gsl_multimin.h" "ac_cv_header_gsl_multimin_h" "$ac_includes_default"
-if test "x$ac_cv_header_gsl_multimin_h" = xyes; then :
+  ac_fn_c_check_header_mongrel "$LINENO" "gsl/gsl_multimin.h" "ac_cv_header_gsl_gsl_multimin_h" "$ac_includes_default"
+if test "x$ac_cv_header_gsl_gsl_multimin_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_GSL_MULTIMIN_H 1
+#define HAVE_GSL_GSL_MULTIMIN_H 1
 _ACEOF
  GOT_GSL_INC=yes
 fi
@@ -3732,12 +3732,12 @@ done
           CPPFLAGS="$saved_CPPFLAGS"
         fi
       else
-        for ac_header in gsl_multimin.h
+        for ac_header in gsl/gsl_multimin.h
 do :
-  ac_fn_c_check_header_mongrel "$LINENO" "gsl_multimin.h" "ac_cv_header_gsl_multimin_h" "$ac_includes_default"
-if test "x$ac_cv_header_gsl_multimin_h" = xyes; then :
+  ac_fn_c_check_header_mongrel "$LINENO" "gsl/gsl_multimin.h" "ac_cv_header_gsl_gsl_multimin_h" "$ac_includes_default"
+if test "x$ac_cv_header_gsl_gsl_multimin_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_GSL_MULTIMIN_H 1
+#define HAVE_GSL_GSL_MULTIMIN_H 1
 _ACEOF
  GOT_GSL_INC=yes
 fi
