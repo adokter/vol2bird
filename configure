@@ -4810,6 +4810,10 @@ if [ "$TORCH_LIBRARY_FLAG" != "" ]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$TORCH_LIBRARY_FLAG" | sed -e"s/[ \t]*-L//"`
 fi
 
+if [ "$GSL_LIBRARY_FLAG" != "" ]; then
+  LD_PRINTOUT=$LD_PRINTOUT:`echo "$GSL_LIBRARY_FLAG" | sed -e"s/[ \t]*-L//"`
+fi
+
 if [ "$RSL_LIBRARY_FLAG" != "" ]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$RSL_LIBRARY_FLAG" | sed -e"s/[ \t]*-L//"`
 fi
