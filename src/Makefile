@@ -71,9 +71,10 @@ vol2bird : ../lib/libvol2bird.so $(VOL2BIRD_DEPS)
 	$(RAVE_MODULE_LDFLAGS) \
 	$(PROJ_LIBRARY_FLAG) \
 	$(RSL_LIBRARY_FLAG) \
+	$(GSL_LIBRARY_FLAG) \
 	$(MISTNET_INCLUDE_FLAG) \
 	$(MISTNET_LIBRARY_FLAG) \
-	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) $(IRIS_LIB) $(LDFLAGS) $(MISTNET_LIB)
+	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm $(GSL_LIB) $(RSL_LIB) $(IRIS_LIB) $(LDFLAGS) $(MISTNET_LIB)
 	
 rsl2odim : ../lib/libvol2bird.so $(RSL2ODIM_DEPS)
 	#
@@ -85,10 +86,11 @@ rsl2odim : ../lib/libvol2bird.so $(RSL2ODIM_DEPS)
 	$(RAVE_MODULE_LDFLAGS) \
 	$(PROJ_LIBRARY_FLAG) \
 	$(RSL_LIBRARY_FLAG) \
+	$(GSL_LIBRARY_FLAG) \
 	$(IRIS_LIBRARY_FLAG) \
 	$(MISTNET_INCLUDE_FLAG) \
 	$(MISTNET_LIBRARY_FLAG) \
-	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm $(RSL_LIB) $(IRIS_LIB) $(LDFLAGS) $(MISTNET_LIB)
+	-lvol2bird $(RAVE_MODULE_LIBRARIES) -lm $(GSL_LIB) $(RSL_LIB) $(IRIS_LIB) $(LDFLAGS) $(MISTNET_LIB)
 	
 	#
 	# (You may still have to change your LD_LIBRARY_PATH)

@@ -391,7 +391,7 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
         unsigned int gateCode = 0;
         
         if (alldata->options.useClutterMap && clutValue > alldata->options.clutterValueMin) {
-            // this gate is true in the static clutter map (which we don't have yet TODO)
+            // this gate is true in the static clutter map
             gateCode |= 1<<(alldata->flags.flagPositionStaticClutter);
         }
 
@@ -2466,7 +2466,7 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
     if (gateCode & 1<<(alldata->flags.flagPositionStaticClutter)) {
         
         // i.e. flag 0 in gateCode is true
-        // this gate is true in the static clutter map (which we don't have yet TODO)
+        // this gate is true in the static clutter map
         
         switch (iProfileType) {
             case 1 : 
@@ -4957,9 +4957,9 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->points.vradValueCol = 3;
     alldata->points.cellValueCol = 4;
     alldata->points.gateCodeCol = 5;
-	alldata->points.nyquistCol = 6;
-	alldata->points.vraddValueCol = 7;
-	alldata->points.clutValueCol = 8;
+    alldata->points.nyquistCol = 6;
+    alldata->points.vraddValueCol = 7;
+    alldata->points.clutValueCol = 8;
 
     // pre-allocate the 'points' array (note it has 'nColsPoints'
     // pseudo-columns)

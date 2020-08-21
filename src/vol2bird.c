@@ -272,6 +272,9 @@ int main(int argc, char** argv) {
     if (fileVpOut != NULL){
         strcpy(alldata.misc.filename_vp,fileVpOut);
     }
+    else{
+        strcpy(alldata.misc.filename_vp,"");
+    }
     
     // read configuration options
     int configSuccessful = vol2birdLoadConfig(&alldata) == 0;
