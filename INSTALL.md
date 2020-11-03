@@ -105,7 +105,7 @@ wget https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.3.0.zip \
 # change to radar root directory
 cd ${RADAR_ROOT_DIR}
 # get a copy of the MistNet model
-RUN mkdir MistNet && cd MistNet && wget http://mistnet.s3.amazonaws.com/mistnet_nexrad.pt
+mkdir MistNet && cd MistNet && wget http://mistnet.s3.amazonaws.com/mistnet_nexrad.pt
 
 cd ${RADAR_ROOT_DIR}/src 
 
