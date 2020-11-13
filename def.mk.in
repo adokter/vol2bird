@@ -10,7 +10,7 @@ prefix=             @prefix@
 # basically uncomment any of the ones below if you want.
 
 CC=                 @RAVECC@
-CCOPTS=             @RAVECCOPTS@
+CCOPTS=             @RAVECCOPTS@ -Wno-nullability-completeness
 LDFLAGS=            @RAVELDFLAGS@
 
 # (from hlhdf)
