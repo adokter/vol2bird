@@ -199,7 +199,7 @@ PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDE
     // therefore we resample the data onto a regular azimuth grid
     // azimuth bin size is round off to 1/n with n positive integer
     // i.e. either 1, 0.5, 0.25 degrees etc.
-    nrays = 360*ROUND((float) rslSweep->h.nrays/360.0);
+    nrays = MAX(360,360*ROUND((float) rslSweep->h.nrays/360.0));
     if (nrays != rslSweep->h.nrays){
         fprintf(stderr, "Warning: resampling %s sweep at elevation %f (%i rays into %i azimuth-bins) ...\n",name,elev,rslSweep->h.nrays,nrays);
     }
