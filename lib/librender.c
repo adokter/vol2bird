@@ -253,6 +253,9 @@ Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, long dim, long res, dou
 
             // create a cartesian scan parameter with the same name
             cartesianParam = Cartesian_createParameter(cartesian,parameterName,RaveDataType_DOUBLE, init);
+            CartesianParam_setNodata(cartesianParam, PolarScanParam_getNodata(PolarScan_getParameter(scan, scanParameterName)));
+            CartesianParam_setUndetect(cartesianParam, PolarScanParam_getUndetect(PolarScan_getParameter(scan, scanParameterName)));
+            
             double range,azim,distance;
             double value;
             
@@ -266,12 +269,10 @@ Cartesian_t* polarVolumeToCartesian(PolarVolume_t* pvol, long dim, long res, dou
                     distance=sqrt(SQUARE(xx)+SQUARE(yy));
                     range=distance2range(distance,elev);
                     a=PolarScan_getConvertedParameterValueAtAzimuthAndRange(scan,scanParameterName,azim,range,&value);
-                    if(a==RaveValueType_DATA){
-                        CartesianParam_setValue(cartesianParam, x, y, value);
+                    if(a!=RaveValueType_DATA){
+                        PolarScan_getParameterValueAtAzimuthAndRange(scan,scanParameterName,azim,range,&value);
                     }
-                    else{
-                        CartesianParam_setValue(cartesianParam, x, y, NAN);
-                    }
+                    CartesianParam_setValue(cartesianParam, x, y, value);
                 }
             }
             
@@ -381,6 +382,9 @@ Cartesian_t* polarScanToCartesian(PolarScan_t* scan, long dim, long res, double 
         
         // create a cartesian scan parameter with the same name
         cartesianParam = Cartesian_createParameter(cartesian,scanParameterName,RaveDataType_DOUBLE, init);
+        CartesianParam_setNodata(cartesianParam, PolarScanParam_getNodata(PolarScan_getParameter(scan, scanParameterName)));
+        CartesianParam_setUndetect(cartesianParam, PolarScanParam_getUndetect(PolarScan_getParameter(scan, scanParameterName)));
+
         double range,azim,distance;
         double value;
         
@@ -394,12 +398,10 @@ Cartesian_t* polarScanToCartesian(PolarScan_t* scan, long dim, long res, double 
                 distance=sqrt(SQUARE(xx)+SQUARE(yy));
                 range=distance2range(distance,elev);
                 a=PolarScan_getConvertedParameterValueAtAzimuthAndRange(scan,scanParameterName,azim,range,&value);
-                if(a==RaveValueType_DATA){
-                    CartesianParam_setValue(cartesianParam, x, y, value);
+                if(a!=RaveValueType_DATA){
+                    PolarScan_getParameterValueAtAzimuthAndRange(scan,scanParameterName,azim,range,&value);
                 }
-                else{
-                    CartesianParam_setValue(cartesianParam, x, y, NAN);
-                }
+                CartesianParam_setValue(cartesianParam, x, y, value);
             }
         }
         
@@ -579,8 +581,16 @@ int fill3DTensor(double ***tensor, RaveObjectList_t* list, int dim1, int dim2, i
                 for(int x = 0; x < xSize; x++){
                     for(int y = 0; y < ySize; y++){
                         valueType = CartesianParam_getValue(cartesianParam, x, y, &value);
+                        
                         if (valueType == RaveValueType_DATA){
-                            tensor[iScan+nScan*iOrder][x][y] = value;
+                            // only copy radial velocity and spectrum width values that have a corresponding reflectivity value
+                            // this is to account for occasional sweeps where radial velocity extends to shorter ranges than reflectivity
+                            if(MISTNET_REQUIRE_DBZ && (iOrder > 0) && isnan(tensor[iScan][x][y])){
+                                tensor[iScan+nScan*iOrder][x][y] = NAN;
+                            }
+                            else{
+                                tensor[iScan+nScan*iOrder][x][y] = value;
+                            }
                         }
                         else{
                             tensor[iScan+nScan*iOrder][x][y] = NAN;
@@ -592,6 +602,7 @@ int fill3DTensor(double ***tensor, RaveObjectList_t* list, int dim1, int dim2, i
                 
             } // iParam
         } // iOrder
+        
         if(dbz_count == 0) fprintf(stderr, "Warning: no reflectivity data found for MistNet input scan %i, initializing with values %i instead.\n", iScan, MISTNET_INIT);
         if(vrad_count == 0) fprintf(stderr, "Warning: no radial velocity data found for MistNet input scan %i, initializing with values %i instead.\n", iScan, MISTNET_INIT);
         if(wrad_count == 0) fprintf(stderr, "Warning: no spectrum width data found for MistNet input scan %i, initializing with values %i instead.\n", iScan, MISTNET_INIT);

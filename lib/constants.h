@@ -250,3 +250,6 @@
 #define MISTNET_PATH "/MistNet/mistnet_nexrad.pt"
 // initializing value of mistnet tensor
 #define MISTNET_INIT 0
+// require that radial velocity and spectrum width pixels rendered as mistnet input
+// have a valid corresponding reflectivity value
+#define MISTNET_REQUIRE_DBZ 0
