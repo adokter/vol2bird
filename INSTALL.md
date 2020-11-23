@@ -69,7 +69,7 @@ mdfind -name projects.h
 # using Macports the location is /opt/local/lib/proj47
 export PROJ4ROOT=/opt/local/lib/proj47
 # now we're ready to configure the install
-./configure --prefix=${RADAR_ROOT_DIR}/opt/rave  --with-proj=${PROJ4ROOT} --with-hlhdf=${HLDIR}	
+./configure --prefix=${RADAR_ROOT_DIR}/opt/rave  --with-proj=${PROJ4ROOT} --with-hlhdf=${RADAR_ROOT_DIR}/opt/hlhdf	
 # build and install:
 make
 sudo make install
@@ -82,7 +82,7 @@ cd ${RADAR_ROOT_DIR}/src
 git clone https://github.com/adokter/iris2odim.git \
     && cd iris2odim && export RAVEROOT=${RADAR_ROOT_DIR}/opt/ \
     && make 
-sudo make install
+sudo make install RAVEROOT=${RADAR_ROOT_DIR}/opt/
 
 cd ${RADAR_ROOT_DIR}/src 
 
@@ -105,7 +105,7 @@ wget https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.3.0.zip \
 # change to radar root directory
 cd ${RADAR_ROOT_DIR}
 # get a copy of the MistNet model
-RUN mkdir MistNet && cd MistNet && wget http://mistnet.s3.amazonaws.com/mistnet_nexrad.pt
+mkdir MistNet && cd MistNet && wget http://mistnet.s3.amazonaws.com/mistnet_nexrad.pt
 
 cd ${RADAR_ROOT_DIR}/src 
 
@@ -129,18 +129,11 @@ export GSLROOT=/usr/include/gsl,/usr/lib/x86_64-linux-gnu
     --with-rave=${RADAR_ROOT_DIR}/opt/rave \
 	--with-rsl=${RADAR_ROOT_DIR}/opt/rsl \
     --with-libtorch=${RADAR_ROOT_DIR}/opt/libtorch \
-    --with-gsl=${GSLROOT}
+    --with-gsl=${GSLROOT} \
 	--with-confuse=${CONFUSEROOT}
 # build and install:
 make
 sudo make install
-
-cd ${RADAR_ROOT_DIR}/opt
-
-# (optional) get a copy of MistNet model
-# only needed for running MistNet
-mkdir MistNet && cd MistNet && wget http://mistnet.s3.amazonaws.com/mistnet_nexrad.pt \
-    && cd ..
 
 cd ${RADAR_ROOT_DIR}
 
