@@ -288,6 +288,7 @@ int main(int argc, char** argv) {
     // we do not read in the full volume for speed/memory
     PolarVolume_t* volume = NULL;
 
+    //FIXME maximum range specification not implemented for RSL / NEXRAD
     volume = vol2birdGetVolume(fileIn, nInputFiles, 1000000,1);
     //volume = vol2birdGetVolume(fileIn, nInputFiles, alldata.misc.rCellMax,1);
 
