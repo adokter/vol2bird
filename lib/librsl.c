@@ -293,7 +293,7 @@ PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax){
     // add range scale Atribute to scan
     rscale = rslRay->h.gate_size;
     PolarScan_setRscale(scan, rscale);
-
+    
     // loop through the volume pointers
     // iParam gives you the XX_INDEX flag, i.e. scan parameter type
     int result = 0;
@@ -313,7 +313,7 @@ PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax){
         result = PolarScan_addParameter(scan, param);
         
         if(result == 0){
-            fprintf(stderr, "Warning: dimensions of scan parameter %i do not match scan dimensions, resampling ...\n",iParam);
+            fprintf(stderr, "Warning: dimensions of scan parameter %i at elev %f do not match scan dimensions, resampling ...\n",iParam, elev);
             
             PolarScanParam_t *param_proj;
             // project the scan parameter on the grid of the scan

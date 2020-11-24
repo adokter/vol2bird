@@ -836,9 +836,9 @@ int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int 
             continue;
         }
         
-        PolarScanParam_t *mistnetParamWeather = PolarScan_newParam(scan, "WEATHER", RaveDataType_FLOAT);
-        PolarScanParam_t *mistnetParamBiology = PolarScan_newParam(scan, "BIOLOGY", RaveDataType_FLOAT);
-        PolarScanParam_t *mistnetParamBackground= PolarScan_newParam(scan, "BACKGROUND", RaveDataType_FLOAT);
+        PolarScanParam_t *mistnetParamWeather = PolarScan_newParam(scan, "WEATHER", RaveDataType_DOUBLE);
+        PolarScanParam_t *mistnetParamBiology = PolarScan_newParam(scan, "BIOLOGY", RaveDataType_DOUBLE);
+        PolarScanParam_t *mistnetParamBackground= PolarScan_newParam(scan, "BACKGROUND", RaveDataType_DOUBLE);
         PolarScanParam_t *mistnetParamClassification= PolarScan_newParam(scan, CELLNAME, RaveDataType_INT);
         
         long nRang = PolarScan_getNbins(scan);
@@ -858,6 +858,9 @@ int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int 
                 double xx=distance*cos(azim);
                 // Cartesian y coordinate, with radar at center
                 double yy=distance*sin(azim);
+                // do not assign values outside the mistnet grid
+                if(ABS(xx) > MISTNET_RESOLUTION * (MISTNET_DIMENSION-MISTNET_BLEED)/2) continue;
+                if(ABS(yy) > MISTNET_RESOLUTION * (MISTNET_DIMENSION-MISTNET_BLEED)/2) continue;
                 // Cartesian grid index x
                 int x=MIN(dim3-1,MAX(0,ROUND(xx/res+dim3/2)));
                 // Cartesian grid index y
@@ -880,12 +883,7 @@ int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int 
                 PolarScanParam_setValue(mistnetParamWeather, iRang, iAzim, valueWeather);
                 PolarScanParam_setValue(mistnetParamClassification, iRang, iAzim, valueClassification);                
             }            
-        }
-        
-        PolarScan_addParameter(scan, mistnetParamWeather);
-        PolarScan_addParameter(scan, mistnetParamBiology);
-        PolarScan_addParameter(scan, mistnetParamBackground);
-        PolarScan_addParameter(scan, mistnetParamClassification);        
+        }        
     }
     
     return(0);
