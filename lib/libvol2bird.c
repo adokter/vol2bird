@@ -2047,12 +2047,15 @@ PolarScanParam_t* PolarScan_newParam(PolarScan_t *scan, const char *quantity, Ra
     PolarScanParam_setGain(scanParam,1);
     
     // initialize all values to NODATA
-    double nodata = NODATA;
+    // (NOTE: this fails for negative values when type == RaveDataType_FLOAT, results in 0 being set. RAVE bug?)
+    double nodata = PolarScanParam_getNodata(scanParam);
     for(int iRang = 0; iRang < PolarScan_getNbins(scan); iRang++){
-        for(int iAzim = 0; iAzim < PolarScan_getNrays(scan); iAzim++){            
+        for(int iAzim = 0; iAzim < PolarScan_getNrays(scan); iAzim++){
+            
             PolarScanParam_setValue(scanParam, iRang, iAzim, nodata);
         }
     }
+        
     PolarScan_addParameter(scan, scanParam);
     
  //   RAVE_OBJECT_RELEASE(scanParam);

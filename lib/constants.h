@@ -92,6 +92,8 @@
 // including a 4 pixel padding around the image, i.e. 8
 // additional pixels.
 #define MISTNET_DIMENSION 608
+// number of pixels in MISTNET_DIMENSION used as a bleed 
+#define MISTNET_BLEED 8
 // number of MistNet elevation scans expected
 #define MISTNET_N_ELEV 5
 // predict a pixel as rain if the class probability for rain exceeds this threshold
