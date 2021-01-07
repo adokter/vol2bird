@@ -66,8 +66,8 @@ git clone https://github.com/adokter/rave.git \
     && cd rave 
 # on Mac OSX you have to specify the location of your proj.4 library
 mdfind -name projects.h
-# using Macports the location is /opt/local/lib/proj47
-export PROJ4ROOT=/opt/local/lib/proj47
+# using Macports the location is /opt/local/lib/proj49
+export PROJ4ROOT=/opt/local/lib/proj49
 # now we're ready to configure the install
 ./configure --prefix=${RADAR_ROOT_DIR}/opt/rave  --with-proj=${PROJ4ROOT} --with-hlhdf=${RADAR_ROOT_DIR}/opt/hlhdf	
 # build and install:
