@@ -84,7 +84,7 @@ git clone https://github.com/adokter/rave.git
 # cd into rave source directory
 cd rave 
 # on Mac OSX you have to specify the location of your proj.4 library
-# using Macports the location is typically /opt/local/lib/proj49
+# using Macports the location is typically /opt/local/lib/proj49 (for version 4.9)
 # note we need the latest version of library proj.4, not library proj (the reversioned name for version 5 and up)
 # store the location of the proj.4 library in variable PROJ4ROOT (for future reference):
 export PROJ4ROOT=/opt/local/lib/proj49
