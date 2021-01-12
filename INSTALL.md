@@ -45,7 +45,7 @@ sudo port selfupdate
 sudo port install python27 zlib hdf5 libproj4 proj47 libconfuse py27-numpy gsl bzip2 flex
 
 # On Mac OSX, install XCode command line tools
-# this add the gcc compiler for compiling c and c++ code
+# this adds the gcc compiler for compiling C and C++ code
 xcode-select --install
 # Note on Jan 2021:
 # some Mac users have noticed compatability issues between the latest XCode version 12
