@@ -28,9 +28,9 @@ RUN git clone https://github.com/adokter/rsl.git && cd rsl \
     && cd .. && rm -rf rsl
 
 # get a copy of libtorch:
-RUN wget https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.7.0%2Bcpu.zip \
-    && unzip libtorch-shared-with-deps-1.7.0+cpu.zip -d /opt/radar \
-    && rm libtorch-shared-with-deps-1.7.0+cpu.zip
+RUN wget https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.7.1%2Bcpu.zip \
+    && unzip libtorch-shared-with-deps-1.7.1+cpu.zip -d /opt/radar \
+    && rm libtorch-shared-with-deps-1.7.1+cpu.zip
 
 # get a copy of vol2bird
 # configure vol2bird
