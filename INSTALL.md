@@ -1,4 +1,4 @@
-# Install instructions for Ubuntu 18.04 LTS and Mac OSX
+# Install instructions for Ubuntu Linux and Mac OSX
 
 ```
 # the directory in which we will install
