@@ -1,4 +1,4 @@
-# Install instructions for Ubuntu 18.04 LTS and Mac OSX
+# Install instructions for Ubuntu Linux and Mac OSX
 
 ```
 # the directory in which we will install
@@ -10,7 +10,10 @@ cd ${RADAR_ROOT_DIR}
 pwd
 
 # prepare a directory structure:
+# the opt subfolder will contain the final library files and binaries after
+# compilation and installation:
 mkdir ${RADAR_ROOT_DIR}/opt
+# the src subfolder will contain the source code for the libraries and binaries
 mkdir ${RADAR_ROOT_DIR}/src
 
 ## we need to install the following dependencies:
