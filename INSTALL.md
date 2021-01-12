@@ -53,17 +53,14 @@ cd ${RADAR_ROOT_DIR}/src
 # get a copy of hlhdf and configure:
 # we need to point the --with-hdf5 flag of the configure script
 # to the location of the hdf5 headers and binaries
-# On Mac OSX find out where the headers and library live on your system with mdfind
-mdfind -name hdf5.h
-mdfind -name libhdf5.a
-# for OSX 10.10.5 using Macports the locations are /opt/local/include/,/opt/local/lib/
+# On Mac OSX find out where the headers and library live on your system
+# for OSX 10.10.5 using Macports the locations are typically /opt/local/include/,/opt/local/lib/
 # for Ubuntu 18.04 the locations are /usr/include/hdf5/serial,/usr/lib/x86_64-linux-gnu/hdf5/serial
-# configure hlhdf (here using --with-hdf5 flag for Ubuntu 18.04)
 # clone the repo from github
 git clone git://github.com/adokter/hlhdf.git
 # enter the hlhdf directory
 cd hlhdf
-# configure hlhdf, using the correct --with-hdf5 flag:
+# configure hlhdf, using the correct --with-hdf5 flag (here for Ubuntu 18.04)
 ./configure --prefix=${RADAR_ROOT_DIR}/opt/hlhdf \
 	--with-hdf5=/usr/include/hdf5/serial,/usr/lib/x86_64-linux-gnu/hdf5/serial
 	
@@ -82,7 +79,6 @@ git clone https://github.com/adokter/rave.git
 # cd into rave source directory
 cd rave 
 # on Mac OSX you have to specify the location of your proj.4 library
-mdfind -name projects.h
 # using Macports the location is typically /opt/local/lib/proj49
 # note we need the latest version of library proj.4, not library proj (the reversioned name for version 5 and up)
 # store the location of the proj.4 library in variable PROJ4ROOT (for future reference):
@@ -148,16 +144,16 @@ git clone https://github.com/adokter/vol2bird.git
 # enter the vol2bird directory:
 cd vol2bird
 # set locations of gsl and confuse libraries:
-# on Mac OSX:
+# on Mac OSX (when installed with Macports):
 export GSLROOT=/opt/local
 export CONFUSEROOT=/opt/local
 # on Ubuntu/Linux:
 export GSLROOT=/usr/include/gsl,/usr/lib/x86_64-linux-gnu
-# --with-confuse can be omitted on Ubuntu/Linux, detected automatically
 
 # (if not installing Vaisala IRIS support, remove --with-iris flag below)
 # (if not installing RSL, remove --with-rsl flag below)
 # (if not installing MistNet, remove --with-libtorch flag below)
+# --with-confuse can be omitted on Ubuntu/Linux, detected automatically
 # configure:
 ./configure --prefix=${RADAR_ROOT_DIR}/opt/vol2bird \
     --with-iris \
@@ -166,22 +162,25 @@ export GSLROOT=/usr/include/gsl,/usr/lib/x86_64-linux-gnu
     --with-libtorch=${RADAR_ROOT_DIR}/opt/libtorch \
     --with-gsl=${GSLROOT} \
     --with-confuse=${CONFUSEROOT}
-# build and install:
+# build vol2bird:
 make
+# install vol2bird
 sudo make install
-# run vol2bird to check if it works (should give vol2bird version X.X message and no errors):
+# run vol2bird.sh to check if it works (should give vol2bird version X.X message and no errors):
 ./vol2bird.sh
 
-# note that the vol2bird.sh updates the DYLD_LIBRARY_PATH (for Mac) and LD_LIBRARY_PATH (for Linux) variable,
-# as you can see when printing the script:
+# note that the vol2bird.sh sets the DYLD_LIBRARY_PATH (for Mac) and LD_LIBRARY_PATH (for Linux) variables,
+# as you can see when printing the contents of the file:
 cat ./vol2bird.sh
 
 # Preferably these path definitions are also added to your ~/.bashrc
 # or ~/.bash_profile file for bash shell, or ~/.zshenv for zsh shell
 # such that the paths are loaded automatically in each new shell session
 # (simply copy the export statements into these shell configuration files)
+
 # In addition, it is useful to add the paths of the vol2bird and rsl binaries
-# by updating the PATH variable in your shell configuration file:
+# such that you can call the vol2bird command from any directory.
+# Simply update the PATH variable in your shell configuration file:
 # (make sure you replace ${RADAR_ROOT_DIR} with its value specified in the beginning)
 export PATH=${PATH}:${RADAR_ROOT_DIR}/opt/rsl/bin:${RADAR_ROOT_DIR}/opt/vol2bird/bin
 
