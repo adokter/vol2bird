@@ -42,12 +42,12 @@ apt-get update && apt-get install --no-install-recommends -y libconfuse-dev \
     && apt-get install -y git && apt-get install -y libgsl-dev && apt-get install -y libbz2-dev
 # On Mac OSX Macports (https://www.macports.org/) can be used to install dependencies:
 sudo port selfupdate
-sudo port install python27 zlib hdf5 libproj4 proj47 libconfuse py27-numpy gsl bzip2 flex
+sudo port install python27 zlib hdf5 libproj4 proj4 libconfuse py27-numpy gsl bzip2 flex
 
 # On Mac OSX, install XCode command line tools
-# this add the gcc compiler for compiling c and c++ code
+# this adds the gcc compiler for compiling C and C++ code
 xcode-select --install
-# Note on Jan 2021:
+# Note Jan 2021:
 # some Mac users have noticed compatability issues between the latest XCode version 12
 # and the libtorch library required for the MistNet segmentation model, and had
 # to downgrade to Xcode version 11
@@ -84,7 +84,7 @@ git clone https://github.com/adokter/rave.git
 # cd into rave source directory
 cd rave 
 # on Mac OSX you have to specify the location of your proj.4 library
-# using Macports the location is typically /opt/local/lib/proj49
+# using Macports the location is typically /opt/local/lib/proj49 (for version 4.9)
 # note we need the latest version of library proj.4, not library proj (the reversioned name for version 5 and up)
 # store the location of the proj.4 library in variable PROJ4ROOT (for future reference):
 export PROJ4ROOT=/opt/local/lib/proj49
