@@ -1,10 +1,15 @@
 # Install instructions for Ubuntu Linux and Mac OSX
 
 ```
-# the directory in which we will install
-# (${PWD} = the current working directory, or specify a different path you prefer
-RADAR_ROOT_DIR=${PWD}
-# make sure we are in the installation directory:
+# specify the directory in which we will install by setting the RADAR_ROOT_DIR variable
+# make sure it is an absolute (not relative) path
+RADAR_ROOT_DIR=/your/directory/goes/here
+# note that whenever you exit your shell the value of RADAR_ROOT_DIR (and other shell
+# variables defined further down) will be erased, 
+# and you will need to define them again.
+
+# make sure the installation directory exists and
+# change directories to it:
 cd ${RADAR_ROOT_DIR}
 # print the current installation directory:
 pwd
