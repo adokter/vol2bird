@@ -2,8 +2,12 @@
 
 ```
 # the directory in which we will install
-# (${PWD} = the current working directory)
+# (${PWD} = the current working directory, or specify a different path you prefer
 RADAR_ROOT_DIR=${PWD}
+# make sure we are in the installation directory:
+cd ${RADAR_ROOT_DIR}
+# print the current installation directory:
+pwd
 
 # prepare a directory structure:
 mkdir ${RADAR_ROOT_DIR}/opt
@@ -35,22 +39,26 @@ sudo port install python27 zlib hdf5 libproj4 proj47 libconfuse py27-numpy gsl b
 # On Mac OSX, install XCode command line tools
 xcode-select --install
 
-# change to the source directory...
+# change to the source directory:
 cd ${RADAR_ROOT_DIR}/src
 
 # get a copy of hlhdf and configure:
 # we need to point the --with-hdf5 flag of the configure script
 # to the location of the hdf5 headers and binaries
-# On Mac OSX find out where the headers live on your system with mdfind
+# On Mac OSX find out where the headers and library live on your system with mdfind
 mdfind -name hdf5.h
-mdfind -name libhdf5.a  (static)
+mdfind -name libhdf5.a
 # for OSX 10.10.5 using Macports the locations are /opt/local/include/,/opt/local/lib/
 # for Ubuntu 18.04 the locations are /usr/include/hdf5/serial,/usr/lib/x86_64-linux-gnu/hdf5/serial
-# configure hlhdf:
-git clone git://github.com/adokter/hlhdf.git \
-    && cd hlhdf && ./configure --prefix=${RADAR_ROOT_DIR}/opt/hlhdf \
+# configure hlhdf (here using --with-hdf5 flag for Ubuntu 18.04)
+# clone the repo from github
+git clone git://github.com/adokter/hlhdf.git
+# enter the hlhdf directory
+cd hlhdf
+# configure hlhdf, using the correct --with-hdf5 flag:
+./configure --prefix=${RADAR_ROOT_DIR}/opt/hlhdf \
 	--with-hdf5=/usr/include/hdf5/serial,/usr/lib/x86_64-linux-gnu/hdf5/serial
-
+	
 # On Mac OSX only, edit the file def.mk in the root directory of the hlhdf package,
 # and change the LDSHARED variable from -bundle into -dynamiclib
 	
@@ -58,40 +66,57 @@ git clone git://github.com/adokter/hlhdf.git \
 make
 sudo make install
 
+# go back the main src directory
 cd ${RADAR_ROOT_DIR}/src
 
-# get a copy of rave:
-# cd into rave source directory and configure
-git clone https://github.com/adokter/rave.git \
-    && cd rave 
+# download a copy of RAVE:
+git clone https://github.com/adokter/rave.git
+# cd into rave source directory
+cd rave 
 # on Mac OSX you have to specify the location of your proj.4 library
 mdfind -name projects.h
-# using Macports the location is /opt/local/lib/proj49
+# using Macports the location is typically /opt/local/lib/proj49
+# note we need the latest version of library proj.4, not library proj (the reversioned name for version 5 and up)
+# store the location of the proj.4 library in variable PROJ4ROOT (for future reference):
 export PROJ4ROOT=/opt/local/lib/proj49
-# now we're ready to configure the install
-./configure --prefix=${RADAR_ROOT_DIR}/opt/rave  --with-proj=${PROJ4ROOT} --with-hlhdf=${RADAR_ROOT_DIR}/opt/hlhdf	
+# store the install directory of RAVE in variable RAVEROOT (for future reference):
+export RAVEROOT=${RADAR_ROOT_DIR}/opt/
+# now we're ready to configure the install:
+./configure --prefix=${RAVEROOT}/rave  --with-proj=${PROJ4ROOT} --with-hlhdf=${RADAR_ROOT_DIR}/opt/hlhdf	
 # build and install:
 make
 sudo make install
 
-
+# go back to the src directory of the main installation directory
 cd ${RADAR_ROOT_DIR}/src 
 
 # (optional) get a copy of iris2odim:
-# adds support for Vaisala IRIS format
-git clone https://github.com/adokter/iris2odim.git \
-    && cd iris2odim && export RAVEROOT=${RADAR_ROOT_DIR}/opt/ \
-    && make 
-sudo make install RAVEROOT=${RADAR_ROOT_DIR}/opt/
+# adds support for Vaisala IRIS RAW format
+# download iris2odim:
+git clone https://github.com/adokter/iris2odim.git
+# cd into the iris2odim directory:
+cd iris2odim
+# build and install:
+make 
+sudo make install RAVEROOT=${RAVEROOT}
 
+# go back to the main src directory:
 cd ${RADAR_ROOT_DIR}/src 
 
 # (optional) get a copy of RSL:
 # RSL installation is optional, only required for reading US NEXRAD data
-git clone https://github.com/adokter/rsl.git && cd rsl \
-    && ./configure --prefix=${RADAR_ROOT_DIR}/opt/rsl && make AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
+# download RSL:
+git clone https://github.com/adokter/rsl.git
+# enter the RSL directory
+cd rsl
+# configure RSL
+./configure --prefix=${RADAR_ROOT_DIR}/opt/rsl
+# build RSL:
+make AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
+# install RSL:
 sudo make install AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=: 
-    
+
+# go back to the main src directory:
 cd ${RADAR_ROOT_DIR}/src 
 
 # (optional) install functionality to run MistNet rain segmentation model
@@ -107,15 +132,13 @@ cd ${RADAR_ROOT_DIR}
 # get a copy of the MistNet model
 mkdir MistNet && cd MistNet && wget http://mistnet.s3.amazonaws.com/mistnet_nexrad.pt
 
+# go back to the main src directory:
 cd ${RADAR_ROOT_DIR}/src 
 
-# get a copy of vol2bird
-git clone https://github.com/adokter/vol2bird.git \
-    && cd vol2bird
-# (if not installing Vaisala IRIS support, remove --with-iris flag below)
-# (if not installing RSL, remove --with-rsl flag below)
-# (if not installing MistNet, remove --with-libtorch flag below)
-
+# almost there, get a copy of vol2bird:
+git clone https://github.com/adokter/vol2bird.git
+# enter the vol2bird directory:
+cd vol2bird
 # set locations of gsl and confuse libraries:
 # on Mac OSX:
 export GSLROOT=/opt/local
@@ -123,30 +146,41 @@ export CONFUSEROOT=/opt/local
 # on Ubuntu/Linux:
 export GSLROOT=/usr/include/gsl,/usr/lib/x86_64-linux-gnu
 # --with-confuse can be omitted on Ubuntu/Linux, detected automatically
+
+# (if not installing Vaisala IRIS support, remove --with-iris flag below)
+# (if not installing RSL, remove --with-rsl flag below)
+# (if not installing MistNet, remove --with-libtorch flag below)
 # configure:
 ./configure --prefix=${RADAR_ROOT_DIR}/opt/vol2bird \
     --with-iris \
     --with-rave=${RADAR_ROOT_DIR}/opt/rave \
-	--with-rsl=${RADAR_ROOT_DIR}/opt/rsl \
+    --with-rsl=${RADAR_ROOT_DIR}/opt/rsl \
     --with-libtorch=${RADAR_ROOT_DIR}/opt/libtorch \
     --with-gsl=${GSLROOT} \
-	--with-confuse=${CONFUSEROOT}
+    --with-confuse=${CONFUSEROOT}
 # build and install:
 make
 sudo make install
+# run vol2bird to check if it works (should give vol2bird version X.X message and no errors):
+./vol2bird.sh
 
-cd ${RADAR_ROOT_DIR}
+# note that the vol2bird.sh updates the DYLD_LIBRARY_PATH (for Mac) and LD_LIBRARY_PATH (for Linux) variable,
+# as you can see when printing the script:
+cat ./vol2bird.sh
 
-# set the paths to installed libraries and executables
-# set these each time you run vol2bird, or add to .bashrc
-# to load automatically in each new shell session
+# Preferably these path definitions are also added to your ~/.bashrc
+# or ~/.bash_profile file for bash shell, or ~/.zshenv for zsh shell
+# such that the paths are loaded automatically in each new shell session
+# (simply copy the export statements into these shell configuration files)
+# In addition, it is useful to add the paths of the vol2bird and rsl binaries
+# by updating the PATH variable in your shell configuration file:
+# (make sure you replace ${RADAR_ROOT_DIR} with its value specified in the beginning)
 export PATH=${PATH}:${RADAR_ROOT_DIR}/opt/rsl/bin:${RADAR_ROOT_DIR}/opt/vol2bird/bin
-# On Ubuntu/Linux:
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/hlhdf/lib:${RADAR_ROOT_DIR}/opt/rave/lib:${RADAR_ROOT_DIR}/opt/rsl/lib:${RADAR_ROOT_DIR}/opt/vol2bird/lib:${RADAR_ROOT_DIR}/opt/libtorch/lib
-# On Mac OSX:
-export DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${RADAR_ROOT_DIR}/opt/hlhdf/lib:${RADAR_ROOT_DIR}/opt/rave/lib:${RADAR_ROOT_DIR}/opt/rsl/lib:${RADAR_ROOT_DIR}/opt/vol2bird/lib:${RADAR_ROOT_DIR}/opt/libtorch/lib
 
-# (optional) to run MistNet, add these two lines to your options.conf file and place it in the directory from which you run vol2bird:
-# MISTNET_PATH=${RADAR_ROOT_DIR}/MistNet/mistnet_nexrad.pt
-# USE_MISTNET=TRUE
+# (optional) to run MistNet from the command line, add these two lines to your options.conf
+# file and place it in the directory from which you run vol2bird:
+# (not needed when running vol2bird from bioRad)
+# (make sure you replace ${RADAR_ROOT_DIR} with its value specified in the beginning)
+MISTNET_PATH=${RADAR_ROOT_DIR}/MistNet/mistnet_nexrad.pt
+USE_MISTNET=TRUE
 ```
