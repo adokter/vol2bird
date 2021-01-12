@@ -122,11 +122,11 @@ cd ${RADAR_ROOT_DIR}/src
 # (optional) install functionality to run MistNet rain segmentation model
 # get a copy of libtorch:
 # on Ubuntu/Linux:
-wget https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.3.0%2Bcpu.zip \
-    && unzip libtorch-shared-with-deps-1.3.0+cpu.zip -d ${RADAR_ROOT_DIR}/opt/ \
+wget https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.7.1%2Bcpu.zip \
+    && unzip libtorch-shared-with-deps-1.7.1+cpu.zip -d ${RADAR_ROOT_DIR}/opt/ \
 # on Mac OSX:
-wget https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.3.0.zip \
-    && unzip libtorch-macos-1.3.0.zip -d ${RADAR_ROOT_DIR}/opt/
+wget https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.7.1.zip \
+    && unzip libtorch-macos-1.7.1.zip -d ${RADAR_ROOT_DIR}/opt/
 # change to radar root directory
 cd ${RADAR_ROOT_DIR}
 # get a copy of the MistNet model
