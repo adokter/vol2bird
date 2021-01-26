@@ -771,7 +771,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
             }
         }
         if (!dualPolPresent){
-            fprintf(stderr,"Warning: no dual-pol moments not found, entering SINGLE POL mode\n");
+            fprintf(stderr,"Warning: no dual-pol moments found, switching to SINGLE POL mode\n");
             alldata->options.dualPol = FALSE;
         }
     }
