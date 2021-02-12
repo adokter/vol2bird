@@ -219,6 +219,8 @@ struct vol2birdPoints {
     // the 'points' array has this many rows
     int nRowsPoints;
     // the psuedo-column in 'points' that holds the azimuth angle
+    int rangeCol;
+    // the psuedo-column in 'points' that holds the range
     int azimAngleCol;
     // the psuedo-column in 'points' that holds the elevation angle
     int elevAngleCol;

@@ -771,7 +771,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
             }
         }
         if (!dualPolPresent){
-            fprintf(stderr,"Warning: no dual-pol moments not found, entering SINGLE POL mode\n");
+            fprintf(stderr,"Warning: no dual-pol moments found, switching to SINGLE POL mode\n");
             alldata->options.dualPol = FALSE;
         }
     }
@@ -1905,30 +1905,31 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
                 vradValue = NAN;
             }
 
-            // store the location as an azimuth angle, elevation angle combination
-            points_local[iRowPoints * nColsPoints_local + 0] = gateAzim;
-            points_local[iRowPoints * nColsPoints_local + 1] = elevAngle * RAD2DEG;
+            // store the location as a range, azimuth angle, elevation angle combination
+            points_local[iRowPoints * nColsPoints_local + alldata->points.rangeCol] = gateRange;
+            points_local[iRowPoints * nColsPoints_local + alldata->points.azimAngleCol] = gateAzim;
+            points_local[iRowPoints * nColsPoints_local + alldata->points.elevAngleCol] = elevAngle * RAD2DEG;
 
             // also store the dbz value --useful when estimating the bird density
-            points_local[iRowPoints * nColsPoints_local + 2] = (float) dbzValue;
+            points_local[iRowPoints * nColsPoints_local + alldata->points.dbzValueCol] = (float) dbzValue;
             
             // store the corresponding observed vrad value
-            points_local[iRowPoints * nColsPoints_local + 3] = (float) vradValue;
+            points_local[iRowPoints * nColsPoints_local + alldata->points.vradValueCol] = (float) vradValue;
 
             // store the corresponding cellImage value
-            points_local[iRowPoints * nColsPoints_local + 4] = (float) cellValue;
+            points_local[iRowPoints * nColsPoints_local + alldata->points.cellValueCol] = (float) cellValue;
 
             // set the gateCode to zero for now
-            points_local[iRowPoints * nColsPoints_local + 5] = (float) 0;
+            points_local[iRowPoints * nColsPoints_local + alldata->points.gateCodeCol] = (float) 0;
 
             // store the corresponding observed nyquist velocity
-            points_local[iRowPoints * nColsPoints_local + 6] = (float) nyquist;
+            points_local[iRowPoints * nColsPoints_local + alldata->points.nyquistCol] = (float) nyquist;
 
             // store the corresponding observed vrad value for now (to be dealiased later)
-            points_local[iRowPoints * nColsPoints_local + 7] = (float) vradValue;
+            points_local[iRowPoints * nColsPoints_local + alldata->points.vraddValueCol] = (float) vradValue;
 
             // store the corresponding observed vrad value for now (to be dealiased later)
-            points_local[iRowPoints * nColsPoints_local + 8] = (float) clutValue;
+            points_local[iRowPoints * nColsPoints_local + alldata->points.clutValueCol] = (float) clutValue;
 
             // raise the row counter by 1
             iRowPoints += 1;
@@ -4187,7 +4188,7 @@ void vol2birdPrintPointsArray(vol2bird_t* alldata) {
 
     int iPoint;
     
-    fprintf(stderr, "iPoint  azim    elev    dbz         vrad        cell    gateCode  flags     nyquist vradd clut\n");
+    fprintf(stderr, "iPoint    range     azim    elev         dbz        vrad    cell    gateCode   flags           nyquist     vradd        clut\n");
     
     for (iPoint = 0; iPoint < alldata->points.nRowsPoints * alldata->points.nColsPoints; iPoint+=alldata->points.nColsPoints) {
         
@@ -4196,6 +4197,7 @@ void vol2birdPrintPointsArray(vol2bird_t* alldata) {
             printGateCode(&gateCodeStr[0], (int) alldata->points.points[iPoint + alldata->points.gateCodeCol]);
         
             fprintf(stderr, "  %6d",    iPoint/alldata->points.nColsPoints);
+            fprintf(stderr, "  %6.1f",  alldata->points.points[iPoint + alldata->points.rangeCol]);
             fprintf(stderr, "  %6.2f",  alldata->points.points[iPoint + alldata->points.azimAngleCol]);
             fprintf(stderr, "  %6.2f",  alldata->points.points[iPoint + alldata->points.elevAngleCol]);
             fprintf(stderr, "  %10.2f", alldata->points.points[iPoint + alldata->points.dbzValueCol]);
@@ -4951,18 +4953,19 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     //               information about the 'points' array            //
     // ------------------------------------------------------------- //
 
-    alldata->points.nColsPoints = 9;
+    alldata->points.nColsPoints = 10;
     alldata->points.nRowsPoints = detSvdfitArraySize(volume, scanUse, alldata);
 
-    alldata->points.azimAngleCol = 0;
-    alldata->points.elevAngleCol = 1;
-    alldata->points.dbzValueCol = 2;
-    alldata->points.vradValueCol = 3;
-    alldata->points.cellValueCol = 4;
-    alldata->points.gateCodeCol = 5;
-    alldata->points.nyquistCol = 6;
-    alldata->points.vraddValueCol = 7;
-    alldata->points.clutValueCol = 8;
+    alldata->points.rangeCol = 0;
+    alldata->points.azimAngleCol = 1;
+    alldata->points.elevAngleCol = 2;
+    alldata->points.dbzValueCol = 3;
+    alldata->points.vradValueCol = 4;
+    alldata->points.cellValueCol = 5;
+    alldata->points.gateCodeCol = 6;
+    alldata->points.nyquistCol = 7;
+    alldata->points.vraddValueCol = 8;
+    alldata->points.clutValueCol = 9;
 
     // pre-allocate the 'points' array (note it has 'nColsPoints'
     // pseudo-columns)
