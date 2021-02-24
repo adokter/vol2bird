@@ -33,6 +33,6 @@ Report a bug at:
 * `src` contains main executables for vol2bird (main program) and rsl2odim (converts NEXRAD to ODIM data format)
 * `tests` unit tests for pgfplugin
 
-Copyright 2010-2019 Adriaan M. Dokter (Cornell lab of ornithology, University of Amsterdam) & Netherlands eScience Centre
+Copyright 2010-2021 Adriaan M. Dokter (Cornell lab of ornithology, University of Amsterdam) & Netherlands eScience Centre
 
 Contributors: Jurriaan H. Spaaks (NLeSC), Lourens Veen (NLeSC), Iwan Holleman (KNMI & Radboud University)
