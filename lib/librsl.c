@@ -199,7 +199,7 @@ PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDE
     // therefore we resample the data onto a regular azimuth grid
     // azimuth bin size is round off to 1/n with n positive integer
     // i.e. either 1, 0.5, 0.25 degrees etc.
-    nrays = 360*ROUND((float) rslSweep->h.nrays/360.0);
+    nrays = MAX(360,360*ROUND((float) rslSweep->h.nrays/360.0));
     if (nrays != rslSweep->h.nrays){
         fprintf(stderr, "Warning: resampling %s sweep at elevation %f (%i rays into %i azimuth-bins) ...\n",name,elev,rslSweep->h.nrays,nrays);
     }
@@ -242,7 +242,8 @@ PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax){
         return scan;
     }
     
-    // get first RSL volume
+    // find the first non-zero RSL volume
+    // usually breaks at iParam==0, the reflectivity volume
     for (int iParam = 0; iParam < radar->h.nvolumes; iParam++){
         if(radar->v[iParam] == NULL) continue;
         rslVol = radar->v[iParam];    
@@ -270,9 +271,11 @@ PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax){
     // add attribute Beamwidth to scan
     PolarScan_setBeamwidth(scan, (double) rslVol->sweep[iScan]->h.beam_width);
 
-    // add attribute Nyquist velocity to scan
-    rslRay = RSL_get_first_ray_of_volume(rslVol);
+    // add attribute Nyquist velocity to scan (from radial velocity sweep)
+    rslRay = RSL_get_first_ray_of_sweep(radar->v[VR_INDEX]->sweep[iScan]);
     nyq_vel = rslRay->h.nyq_vel;
+    // continue with ray from reflectivity sweep
+    rslRay = RSL_get_first_ray_of_sweep(radar->v[DZ_INDEX]->sweep[iScan]);
     
     // if no nyquist velocity found, try it with the native RSL function
     if(nyq_vel == 0){
@@ -290,7 +293,7 @@ PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax){
     // add range scale Atribute to scan
     rscale = rslRay->h.gate_size;
     PolarScan_setRscale(scan, rscale);
-
+    
     // loop through the volume pointers
     // iParam gives you the XX_INDEX flag, i.e. scan parameter type
     int result = 0;
@@ -310,7 +313,7 @@ PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax){
         result = PolarScan_addParameter(scan, param);
         
         if(result == 0){
-            fprintf(stderr, "Warning: dimensions of scan parameter %i do not match scan dimensions, resampling ...\n",iParam);
+            fprintf(stderr, "Warning: dimensions of scan parameter %i at elev %f do not match scan dimensions, resampling ...\n",iParam, elev);
             
             PolarScanParam_t *param_proj;
             // project the scan parameter on the grid of the scan
@@ -358,6 +361,7 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax){
     // this should be in vol2bird version only
 
     // find the first non-zero RSL volume
+    // usually breaks at iParam==0, the reflectivity volume
     for (int iParam = 0; iParam < radar->h.nvolumes; iParam++){
         if(radar->v[iParam] == NULL) continue;
         rslVol = radar->v[iParam];        
@@ -365,6 +369,7 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax){
     }
 
     // find the largest shared maximum range
+    // based on first ray (i.e. first sweep) of each volume 
     float maxRange=FLT_MAX;
     float iRange;
     for (int iParam = 0; iParam < radar->h.nvolumes; iParam++){
@@ -427,7 +432,7 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax){
     else{    
         PolarVolume_addAttribute(volume, attr_wavelength);
     }
-    
+        
     // read the RSL scans (sweeps) and add them to RAVE polar volume
     int result;
     for (int iScan = 0; iScan < rslVol->h.nsweeps; iScan++){

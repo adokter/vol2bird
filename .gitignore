@@ -1,4 +1,5 @@
 # editor files
+.codelite
 .codelite/.tern-port
 .codelite/.tern-project
 .codelite/compilation.db

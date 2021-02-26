@@ -92,6 +92,8 @@
 // including a 4 pixel padding around the image, i.e. 8
 // additional pixels.
 #define MISTNET_DIMENSION 608
+// number of pixels in MISTNET_DIMENSION used as a bleed 
+#define MISTNET_BLEED 8
 // number of MistNet elevation scans expected
 #define MISTNET_N_ELEV 5
 // predict a pixel as rain if the class probability for rain exceeds this threshold
@@ -126,9 +128,9 @@
 // Name of the program, to be stored as task attribute in ODIM
 #define PROGRAM "vol2bird"
 // Version of the program, to be stored as task_version attribute in ODIM
-#define VERSION "0.5.0.9158"
+#define VERSION "0.5.0.9174"
 // Date of latest version of the program
-#define VERSIONDATE "19-Sep-2020"
+#define VERSIONDATE "21-Feb-2021"
 
 
 //-------------------------------------------------------//
@@ -250,3 +252,6 @@
 #define MISTNET_PATH "/MistNet/mistnet_nexrad.pt"
 // initializing value of mistnet tensor
 #define MISTNET_INIT 0
+// require that radial velocity and spectrum width pixels rendered as mistnet input
+// have a valid corresponding reflectivity value
+#define MISTNET_REQUIRE_DBZ 0
