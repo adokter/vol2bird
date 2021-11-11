@@ -428,6 +428,7 @@ IRIS_LIB=
 GOT_IRIS_INC=no
 GOT_IRIS_LIB=no
 IRIS_SUPPRESSED=no
+
 AC_ARG_WITH(iris,[  --with-iris		  Add Vaisala IRIS support using iris2odim rave module],
 		,withval=yes)
 case $withval in
