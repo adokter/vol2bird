@@ -7,6 +7,7 @@
 #ifdef RSL
 
 #include "rsl.h"
+#include <string.h>
 #include <libgen.h>
 #include "polarvolume.h"
 #include "polarscan.h"

@@ -1,3 +1,4 @@
+#include <string.h>
 #include "polarvolume.h"
 #include "polarscan.h"
 #include "cartesian.h"
