@@ -4538,6 +4538,16 @@ CPPOPTS=`echo "$RAVECCOPTS" | sed -e "s/-Wstrict-prototypes//"`
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $CPPOPTS" >&5
 printf "%s\n" "$CPPOPTS" >&6; }
 
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if RAVE is using old or new PROJ API" >&5
+printf %s "checking if RAVE is using old or new PROJ API... " >&6; }
+RAVEUSE_PROJ4_API=`cat $RAVE_ROOT_DIR/mkf/def.mk | sed -n "/^USE_PROJ4_API=/p" | sed -n -e"s/^USE_PROJ4_API=[ 	]*\(.*\)/\1/p"`
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $RAVEUSE_PROJ4_API" >&5
+printf "%s\n" "$RAVEUSE_PROJ4_API" >&6; }
+
+if [ "$RAVEUSE_PROJ4_API" = "yes" -o "$RAVEUSE_PROJ4_API" = "" ]; then
+  RAVECCOPTS="$RAVECCOPTS -DUSE_PROJ4_API"
+fi
+
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for RAVE ld flags" >&5
 printf %s "checking for RAVE ld flags... " >&6; }
 RAVELDFLAGS=`cat $RAVE_ROOT_DIR/mkf/def.mk | sed -n "/^LDFLAGS=/p" | sed -n -e"s/^LDFLAGS=[ 	]*\(.*\)/\1/p"`
@@ -4648,15 +4658,13 @@ printf "%s\n" "$RAVE_MODULE_LIBRARIES" >&6; }
 
 
 LDFLAGS="$LDFLAGS $RAVE_LIB_FLAG $HLHDF_LIBRARY_FLAG $PROJ_LIBRARY_FLAG"
-CPPFLAGS="$CPPFLAGS $RAVE_INCLUDE_FLAG $HLHDF_INCLUDE_FLAG $PROJ_INCLUDE_FLAG"
+CPPFLAGS="$RAVECCOPTS $CPPFLAGS $RAVE_INCLUDE_FLAG $HLHDF_INCLUDE_FLAG $PROJ_INCLUDE_FLAG $PYTHON_INCLUDE_FLAG"
 
 IRIS_CFLAG=
 IRIS_LIB=
 GOT_IRIS_INC=no
 GOT_IRIS_LIB=no
 IRIS_SUPPRESSED=no
-
-echo $CFLAGS
 
 
 # Check whether --with-iris was given.
