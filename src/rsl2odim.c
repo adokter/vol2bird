@@ -13,12 +13,14 @@
 #include "constants.h"
 
 void usage(char* programName, int verbose){
+    fprintf(stderr,"rsl2odim version %s (%s)\n", VERSION, VERSIONDATE);
     fprintf(stderr,"usage: %s <RSL polar volume input> <ODIM hdf5 volume output>\n",programName);
     fprintf(stderr,"usage: %s -i <polar volume or scan> [-i <polar scan> [-i <polar scan>] ...] -o <ODIM hdf5 volume output>\n",programName);
     fprintf(stderr,"usage: %s --help\n", programName);
 
     if (verbose){
-		fprintf(stderr,"\n   Supported radar data formats:\n");
+        fprintf(stderr,"rsl2odim version %s (%s)\n", VERSION, VERSIONDATE);
+        fprintf(stderr,"\n   Supported radar data formats:\n");
         fprintf(stderr,"   * OPERA ODIM hdf5 input format, see <http://www.eumetnet.eu/opera-software> [enabled]\n");
         fprintf(stderr,"   * input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>");
         #ifdef RSL
@@ -205,6 +207,7 @@ int main(int argc, char** argv) {
     // read in data for the full range of distances.
     PolarVolume_t* volume = NULL;
     volume = vol2birdGetVolume(fileIn, nInputFiles, 1000000, 0);
+    fprintf(stderr, "hoi1\n");
 
     if (volume == NULL) {
         fprintf(stderr,"Error: failed to read radar volume\n");
@@ -215,6 +218,7 @@ int main(int argc, char** argv) {
          // initialize volbird library to run MistNet
         int initSuccessful = vol2birdSetUp(volume, &alldata) == 0;
 
+    fprintf(stderr, "hoi2\n");
         if (initSuccessful == FALSE) {
             fprintf(stderr,"Error: failed to initialize vol2bird\n");
             return -1;
@@ -223,10 +227,13 @@ int main(int argc, char** argv) {
 
     saveToODIM((RaveCoreObject*) volume, fileVolOut);
     
+    fprintf(stderr, "hoi3\n");
     // tear down vol2bird, give memory back
     if(alldata.options.useMistNet) vol2birdTearDown(&alldata);
+    fprintf(stderr, "hoi4\n");
     RAVE_OBJECT_RELEASE(volume);
      
+    fprintf(stderr, "hoi5\n");
     return 0;
 
 }
