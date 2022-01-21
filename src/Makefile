@@ -38,7 +38,7 @@ endif
 	make -C ../lib libvol2bird.so
 
 VOL2BIRD_DEPS = vol2bird.c ../lib/libvol2bird.h ../lib/constants.h
-RSL2ODIM_DEPS = rsl2odim.c ../lib/libvol2bird.h
+RSL2ODIM_DEPS = rsl2odim.c ../lib/libvol2bird.h ../lib/constants.h
 
 vol2bird.o : vol2bird.c
 	#
@@ -121,6 +121,9 @@ clean :
 	@if [ -f "./vol2bird.o" ]; then \
 		\rm vol2bird.o; \
 	fi
+	@if [ -f "./rsl2odim.o" ]; then \
+		\rm rsl2odim.o; \
+	fi
 	@\rm -f *~
 
 .PHONY : distclean
@@ -133,5 +136,8 @@ distclean:
 	fi
 	@if [ -f "./vol2bird.o" ]; then \
 		\rm -f volbird.o; \
+	fi
+	@if [ -f "./rsl2odim.o" ]; then \
+		\rm rsl2odim.o; \
 	fi
 	@\rm -f *~
