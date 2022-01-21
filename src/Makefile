@@ -18,7 +18,7 @@
 CC      ?= gcc
 CXX     = /usr/bin/c++   #note: has to be same compiler as used for Pytorch
 #CFLAGS  += -fPIC -x c -DFPRINTFON
-CFLAGS  += -I../lib -Wall -g $(RSL_CFLAG) $(IRIS_CFLAG) $(MISTNET_CFLAG)
+CFLAGS  += -I../lib -Wall -g $(RSL_CFLAG) $(IRIS_CFLAG) $(MISTNET_CFLAG) -fPIC -g -x c
 LDFLAGS += -L../lib
 
 # define where the vol2bird stuff is
