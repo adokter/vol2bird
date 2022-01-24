@@ -11,6 +11,9 @@
 #include "polarvolume.h"
 #include "libvol2bird.h"
 #include "constants.h"
+#include "hlhdf.h"
+#include "hlhdf_debug.h"
+#include "rave_debug.h"
 
 void usage(char* programName, int verbose){
     fprintf(stderr,"rsl2odim version %s (%s)\n", VERSION, VERSIONDATE);
@@ -196,6 +199,11 @@ int main(int argc, char** argv) {
         }
     }
 
+    // initialize hlhdf library and Rave
+    HL_init();
+    Rave_initializeDebugger();
+    Rave_setDebugLevel(RAVE_WARNING);
+
     // read configuration options
     int configSuccessful = vol2birdLoadConfig(&alldata) == 0;
 
@@ -207,7 +215,6 @@ int main(int argc, char** argv) {
     // read in data for the full range of distances.
     PolarVolume_t* volume = NULL;
     volume = vol2birdGetVolume(fileIn, nInputFiles, 1000000, 0);
-    fprintf(stderr, "hoi1\n");
 
     if (volume == NULL) {
         fprintf(stderr,"Error: failed to read radar volume\n");
@@ -218,7 +225,6 @@ int main(int argc, char** argv) {
          // initialize volbird library to run MistNet
         int initSuccessful = vol2birdSetUp(volume, &alldata) == 0;
 
-    fprintf(stderr, "hoi2\n");
         if (initSuccessful == FALSE) {
             fprintf(stderr,"Error: failed to initialize vol2bird\n");
             return -1;
@@ -227,13 +233,10 @@ int main(int argc, char** argv) {
 
     saveToODIM((RaveCoreObject*) volume, fileVolOut);
     
-    fprintf(stderr, "hoi3\n");
     // tear down vol2bird, give memory back
     if(alldata.options.useMistNet) vol2birdTearDown(&alldata);
-    fprintf(stderr, "hoi4\n");
     RAVE_OBJECT_RELEASE(volume);
      
-    fprintf(stderr, "hoi5\n");
     return 0;
 
 }
