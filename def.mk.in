@@ -12,6 +12,7 @@ prefix=             @prefix@
 CC=                 @RAVECC@
 CCOPTS=             @RAVECCOPTS@ -Wno-nullability-completeness
 LDFLAGS=            @RAVELDFLAGS@
+LIBS=               @LIBS@
 
 # (from hlhdf)
 LDSHARED=           @HLHDFLDSHARED@

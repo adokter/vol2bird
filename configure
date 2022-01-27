@@ -3442,7 +3442,8 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-LIBS=-lm
+SAVED_LIBS="$LIBS"
+LIBS="$LIBS -lm"
 
 TORCH_DIR=
 TORCH_SUPPRESSED=no
@@ -4232,6 +4233,9 @@ GOT_RSL_INC=no
 GOT_RSL_LIB=no
 RSL_SUPPRESSED=no
 
+echo "LIBS: $LIBS"
+
+
 # Check whether --with-rsl was given.
 if test ${with_rsl+y}
 then :
@@ -4484,7 +4488,7 @@ printf %s "checking for RAVE installation... " >&6; }
         TMPDIR=`echo "$TMPFIL" | sed -e"s/\/Lib\/_rave\.so//"`
       fi
     else
-      if [ -d "$withval" -a -f "$withval/Lib/_rave.so" ]; then
+      if [ -d "$withval" -a -f "$withval/lib/libravetoolbox.so" ]; then
         TMPDIR=$withval
       fi
     fi
@@ -4581,8 +4585,8 @@ printf "%s\n" "$PROJ_INCLUDE_FLAG" >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for proj library flag used by RAVE" >&5
 printf %s "checking for proj library flag used by RAVE... " >&6; }
 PROJ_LIBRARY_FLAG=`cat $RAVE_ROOT_DIR/mkf/def.mk | sed -n "/^PROJ_LIB_DIR=/p" | sed -n -e"s/^PROJ_LIB_DIR=[ 	]*\(.*\)/\1/p"`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $PROJ_INCLUDE_FLAG" >&5
-printf "%s\n" "$PROJ_INCLUDE_FLAG" >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $PROJ_LIBRARY_FLAG" >&5
+printf "%s\n" "$PROJ_LIBRARY_FLAG" >&6; }
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for expat include flag used by RAVE" >&5
 printf %s "checking for expat include flag used by RAVE... " >&6; }
@@ -4593,8 +4597,8 @@ printf "%s\n" "$EXPAT_INCLUDE_FLAG" >&6; }
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for expat library flag used by RAVE" >&5
 printf %s "checking for expat library flag used by RAVE... " >&6; }
 EXPAT_LIBRARY_FLAG=`cat $RAVE_ROOT_DIR/mkf/def.mk | sed -n "/^EXPAT_LIB_DIR=/p" | sed -n -e"s/^EXPAT_LIB_DIR=[ 	]*\(.*\)/\1/p"`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $EXPAT_INCLUDE_FLAG" >&5
-printf "%s\n" "$EXPAT_INCLUDE_FLAG" >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $EXPAT_LIBRARY_FLAG" >&5
+printf "%s\n" "$EXPAT_LIBRARY_FLAG" >&6; }
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if expat is supressed" >&5
 printf %s "checking if expat is supressed... " >&6; }
@@ -4982,8 +4986,8 @@ if [ "$HLHDF_HDF5_LIB" != "" ]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$HLHDF_HDF5_LIB" | sed -e"s/[ \t]*-L//"`
 fi
 
-if [ "$PROJ_LIB_FLAG" != "" ]; then
-  LD_PRINTOUT=$LD_PRINTOUT:`echo "$PROJ_LIB_FLAG" | sed -e"s/[ \t]*-L//"`
+if [ "$PROJ_LIBRARY_FLAG" != "" ]; then
+  LD_PRINTOUT=$LD_PRINTOUT:`echo "$PROJ_LIBRARY_FLAG" | sed -e"s/[ \t]*-L//"`
 fi
 
 if [ "$EXPAT_LIBRARY_FLAG" != "" ]; then
@@ -5009,6 +5013,10 @@ fi
 if [ "$RSL_LIBRARY_FLAG" != "" ]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$RSL_LIBRARY_FLAG" | sed -e"s/[ \t]*-L//"`
 fi
+
+LIBS=$SAVED_LIBS
+
+
 
 
 
