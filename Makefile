@@ -33,15 +33,15 @@ build: def.mk
 	fi
 	$(MAKE) -C lib
 	$(MAKE) -C src
-	$(MAKE) -C pyvol2bird
-	$(MAKE) -C pgfplugin
+	#$(MAKE) -C pyvol2bird
+	#$(MAKE) -C pgfplugin
 
 .PHONY:install
 install: def.mk
 	$(MAKE) -C lib install
 	$(MAKE) -C src install
-	$(MAKE) -C pyvol2bird install
-	$(MAKE) -C pgfplugin install
+	#$(MAKE) -C pyvol2bird install
+	#$(MAKE) -C pgfplugin install
 	@if [ -f "./libmistnet/Makefile" ]; then \
 		$(MAKE) -C libmistnet install; \
 	fi

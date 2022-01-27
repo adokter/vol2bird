@@ -688,6 +688,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -765,6 +766,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1017,6 +1019,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1154,7 +1165,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1307,6 +1318,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -3001,7 +3013,8 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-LIBS=-lm
+SAVED_LIBS="$LIBS"
+LIBS="$LIBS -lm"
 
 TORCH_DIR=
 TORCH_SUPPRESSED=no
@@ -4041,6 +4054,9 @@ GOT_RSL_INC=no
 GOT_RSL_LIB=no
 RSL_SUPPRESSED=no
 
+echo "LIBS: $LIBS"
+
+
 # Check whether --with-rsl was given.
 if test "${with_rsl+set}" = set; then :
   withval=$with_rsl;
@@ -4297,7 +4313,7 @@ $as_echo_n "checking for RAVE installation... " >&6; }
         TMPDIR=`echo "$TMPFIL" | sed -e"s/\/Lib\/_rave\.so//"`
       fi
     else
-      if [ -d "$withval" -a -f "$withval/Lib/_rave.so" ]; then
+      if [ -d "$withval" -a -f "$withval/lib/libravetoolbox.so" ]; then
         TMPDIR=$withval
       fi
     fi
@@ -4384,8 +4400,8 @@ $as_echo "$PROJ_INCLUDE_FLAG" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for proj library flag used by RAVE" >&5
 $as_echo_n "checking for proj library flag used by RAVE... " >&6; }
 PROJ_LIBRARY_FLAG=`cat $RAVE_ROOT_DIR/mkf/def.mk | sed -n "/^PROJ_LIB_DIR=/p" | sed -n -e"s/^PROJ_LIB_DIR=[ 	]*\(.*\)/\1/p"`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $PROJ_INCLUDE_FLAG" >&5
-$as_echo "$PROJ_INCLUDE_FLAG" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $PROJ_LIBRARY_FLAG" >&5
+$as_echo "$PROJ_LIBRARY_FLAG" >&6; }
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for expat include flag used by RAVE" >&5
 $as_echo_n "checking for expat include flag used by RAVE... " >&6; }
@@ -4396,8 +4412,8 @@ $as_echo "$EXPAT_INCLUDE_FLAG" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for expat library flag used by RAVE" >&5
 $as_echo_n "checking for expat library flag used by RAVE... " >&6; }
 EXPAT_LIBRARY_FLAG=`cat $RAVE_ROOT_DIR/mkf/def.mk | sed -n "/^EXPAT_LIB_DIR=/p" | sed -n -e"s/^EXPAT_LIB_DIR=[ 	]*\(.*\)/\1/p"`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $EXPAT_INCLUDE_FLAG" >&5
-$as_echo "$EXPAT_INCLUDE_FLAG" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $EXPAT_LIBRARY_FLAG" >&5
+$as_echo "$EXPAT_LIBRARY_FLAG" >&6; }
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if expat is supressed" >&5
 $as_echo_n "checking if expat is supressed... " >&6; }
@@ -4790,8 +4806,8 @@ if [ "$HLHDF_HDF5_LIB" != "" ]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$HLHDF_HDF5_LIB" | sed -e"s/[ \t]*-L//"`
 fi
 
-if [ "$PROJ_LIB_FLAG" != "" ]; then
-  LD_PRINTOUT=$LD_PRINTOUT:`echo "$PROJ_LIB_FLAG" | sed -e"s/[ \t]*-L//"`
+if [ "$PROJ_LIBRARY_FLAG" != "" ]; then
+  LD_PRINTOUT=$LD_PRINTOUT:`echo "$PROJ_LIBRARY_FLAG" | sed -e"s/[ \t]*-L//"`
 fi
 
 if [ "$EXPAT_LIBRARY_FLAG" != "" ]; then
@@ -4817,6 +4833,10 @@ fi
 if [ "$RSL_LIBRARY_FLAG" != "" ]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$RSL_LIBRARY_FLAG" | sed -e"s/[ \t]*-L//"`
 fi
+
+LIBS=$SAVED_LIBS
+
+
 
 
 
