@@ -11,14 +11,19 @@
 #include "polarvolume.h"
 #include "libvol2bird.h"
 #include "constants.h"
+#include "hlhdf.h"
+#include "hlhdf_debug.h"
+#include "rave_debug.h"
 
 void usage(char* programName, int verbose){
+    fprintf(stderr,"rsl2odim version %s (%s)\n", VERSION, VERSIONDATE);
     fprintf(stderr,"usage: %s <RSL polar volume input> <ODIM hdf5 volume output>\n",programName);
     fprintf(stderr,"usage: %s -i <polar volume or scan> [-i <polar scan> [-i <polar scan>] ...] -o <ODIM hdf5 volume output>\n",programName);
     fprintf(stderr,"usage: %s --help\n", programName);
 
     if (verbose){
-		fprintf(stderr,"\n   Supported radar data formats:\n");
+        fprintf(stderr,"rsl2odim version %s (%s)\n", VERSION, VERSIONDATE);
+        fprintf(stderr,"\n   Supported radar data formats:\n");
         fprintf(stderr,"   * OPERA ODIM hdf5 input format, see <http://www.eumetnet.eu/opera-software> [enabled]\n");
         fprintf(stderr,"   * input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>");
         #ifdef RSL
@@ -193,6 +198,11 @@ int main(int argc, char** argv) {
             return -1;
         }
     }
+
+    // initialize hlhdf library and Rave
+    HL_init();
+    Rave_initializeDebugger();
+    Rave_setDebugLevel(RAVE_WARNING);
 
     // read configuration options
     int configSuccessful = vol2birdLoadConfig(&alldata) == 0;

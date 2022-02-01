@@ -260,6 +260,8 @@ int main(int argc, char** argv) {
 
     // Initialize hlhdf library
     HL_init();
+    Rave_initializeDebugger();
+    Rave_setDebugLevel(RAVE_WARNING);
 
     // Make rave and hlhdf library print debugging error messages
     //HL_setDebugLevel(HLHDF_SPEWDEBUG);

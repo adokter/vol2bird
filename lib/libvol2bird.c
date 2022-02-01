@@ -842,7 +842,7 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
         }
         
         // check whether spectrum width parameter is present, and store its name
-        sprintf(scanUse[iScan].wradName,"");
+        strcpy(scanUse[iScan].wradName,"");
 		if (PolarScan_hasParameter(scan, "WRAD")){
 			sprintf(scanUse[iScan].wradName,"WRAD");	
 		}
@@ -3399,7 +3399,7 @@ radarDataFormat determineRadarFormat(char* filename){
     // try to load the file using Rave
     // unfortunately this loads the entire file into memory,
     // but no other file type check function available in Rave.
-    RaveIO_t* raveio = RaveIO_open(filename);
+    RaveIO_t* raveio = RaveIO_open(filename, 0, NULL);
 
     // check that a valid RaveIO_t pointer was returned
     if (raveio != (RaveIO_t*) NULL){
@@ -4451,7 +4451,7 @@ PolarVolume_t* vol2birdGetODIMVolume(char* filenames[], int nInputFiles) {
 
     for (int i=0; i<nInputFiles; i++){
         // read the file
-        RaveIO_t* raveio = RaveIO_open(filenames[i]);
+        RaveIO_t* raveio = RaveIO_open(filenames[i], 0, NULL);
 
         if(raveio == NULL){
             fprintf(stderr, "Warning: failed to read file %s in ODIM format, ignoring.\n", filenames[i]);
@@ -4570,7 +4570,7 @@ RaveIO_t* vol2birdIO_open(const char* filename)
     goto done;
   }
 
-  if (!RaveIO_load(result)) {
+  if (!RaveIO_load(result, 0, NULL)) {
     RAVE_WARNING0("Failed to load file");
     RAVE_OBJECT_RELEASE(result);
     goto done;
