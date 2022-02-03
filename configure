@@ -5062,6 +5062,8 @@ ac_config_files="$ac_config_files def.mk"
 
 ac_config_files="$ac_config_files vol2bird.sh"
 
+ac_config_files="$ac_config_files rsl2odim.sh"
+
 if [ "x$TORCH_SUPPRESSED" = "xno" ]; then
 
 	ac_config_files="$ac_config_files libmistnet/configure"
@@ -5769,6 +5771,7 @@ do
   case $ac_config_target in
     "def.mk") CONFIG_FILES="$CONFIG_FILES def.mk" ;;
     "vol2bird.sh") CONFIG_FILES="$CONFIG_FILES vol2bird.sh" ;;
+    "rsl2odim.sh") CONFIG_FILES="$CONFIG_FILES rsl2odim.sh" ;;
     "libmistnet/configure") CONFIG_FILES="$CONFIG_FILES libmistnet/configure" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
@@ -6221,6 +6224,7 @@ fi
 
 
 chmod 755 ./vol2bird.sh
+chmod 755 ./rsl2odim.sh
 
 if [ "x$TORCH_SUPPRESSED" = "xno" ]; then
 	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: starting CMake configuration of libmistnet" >&5

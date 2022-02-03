@@ -9,6 +9,7 @@
 #include "constants.h"
 #include "libvol2bird.h"
 #include "librender.h"
+#include <string.h>
 #ifdef MISTNET
 #include "../libmistnet/libmistnet.h"
 #endif
@@ -53,6 +54,19 @@ PolarVolume_t* PolarVolume_selectScansByElevation(PolarVolume_t* volume, float e
 PolarVolume_t* PolarVolume_selectScansByScanUse(PolarVolume_t* volume, vol2birdScanUse_t *scanUse, int nScansUsed);
 
 PolarScan_t* PolarVolume_getScanClosestToElevation_vol2bird(PolarVolume_t* volume, double elev);
+
+#ifndef MIN
+#define MIN(x,y) (((x) < (y)) ? (x) : (y))
+#endif
+
+#ifndef MAX
+#define MAX(x,y) (((x) < (y)) ? (y) : (x))
+#endif
+
+#ifndef ABS
+#define ABS(x) (((x) < 0) ? (-(x)) : (x))
+#endif
+
 
 /**
  * FUNCTION BODIES

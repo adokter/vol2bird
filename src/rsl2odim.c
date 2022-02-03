@@ -11,6 +11,7 @@
 #include "polarvolume.h"
 #include "libvol2bird.h"
 #include "constants.h"
+#include <string.h>
 #include "hlhdf.h"
 #include "hlhdf_debug.h"
 #include "rave_debug.h"
