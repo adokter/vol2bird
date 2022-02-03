@@ -618,6 +618,7 @@ AC_SUBST(LIBS)
 AC_SUBST(LD_PRINTOUT)
 AC_CONFIG_FILES(def.mk)
 AC_CONFIG_FILES(vol2bird.sh)
+AC_CONFIG_FILES(rsl2odim.sh)
 if [[ "x$TORCH_SUPPRESSED" = "xno" ]]; then
 
 	AC_CONFIG_FILES(libmistnet/configure)
@@ -625,6 +626,7 @@ fi
 AC_OUTPUT
 
 chmod 755 ./vol2bird.sh
+chmod 755 ./rsl2odim.sh
 
 if [[ "x$TORCH_SUPPRESSED" = "xno" ]]; then
 	AC_MSG_NOTICE(starting CMake configuration of libmistnet)
