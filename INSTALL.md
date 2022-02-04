@@ -1,5 +1,8 @@
 # Install instructions for Ubuntu Linux and Mac OSX
 
+NEW! The easiest way of installing vol2bird is using the [vol2bird installer](https://github.com/adokter/vol2birdinstall). It's compatible with most Linux and Mac OSX operating systems.
+
+Alternatively, the following install script can be used:
 ```
 # specify the directory in which we will install by setting the RADAR_ROOT_DIR variable
 # make sure it is an absolute (not relative) path
