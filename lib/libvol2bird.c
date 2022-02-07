@@ -427,14 +427,14 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
         }
 
         if (alldata->options.azimMin < alldata->options.azimMax){
-            if (azimValue < alldata->options.azimMin | azimValue > alldata->options.azimMax) {
+            if ((azimValue < alldata->options.azimMin) || (azimValue > alldata->options.azimMax)) {
                 // the user can specify to exclude gates based on their azimuth;
                 // this clause is for gates that have too low azimuth
                 gateCode |= 1<<(alldata->flags.flagPositionAzimOutOfRange);
             }
         }
         else{
-            if (azimValue < alldata->options.azimMin & azimValue > alldata->options.azimMax) {
+            if ((azimValue < alldata->options.azimMin) && (azimValue > alldata->options.azimMax)) {
                 // the user can specify to exclude gates based on their azimuth;
                 // this clause is for gates that have too low azimuth
                 gateCode |= 1<<(alldata->flags.flagPositionAzimOutOfRange);
