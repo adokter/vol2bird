@@ -426,17 +426,21 @@ static void classifyGatesSimple(vol2bird_t* alldata) {
             // flagPositionVDifMax
         }
 
-        if (azimValue < alldata->options.azimMin) {
-            // the user can specify to exclude gates based on their azimuth;
-            // this clause is for gates that have too low azimuth
-            gateCode |= 1<<(alldata->flags.flagPositionAzimTooLow);
+        if (alldata->options.azimMin < alldata->options.azimMax){
+            if ((azimValue < alldata->options.azimMin) || (azimValue > alldata->options.azimMax)) {
+                // the user can specify to exclude gates based on their azimuth;
+                // this clause is for gates that have too low azimuth
+                gateCode |= 1<<(alldata->flags.flagPositionAzimOutOfRange);
+            }
         }
-        
-        if (azimValue > alldata->options.azimMax) {
-            // the user can specify to exclude gates based on their azimuth;
-            // this clause is for gates that have too high azimuth
-            gateCode |= 1<<(alldata->flags.flagPositionAzimTooHigh);
+        else{
+            if ((azimValue < alldata->options.azimMin) && (azimValue > alldata->options.azimMax)) {
+                // the user can specify to exclude gates based on their azimuth;
+                // this clause is for gates that have too low azimuth
+                gateCode |= 1<<(alldata->flags.flagPositionAzimOutOfRange);
+            }
         }
+
 
         alldata->points.points[iPoint * alldata->points.nColsPoints + alldata->points.gateCodeCol] = (float) gateCode;
         
@@ -2632,13 +2636,13 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
 
 
 
-    if (!iQuantityType && (gateCode & 1<<(alldata->flags.flagPositionAzimTooLow))) {
+    if (!iQuantityType && (gateCode & 1<<(alldata->flags.flagPositionAzimOutOfRange))) {
 
         // i.e. iQuantityType == 0, we are NOT dealing with a selection for svdfit, but with a selection of reflectivities.
 	// Azimuth selection does not apply to svdfit, because svdfit requires data at all azimuths
         // i.e. flag 7 in gateCode is true
         // the user can specify to exclude gates based on their azimuth;
-        // this clause is for gates that have too low azimuth
+        // this clause is for gates that have azimuth outside the range selected by AzimMin and AzimMax
         
         switch (iProfileType) {
             case 1 : 
@@ -2654,31 +2658,6 @@ static int includeGate(const int iProfileType, const int iQuantityType, const un
                 fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
         }
     }
-
-
-    if (!iQuantityType && (gateCode & 1<<(alldata->flags.flagPositionAzimTooHigh))) {
-
-        // i.e. iQuantityType == 0, we are NOT dealing with a selection for svdfit, but with a selection of reflectivities.
-	// Azimuth selection does not apply to svdfit, because svdfit requires data at all azimuths
-        // i.e. flag 8 in gateCode is true
-        // the user can specify to exclude gates based on their azimuth;
-        // this clause is for gates that have too high azimuth
-        
-        switch (iProfileType) {
-            case 1 : 
-                doInclude = FALSE;
-                break;
-            case 2 : 
-                doInclude = FALSE;
-                break;
-            case 3 : 
-                doInclude = FALSE;
-                break;
-            default :
-                fprintf(stderr, "Something went wrong; behavior not implemented for given iProfileType.\n");
-        }
-    }
-
 
 
     return doInclude;
@@ -4993,8 +4972,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     alldata->flags.flagPositionDbzTooHighForBirds = 4;
     alldata->flags.flagPositionVradTooLow = 5;
     alldata->flags.flagPositionVDifMax = 6;
-    alldata->flags.flagPositionAzimTooLow = 7;
-    alldata->flags.flagPositionAzimTooHigh = 8;
+    alldata->flags.flagPositionAzimOutOfRange = 7;
 
     // segment precipitation using Mistnet deep convolutional neural net
     #ifdef MISTNET

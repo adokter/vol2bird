@@ -278,10 +278,8 @@ struct vol2birdFlags {
     int flagPositionVradTooLow;
     // the bit in 'gateCode' that says whether this gate passed the VDIFMAX test
     int flagPositionVDifMax;
-    // the bit in 'gateCode' that says whether the gate's azimuth angle was too low
-    int flagPositionAzimTooLow;
-    // the bit in 'gateCode' that says whether the gate's azimuth angle was too high
-    int flagPositionAzimTooHigh;
+    // the bit in 'gateCode' that says whether the gate's azimuth angle was out of the selected range
+    int flagPositionAzimOutOfRange;
 };
 typedef struct vol2birdFlags vol2birdFlags_t;
 
