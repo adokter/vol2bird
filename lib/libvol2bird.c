@@ -4561,13 +4561,20 @@ done:
 
 
 // loads configuration data in the alldata struct
-int vol2birdLoadConfig(vol2bird_t* alldata) {
+int vol2birdLoadConfig(vol2bird_t* alldata, const char* optionsFile) {
 
     alldata->misc.loadConfigSuccessful = FALSE;
 
+    // load options.conf path from environment variable
     const char * optsConfFilename = getenv(OPTIONS_CONF);
+    
     if (optsConfFilename == NULL) {
-        optsConfFilename = OPTIONS_FILE;
+        if(optionsFile == NULL){
+            optsConfFilename = OPTIONS_FILE;
+        }
+        else{
+            optsConfFilename = optionsFile;
+        }
     }
     else{
         fprintf(stderr, "Searching user configuration file '%s' specified in environmental variable '%s'\n",optsConfFilename,OPTIONS_CONF);
