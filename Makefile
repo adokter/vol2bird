@@ -77,4 +77,4 @@ distclean:
 	$(MAKE) -C tests distclean
 	@\rm -rf libmistnet/CMakeFiles libmistnet/Makefile libmistnet/configure libmistnet/cmake_install.cmake
 	@\rm -f libmistnet/CMakeCache.txt libmistnet/install_manifest.txt libmistnet/libmistnet.so
-	@\rm -f *~ config.log config.status def.mk vol2bird.sh
+	@\rm -f *~ config.log config.status def.mk vol2bird.sh rsl2odim.sh
