@@ -847,7 +847,7 @@ int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int 
         scan = PolarVolume_getScan(pvol,iScan);
         
         if(PolarScan_hasParameter(scan, "WEATHER")){
-            fprintf(stderr, "Warning: scan used multiple times as MistNet input, ignoring segmentation %i/%i\n", iScan+1, MISTNET_N_ELEV);
+            fprintf(stderr, "Warning: MistNet output already present in scan %i, ignoring segmentation %i/%i\n", iScan+1, iScan+1, MISTNET_N_ELEV);
             continue;
         }
         
