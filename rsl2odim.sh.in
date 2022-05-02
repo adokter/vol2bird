@@ -1,4 +1,5 @@
 #!/bin/bash
 export DYLD_LIBRARY_PATH=@LD_PRINTOUT@
 export LD_LIBRARY_PATH=@LD_PRINTOUT@
-./src/rsl2odim $@
+./src/rsl2odim "$@"
+
