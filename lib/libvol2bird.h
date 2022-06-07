@@ -333,11 +333,11 @@ struct vol2birdMisc {
     int vol2birdSuccessful;
     // number of scans used to calculate the profile
     int nScansUsed;
-    // lowest Nyquist velocity of scans used
+    // lowest Nyquist velocity of scans present 
     double nyquistMin;
-    // lowest Nyquist velocity of scans present
+    // lowest Nyquist velocity of scans used
     double nyquistMinUsed;
-    // highest Nyquist velocity of scans used
+    // highest Nyquist velocity of scans present
     double nyquistMax;
     // whether configuration was loaded successfully
     int loadConfigSuccessful;
