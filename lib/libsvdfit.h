@@ -22,7 +22,7 @@
 #define XYMIN(x,y) (((x)<(y))?(x):(y))
 
 // no longer needed - already defined in dealias.h
-#define DEG2RAD    (0.017453293)  // Degrees to radians.
+#define DEG2RAD    0.01745329251994329576  // Degrees to radians.
 
 // ****************************************************************************
 // Definition of parameters for fitting
