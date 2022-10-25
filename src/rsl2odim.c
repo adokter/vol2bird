@@ -11,14 +11,20 @@
 #include "polarvolume.h"
 #include "libvol2bird.h"
 #include "constants.h"
+#include <string.h>
+#include "hlhdf.h"
+#include "hlhdf_debug.h"
+#include "rave_debug.h"
 
 void usage(char* programName, int verbose){
-    fprintf(stderr,"usage: %s <RSL polar volume input> <ODIM hdf5 volume output>\n",programName);
-    fprintf(stderr,"usage: %s -i <polar volume or scan> [-i <polar scan> [-i <polar scan>] ...] -o <ODIM hdf5 volume output>\n",programName);
-    fprintf(stderr,"usage: %s --help\n", programName);
+    fprintf(stderr,"rsl2odim version %s (%s)\n", VERSION, VERSIONDATE);
+    fprintf(stderr,"   usage: %s <RSL polar volume input> <ODIM hdf5 volume output>\n",programName);
+    fprintf(stderr,"   usage: %s -i <polar volume or scan> [-i <polar scan> [-i <polar scan>] ...] [-c <vol2bird configuration file>] -o <ODIM hdf5 volume output>\n",programName);
+    fprintf(stderr,"   usage: %s --help\n", programName);
 
     if (verbose){
-		fprintf(stderr,"\n   Supported radar data formats:\n");
+        fprintf(stderr,"rsl2odim version %s (%s)\n", VERSION, VERSIONDATE);
+        fprintf(stderr,"\n   Supported radar data formats:\n");
         fprintf(stderr,"   * OPERA ODIM hdf5 input format, see <http://www.eumetnet.eu/opera-software> [enabled]\n");
         fprintf(stderr,"   * input formats compatible with RSL, see <http://trmm-fc.gsfc.nasa.gov/trmm_gv/software/rsl>");
         #ifdef RSL
@@ -61,12 +67,15 @@ int main(int argc, char** argv) {
     char* fileIn[INPUTFILESMAX];
     // the (optional) vertical profile file that the user specified as output
     const char* fileVolOut = NULL;
+    // the (optional) options.conf file path that the user specified as input
+    const char* optionsFile = NULL;    
 
     // determine whether we deal with legacy command line format (0) or getopt command line format (1)
     int commandLineFormat = 0;
     for (int i=0; i<argc; i++){
         if(strcmp("-i",argv[i])==0 || strcmp("--input",argv[i])==0  || \
            strcmp("-o",argv[i])==0 || strcmp("--output",argv[i])==0 || \
+           strcmp("-c",argv[i])==0 || strcmp("--config",argv[i])==0 || \
            strcmp("-h",argv[i])==0 || strcmp("--help",argv[i])==0   || \
            strcmp("-v",argv[i])==0 || strcmp("--version",argv[i])==0)
            {
@@ -109,13 +118,14 @@ int main(int argc, char** argv) {
                 {"version", no_argument,       0, 'v'},
                 {"input",   required_argument, 0, 'i'},
                 {"output",  required_argument, 0, 'o'},
+                {"config",  required_argument, 0, 'c'},                
                 {0, 0, 0, 0}
             };
             
             /* getopt_long stores the option index here. */
             int option_index = 0;
     
-            c = getopt_long (argc, argv, "hvi:o:",
+            c = getopt_long (argc, argv, "hvi:o:c:",
                            long_options, &option_index);
 
             /* Detect the end of the options. */
@@ -154,6 +164,10 @@ int main(int argc, char** argv) {
 
                 case 'o':
                     fileVolOut = optarg;
+                    break;
+                    
+                case 'c':
+                    optionsFile = optarg;
                     break;
 
                 case '?':
@@ -194,8 +208,21 @@ int main(int argc, char** argv) {
         }
     }
 
+    // check that options files exist
+    if(optionsFile != NULL){
+        if(!isRegularFile(optionsFile)){
+            fprintf(stderr, "Error: configuration file '%s' does not exist.\n", optionsFile);
+            return -1;
+        }        
+    }
+
+    // initialize hlhdf library and Rave
+    HL_init();
+    Rave_initializeDebugger();
+    Rave_setDebugLevel(RAVE_WARNING);
+
     // read configuration options
-    int configSuccessful = vol2birdLoadConfig(&alldata) == 0;
+    int configSuccessful = vol2birdLoadConfig(&alldata, optionsFile) == 0;
 
     if (configSuccessful == FALSE) {
         fprintf(stderr,"Error: failed to load configuration\n");

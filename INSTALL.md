@@ -1,5 +1,8 @@
 # Install instructions for Ubuntu Linux and Mac OSX
 
+NEW! The easiest way of installing vol2bird is using the [vol2bird installer](https://github.com/adokter/vol2birdinstall). It's compatible with most Linux and Mac OSX operating systems.
+
+Alternatively, the following install script can be used:
 ```
 # specify the directory in which we will install by setting the RADAR_ROOT_DIR variable
 # make sure it is an absolute (not relative) path
@@ -42,7 +45,7 @@ apt-get update && apt-get install --no-install-recommends -y libconfuse-dev \
     && apt-get install -y git && apt-get install -y libgsl-dev && apt-get install -y libbz2-dev
 # On Mac OSX Macports (https://www.macports.org/) can be used to install dependencies:
 sudo port selfupdate
-sudo port install python27 zlib hdf5 libproj4 proj4 libconfuse py27-numpy gsl bzip2 flex
+sudo port install python39 zlib hdf5 libproj4 proj4 libconfuse py39-numpy gsl bzip2 flex
 
 # On Mac OSX, install XCode command line tools
 # this adds the gcc compiler for compiling C and C++ code

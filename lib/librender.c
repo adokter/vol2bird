@@ -1,3 +1,4 @@
+#include <string.h>
 #include "polarvolume.h"
 #include "polarscan.h"
 #include "cartesian.h"
@@ -8,6 +9,7 @@
 #include "constants.h"
 #include "libvol2bird.h"
 #include "librender.h"
+#include <string.h>
 #ifdef MISTNET
 #include "../libmistnet/libmistnet.h"
 #endif
@@ -52,6 +54,19 @@ PolarVolume_t* PolarVolume_selectScansByElevation(PolarVolume_t* volume, float e
 PolarVolume_t* PolarVolume_selectScansByScanUse(PolarVolume_t* volume, vol2birdScanUse_t *scanUse, int nScansUsed);
 
 PolarScan_t* PolarVolume_getScanClosestToElevation_vol2bird(PolarVolume_t* volume, double elev);
+
+#ifndef MIN
+#define MIN(x,y) (((x) < (y)) ? (x) : (y))
+#endif
+
+#ifndef MAX
+#define MAX(x,y) (((x) < (y)) ? (y) : (x))
+#endif
+
+#ifndef ABS
+#define ABS(x) (((x) < 0) ? (-(x)) : (x))
+#endif
+
 
 /**
  * FUNCTION BODIES
@@ -832,7 +847,7 @@ int addTensorToPolarVolume(PolarVolume_t* pvol, float ****tensor, int dim1, int 
         scan = PolarVolume_getScan(pvol,iScan);
         
         if(PolarScan_hasParameter(scan, "WEATHER")){
-            fprintf(stderr, "Warning: scan used multiple times as MistNet input, ignoring segmentation %i/%i\n", iScan+1, MISTNET_N_ELEV);
+            fprintf(stderr, "Warning: MistNet output already present in scan %i, ignoring segmentation %i/%i\n", iScan+1, iScan+1, MISTNET_N_ELEV);
             continue;
         }
         

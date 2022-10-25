@@ -12,7 +12,7 @@
 /******************************************************************************/
 
 #ifndef DEG2RAD
-#define DEG2RAD (0.017453293) // Degrees to radians.
+#define DEG2RAD 0.01745329251994329576 // Degrees to radians.
 #define RAD2DEG (57.29578)    // Radians to degrees.
 #endif
 #define VMAX       50         /* Test field velocities up to VMAX m/s             */

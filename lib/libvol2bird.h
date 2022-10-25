@@ -19,7 +19,7 @@
 // Definition of standard parameters.
 // ****************************************************************************
 
-#define DEG2RAD (0.017453293) // Degrees to radians.
+#define DEG2RAD 0.01745329251994329576 // Degrees to radians.
 #define RAD2DEG (57.29578)    // Radians to degrees.
 
 // ****************************************************************************
@@ -278,10 +278,8 @@ struct vol2birdFlags {
     int flagPositionVradTooLow;
     // the bit in 'gateCode' that says whether this gate passed the VDIFMAX test
     int flagPositionVDifMax;
-    // the bit in 'gateCode' that says whether the gate's azimuth angle was too low
-    int flagPositionAzimTooLow;
-    // the bit in 'gateCode' that says whether the gate's azimuth angle was too high
-    int flagPositionAzimTooHigh;
+    // the bit in 'gateCode' that says whether the gate's azimuth angle was out of the selected range
+    int flagPositionAzimOutOfRange;
 };
 typedef struct vol2birdFlags vol2birdFlags_t;
 
@@ -335,11 +333,11 @@ struct vol2birdMisc {
     int vol2birdSuccessful;
     // number of scans used to calculate the profile
     int nScansUsed;
-    // lowest Nyquist velocity of scans present
+    // lowest Nyquist velocity of scans present 
     double nyquistMin;
     // lowest Nyquist velocity of scans used
     double nyquistMinUsed;
-    // highest Nyquist velocity of scans used
+    // highest Nyquist velocity of scans present
     double nyquistMax;
     // whether configuration was loaded successfully
     int loadConfigSuccessful;
@@ -434,7 +432,7 @@ void vol2birdPrintPointsArray(vol2bird_t* alldata);
 
 void vol2birdPrintPointsArraySimple(vol2bird_t* alldata);
 
-int vol2birdLoadConfig(vol2bird_t* alldata);
+int vol2birdLoadConfig(vol2bird_t* alldata, const char* optionsFile);
 
 int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata);
 

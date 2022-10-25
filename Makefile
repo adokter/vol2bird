@@ -33,15 +33,15 @@ build: def.mk
 	fi
 	$(MAKE) -C lib
 	$(MAKE) -C src
-	$(MAKE) -C pyvol2bird
-	$(MAKE) -C pgfplugin
+	#$(MAKE) -C pyvol2bird
+	#$(MAKE) -C pgfplugin
 
 .PHONY:install
 install: def.mk
 	$(MAKE) -C lib install
 	$(MAKE) -C src install
-	$(MAKE) -C pyvol2bird install
-	$(MAKE) -C pgfplugin install
+	#$(MAKE) -C pyvol2bird install
+	#$(MAKE) -C pgfplugin install
 	@if [ -f "./libmistnet/Makefile" ]; then \
 		$(MAKE) -C libmistnet install; \
 	fi
@@ -62,7 +62,7 @@ test: def.mk
 clean:
 	$(MAKE) -C lib clean
 	$(MAKE) -C src clean
-	$(MAKE) -C pyvol2bird clean
+	#$(MAKE) -C pyvol2bird clean
 	$(MAKE) -C tests clean
 	@if [ -f "./libmistnet/Makefile" ]; then \
 		$(MAKE) -C libmistnet clean; \
@@ -73,8 +73,8 @@ clean:
 distclean:
 	$(MAKE) -C lib distclean
 	$(MAKE) -C src distclean
-	$(MAKE) -C pyvol2bird distclean
+	#$(MAKE) -C pyvol2bird distclean
 	$(MAKE) -C tests distclean
 	@\rm -rf libmistnet/CMakeFiles libmistnet/Makefile libmistnet/configure libmistnet/cmake_install.cmake
 	@\rm -f libmistnet/CMakeCache.txt libmistnet/install_manifest.txt libmistnet/libmistnet.so
-	@\rm -f *~ config.log config.status def.mk vol2bird.sh
+	@\rm -f *~ config.log config.status def.mk vol2bird.sh rsl2odim.sh

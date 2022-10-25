@@ -13,6 +13,17 @@ Recent algorithm extensions and integration with the [bioRad R package](http://a
 Dokter AM, Desmet P, Spaaks JH, van Hoey S, Veen L, Verlinden L, Nilsson C, Haase G, Leijnse H, Farnsworth A, Bouten W, Shamoun-Baranes J.  
 Ecography, **42**, 852-860, 2019, DOI [10.1111/ecog.04028](https://doi.org/10.1111/ecog.04028)  
 
+### installation
+
+Use the [vol2bird installer](https://github.com/adokter/vol2birdinstall) to install vol2bird and all its dependencies:
+
+It currently supports:
+* Ubuntu 18.04 & 18.10
+* Ubuntu 21.04
+* CentOS 8
+* RedHat 8 (see RedHat Prerequisities below)
+* Mac OS Intel
+
 ### repository contents
 
 Browse source code at:  
@@ -33,6 +44,6 @@ Report a bug at:
 * `src` contains main executables for vol2bird (main program) and rsl2odim (converts NEXRAD to ODIM data format)
 * `tests` unit tests for pgfplugin
 
-Copyright 2010-2021 Adriaan M. Dokter (Cornell lab of ornithology, University of Amsterdam) & Netherlands eScience Centre
+Copyright 2010-2022 Adriaan M. Dokter (Cornell lab of ornithology, University of Amsterdam) & Netherlands eScience Centre
 
-Contributors: Jurriaan H. Spaaks (NLeSC), Lourens Veen (NLeSC), Iwan Holleman (KNMI & Radboud University)
+Contributors: Anders Henja, Jurriaan H. Spaaks (NLeSC), Lourens Veen (NLeSC), Iwan Holleman (KNMI & Radboud University)

@@ -7,12 +7,14 @@
 #ifdef RSL
 
 #include "rsl.h"
+#include <string.h>
 #include <libgen.h>
 #include "polarvolume.h"
 #include "polarscan.h"
 #include "constants.h"
 #include "libvol2bird.h"
 #include "rave_debug.h"
+#include <string.h>
 
 // non-public function prototypes (local to this file/translation unit)
 
@@ -25,6 +27,18 @@ PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax);
 PolarScanParam_t* PolarScanParam_RSL2Rave(Radar *radar, float elev, int RSL_INDEX,float rangeMax, double *scale);
     
 int rslCopy2Rave(Sweep *rslSweep,PolarScanParam_t* scanparam);
+
+#ifndef MIN
+#define MIN(x,y) (((x) < (y)) ? (x) : (y))
+#endif
+
+#ifndef MAX
+#define MAX(x,y) (((x) < (y)) ? (y) : (x))
+#endif
+
+#ifndef ABS
+#define ABS(x) (((x) < 0) ? (-(x)) : (x))
+#endif
 
 
 // non-public function declarations (local to this file/translation unit)
@@ -292,6 +306,9 @@ PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax){
 
     // add range scale Atribute to scan
     rscale = rslRay->h.gate_size;
+    if(ABS(rscale - (RSL_get_first_ray_of_volume(rslVol)->h.gate_size))>0.0001){
+        fprintf(stderr, "DEBUG warning: scan %i has different range resolution (%i) than first scan of volume (%i)\n", iScan, ROUND(rscale), ROUND(RSL_get_first_ray_of_volume(rslVol)->h.gate_size));
+    }
     PolarScan_setRscale(scan, rscale);
     
     // loop through the volume pointers

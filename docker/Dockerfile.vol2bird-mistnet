@@ -4,7 +4,7 @@ MAINTAINER Adriaan Dokter
 # get a copy of hlhdf:
 # configure and build hlhdf
 # strange Docker conflict when attempting to install in /opt/radar/hlhdf, therefore in root radar instead
-RUN git clone git://github.com/adokter/hlhdf.git \
+RUN git clone https://github.com/adokter/hlhdf.git \
     && cd hlhdf && ./configure --prefix=/opt/radar --with-hdf5=/usr/include/hdf5/serial,/usr/lib/x86_64-linux-gnu/hdf5/serial \
     && make && make install && cd .. && rm -rf hlhdf
 

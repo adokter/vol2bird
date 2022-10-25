@@ -16,7 +16,8 @@ fi
 AC_PROG_CC
 AC_PROG_CPP
 
-LIBS=-lm
+SAVED_LIBS="$LIBS"
+LIBS="$LIBS -lm"
 
 dnl Check that we install libmistnet
 dnl
@@ -210,6 +211,9 @@ RSL_LIB=
 GOT_RSL_INC=no
 GOT_RSL_LIB=no
 RSL_SUPPRESSED=no
+
+echo "LIBS: $LIBS"
+
 AC_ARG_WITH(rsl,[  --with-rsl=DIR	  The RSL root installation directory],
 		,withval=yes)
 case $withval in
@@ -300,7 +304,7 @@ case $withval in
         TMPDIR=`echo "$TMPFIL" | sed -e"s/\/Lib\/_rave\.so//"`
       fi
     else
-      if [[ -d "$withval" -a -f "$withval/Lib/_rave.so" ]]; then
+      if [[ -d "$withval" -a -f "$withval/lib/libravetoolbox.so" ]]; then
         TMPDIR=$withval
       fi
     fi
@@ -344,6 +348,14 @@ AC_MSG_CHECKING(for cpp options)
 CPPOPTS=`echo "$RAVECCOPTS" | sed -e "s/-Wstrict-prototypes//"`
 AC_MSG_RESULT($CPPOPTS)
 
+AC_MSG_CHECKING(if RAVE is using old or new PROJ API)
+RAVEUSE_PROJ4_API=`cat $RAVE_ROOT_DIR/mkf/def.mk | sed -n "/^USE_PROJ4_API=/p" | sed -n -e"s/^USE_PROJ4_API=[[ 	]]*\(.*\)/\1/p"`
+AC_MSG_RESULT($RAVEUSE_PROJ4_API)
+
+if [[ "$RAVEUSE_PROJ4_API" = "yes" -o "$RAVEUSE_PROJ4_API" = "" ]]; then
+  RAVECCOPTS="$RAVECCOPTS -DUSE_PROJ4_API"
+fi
+
 AC_MSG_CHECKING(for RAVE ld flags)
 RAVELDFLAGS=`cat $RAVE_ROOT_DIR/mkf/def.mk | sed -n "/^LDFLAGS=/p" | sed -n -e"s/^LDFLAGS=[[ 	]]*\(.*\)/\1/p"`
 AC_MSG_RESULT($RAVELDFLAGS)
@@ -366,7 +378,7 @@ AC_MSG_RESULT($PROJ_INCLUDE_FLAG)
 
 AC_MSG_CHECKING(for proj library flag used by RAVE)
 PROJ_LIBRARY_FLAG=`cat $RAVE_ROOT_DIR/mkf/def.mk | sed -n "/^PROJ_LIB_DIR=/p" | sed -n -e"s/^PROJ_LIB_DIR=[[ 	]]*\(.*\)/\1/p"`
-AC_MSG_RESULT($PROJ_INCLUDE_FLAG)
+AC_MSG_RESULT($PROJ_LIBRARY_FLAG)
 
 AC_MSG_CHECKING(for expat include flag used by RAVE)
 EXPAT_INCLUDE_FLAG=`cat $RAVE_ROOT_DIR/mkf/def.mk | sed -n "/^EXPAT_INCLUDE_DIR=/p" | sed -n -e"s/^EXPAT_INCLUDE_DIR=[[ 	]]*\(.*\)/\1/p"`
@@ -374,7 +386,7 @@ AC_MSG_RESULT($EXPAT_INCLUDE_FLAG)
 
 AC_MSG_CHECKING(for expat library flag used by RAVE)
 EXPAT_LIBRARY_FLAG=`cat $RAVE_ROOT_DIR/mkf/def.mk | sed -n "/^EXPAT_LIB_DIR=/p" | sed -n -e"s/^EXPAT_LIB_DIR=[[ 	]]*\(.*\)/\1/p"`
-AC_MSG_RESULT($EXPAT_INCLUDE_FLAG)
+AC_MSG_RESULT($EXPAT_LIBRARY_FLAG)
 
 AC_MSG_CHECKING(if expat is supressed)
 EXPAT_SUPPRESSED=`cat $RAVE_ROOT_DIR/mkf/def.mk | sed -n "/^EXPAT_SUPPRESSED=/p" | sed -n -e"s/^EXPAT_SUPPRESSED=[[ 	]]*\(.*\)/\1/p"`
@@ -419,7 +431,7 @@ AC_MSG_RESULT($RAVE_MODULE_LIBRARIES)
 
 dnl Update LDFLAGS and CPPFLAGS with those obtained from RAVE
 LDFLAGS="$LDFLAGS $RAVE_LIB_FLAG $HLHDF_LIBRARY_FLAG $PROJ_LIBRARY_FLAG"
-CPPFLAGS="$CPPFLAGS $RAVE_INCLUDE_FLAG $HLHDF_INCLUDE_FLAG $PROJ_INCLUDE_FLAG"
+CPPFLAGS="$RAVECCOPTS $CPPFLAGS $RAVE_INCLUDE_FLAG $HLHDF_INCLUDE_FLAG $PROJ_INCLUDE_FLAG $PYTHON_INCLUDE_FLAG"
 
 dnl Check that we have Vaisala IRIS library installed as part of RAVE
 dnl
@@ -428,6 +440,7 @@ IRIS_LIB=
 GOT_IRIS_INC=no
 GOT_IRIS_LIB=no
 IRIS_SUPPRESSED=no
+
 AC_ARG_WITH(iris,[  --with-iris		  Add Vaisala IRIS support using iris2odim rave module],
 		,withval=yes)
 case $withval in
@@ -531,8 +544,8 @@ if [[ "$HLHDF_HDF5_LIB" != "" ]]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$HLHDF_HDF5_LIB" | sed -e"s/[[ \t]]*-L//"`
 fi
 
-if [[ "$PROJ_LIB_FLAG" != "" ]]; then
-  LD_PRINTOUT=$LD_PRINTOUT:`echo "$PROJ_LIB_FLAG" | sed -e"s/[[ \t]]*-L//"`
+if [[ "$PROJ_LIBRARY_FLAG" != "" ]]; then
+  LD_PRINTOUT=$LD_PRINTOUT:`echo "$PROJ_LIBRARY_FLAG" | sed -e"s/[[ \t]]*-L//"`
 fi
 
 if [[ "$EXPAT_LIBRARY_FLAG" != "" ]]; then
@@ -558,6 +571,8 @@ fi
 if [[ "$RSL_LIBRARY_FLAG" != "" ]]; then
   LD_PRINTOUT=$LD_PRINTOUT:`echo "$RSL_LIBRARY_FLAG" | sed -e"s/[[ \t]]*-L//"`
 fi
+
+LIBS=$SAVED_LIBS
 
 AC_SUBST(RAVE_ROOT_DIR)
 AC_SUBST(RAVE_INCLUDE_FLAG)
@@ -598,9 +613,12 @@ AC_SUBST(TORCH_LIBRARY_FLAG)
 AC_SUBST(MISTNET_LIB)
 AC_SUBST(MISTNET_CFLAG)
 
+AC_SUBST(LIBS)
+
 AC_SUBST(LD_PRINTOUT)
 AC_CONFIG_FILES(def.mk)
 AC_CONFIG_FILES(vol2bird.sh)
+AC_CONFIG_FILES(rsl2odim.sh)
 if [[ "x$TORCH_SUPPRESSED" = "xno" ]]; then
 
 	AC_CONFIG_FILES(libmistnet/configure)
@@ -608,6 +626,7 @@ fi
 AC_OUTPUT
 
 chmod 755 ./vol2bird.sh
+chmod 755 ./rsl2odim.sh
 
 if [[ "x$TORCH_SUPPRESSED" = "xno" ]]; then
 	AC_MSG_NOTICE(starting CMake configuration of libmistnet)
