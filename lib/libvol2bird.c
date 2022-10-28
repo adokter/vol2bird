@@ -277,6 +277,18 @@ static void calcTexture(PolarScan_t *scan, vol2birdScanUse_t scanUse, vol2bird_t
     PolarScanParam_t* vradImage = PolarScan_getParameter(scan, scanUse.vradName);
     PolarScanParam_t* dbzImage = PolarScan_getParameter(scan, scanUse.dbzName);
 
+    if(scanUse.useScan != 1){
+      fprintf(stderr, "Error: scanUse unequal to 1 (%i), this scan should not be used\n",scanUse.useScan);
+    }
+    if (texImage == NULL) {
+      fprintf(stderr, "Error: Couldn't fetch texture parameter for texture calculation\n");
+    }
+    if (vradImage == NULL) {
+      fprintf(stderr, "Error: Couldn't fetch radial velocity parameter for texture calculation\n");
+    }
+    if (dbzImage == NULL) {
+      fprintf(stderr, "Error: Couldn't fetch reflectivity parameter for texture calculation\n");
+    }
     dbzOffset = PolarScanParam_getOffset(dbzImage);
     dbzScale = PolarScanParam_getGain(dbzImage);
     dbzMissingValue = PolarScanParam_getNodata(dbzImage);
@@ -487,7 +499,6 @@ static void constructPointsArray(PolarVolume_t* volume, vol2birdScanUse_t* scanU
                     // ------------------------------------------------------------- //
 
                     texScanParam = PolarScan_newParam(scan, scanUse[iScan].texName, RaveDataType_DOUBLE);
-
                     calcTexture(scan, scanUse[iScan], alldata);					
 				}
 
@@ -833,8 +844,8 @@ static vol2birdScanUse_t* determineScanUse(PolarVolume_t* volume, vol2bird_t* al
             }
         }
         
-        // check that correlation coefficient is present
-        if (alldata->options.dualPol){
+        // check that correlation coefficient is present in addition to radial velocity and reflectivity
+        if (scanUse[iScan].useScan & alldata->options.dualPol){
             if (PolarScan_hasParameter(scan, "RHOHV")){
                 sprintf(scanUse[iScan].rhohvName,"RHOHV");	
                 scanUse[iScan].useScan = TRUE;

@@ -1,3 +1,11 @@
+# vol2bird 0.5.XXXX
+* fixes a bug occurring with missing scan parameter data (#195)
+
+# vol2bird 0.5.0
+All issues included in this release can be found [here](https://github.com/adokter/vol2bird/milestone/1?closed=1)
+
+This release adds the MistNet model for rain segmentation, and includes several other small fixes and improvements 
+
 # vol2bird 0.4.0
 
 All issues included in this release can be found [here](https://github.com/adokter/vol2bird/milestone/2?closed=1).
