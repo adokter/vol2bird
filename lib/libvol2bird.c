@@ -4300,7 +4300,12 @@ PolarVolume_t* vol2birdGetVolume(char* filenames[], int nInputFiles, float range
     
     volume = vol2birdGetODIMVolume(filenames, nInputFiles);
     
-    PolarVolume_sortByElevations(volume,1);
+    if(volume == NULL){
+        goto done;
+    }
+    else{
+        PolarVolume_sortByElevations(volume,1);
+    }
     
     done:
         return volume;
