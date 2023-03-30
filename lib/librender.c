@@ -1028,7 +1028,7 @@ int addClassificationToPolarVolume(PolarVolume_t* pvol, float ****tensor, int di
 
 }
 
-#if defined(MISTNET)
+#ifdef MISTNET
 // segments biology from precipitation using mistnet deep convolution net.
 int segmentScansUsingMistnet(PolarVolume_t* volume, vol2birdScanUse_t *scanUse, vol2bird_t* alldata){    
     // volume with only the 5 selected elevations
