@@ -33,8 +33,7 @@
 #include "libsvdfit.h"
 
 
-
-
+void vol2bird_err_printf(const char* fmt, ...);
 
 int svd_vvp1func(const float points[], const int nDims, float afunc[], const int nParsFitted) {
 
@@ -58,11 +57,11 @@ int svd_vvp1func(const float points[], const int nDims, float afunc[], const int
     float cosGamma;
 
     if (nDims != 2) {
-        fprintf(stderr, "Number of dimensions is wrong!\n");
+        vol2bird_err_printf("Number of dimensions is wrong!\n");
         return -1;
     }
     if (nParsFitted != 3) {
-        fprintf(stderr, "Number of parameters is wrong!\n");
+        vol2bird_err_printf("Number of parameters is wrong!\n");
         return -1;
     }
 
@@ -132,7 +131,7 @@ int svdcmp(float *a,int m,int n,float w[],float *v) {
 
     rv1 = (float *)malloc(n*sizeof(float));
     if (rv1 == NULL) {
-        fprintf(stderr, "Requested memory could not be allocated!\n");
+        vol2bird_err_printf("Requested memory could not be allocated!\n");
         return -1;
     }
 
@@ -336,7 +335,7 @@ int svdcmp(float *a,int m,int n,float w[],float *v) {
                 break;
             }
             if (iIteration == nIterationsMax) {
-                fprintf(stderr, "No convergence in %d svdcmp iterations!\n",nIterationsMax);
+                vol2bird_err_printf("No convergence in %d svdcmp iterations!\n",nIterationsMax);
                 return -1;
             }
             x = w[l];
@@ -462,18 +461,18 @@ float svdfit(const float *points, const int nDims, const float vradObs[], float 
 
     // Checking whether the input numbers are within bounds:
     if (nParsFitted > NPARSFITTEDMAX) {
-        fprintf(stderr, "Number of fit parameters is too large!\n");
+        vol2bird_err_printf("Number of fit parameters is too large!\n");
         return -1.0;
     }
     if (nPoints <= nParsFitted) {
-        fprintf(stderr, "Number of data points is too small!\n");
+        vol2bird_err_printf("Number of data points is too small!\n");
         return -1.0;
     }
 
     // Allocation of memory for arrays.
     u = (float *)malloc(nPoints*nParsFitted*sizeof(float));
     if (!u) {
-        fprintf(stderr, "Requested memory could not be allocated!\n");
+        vol2bird_err_printf("Requested memory could not be allocated!\n");
         return -1.0;
     }
 
@@ -579,7 +578,7 @@ int svbksb(float *u,float w[],float *v,int m,int n,const float b[],float x[])
 
     tmp=(float *)malloc(n*sizeof(float));
     if (tmp==NULL) {
-        printf("Requested memory could not be allocated!\n");
+        vol2bird_err_printf("Requested memory could not be allocated!\n");
         return -1;
     }
 

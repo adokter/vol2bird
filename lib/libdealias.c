@@ -9,11 +9,13 @@
 #include <gsl/gsl_multimin.h>
 #include <gsl/gsl_vector.h>
 
+void vol2bird_err_printf(const char* fmt, ...);
+
 void printDealias(const float *points, const int nDims, const float nyquist[], 
     const float vradObs[], float vradDealias[], const int nPoints, const int iProfileType, const int iLayer, const int iPass){
-    fprintf(stderr,"#iProfile iLayer iPass azim elev nyquist vrad vradd\n");
+    vol2bird_err_printf("#iProfile iLayer iPass azim elev nyquist vrad vradd\n");
     for(int i=0; i<nPoints;i++){
-        fprintf(stderr,"%i %i %i %3.1f %3.1f %3.1f %3.1f %3.1f\n",
+      vol2bird_err_printf("%i %i %i %3.1f %3.1f %3.1f %3.1f %3.1f\n",
         iProfileType,iLayer,iPass,points[i*nDims],points[i*nDims+1],nyquist[i],vradObs[i],vradDealias[i]);
     }
 }

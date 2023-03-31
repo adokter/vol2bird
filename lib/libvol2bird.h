@@ -11,7 +11,9 @@
  *
  */
 
+#ifndef NOCONFUSE
 #include <confuse.h>
+#endif
 #include <polarvolume.h>
 #include <vertical_profile.h>
 
@@ -333,11 +335,11 @@ struct vol2birdMisc {
     int vol2birdSuccessful;
     // number of scans used to calculate the profile
     int nScansUsed;
-    // lowest Nyquist velocity of scans present 
+    // lowest Nyquist velocity of scans present
     double nyquistMin;
     // lowest Nyquist velocity of scans used
     double nyquistMinUsed;
-    // highest Nyquist velocity of scans present
+    // highest Nyquist velocity of scans used
     double nyquistMax;
     // whether configuration was loaded successfully
     int loadConfigSuccessful;
@@ -386,9 +388,25 @@ struct vol2bird {
     vol2birdProfiles_t profiles;
     vol2birdMisc_t misc;
     VerticalProfile_t* vp;
+#ifndef NOCONFUSE
     cfg_t* cfg;
+#endif
 };
 typedef struct vol2bird vol2bird_t;
+
+typedef void(*vol2bird_printfun)(const char* msg);
+
+void vol2bird_set_printf(vol2bird_printfun fun);
+
+void vol2bird_set_err_printf(vol2bird_printfun fun);
+
+void vol2bird_default_print(const char* msg);
+
+void vol2bird_default_err_print(const char* msg);
+
+void vol2bird_printf(const char* fmt, ...);
+
+void vol2bird_err_printf(const char* fmt, ...);
 
 typedef enum radarDataFormat {
   radarDataFormat_UNKNOWN = 0,
@@ -441,6 +459,12 @@ void vol2birdTearDown(vol2bird_t* alldata);
 int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata);
 
 float nanify(float value);
+
+void nanify_str(char* buff, const char* fmt, double v);
+
+void create_profile_printout_str(char* printbuffer, int buflen, const char* date, const char* time,
+    float HGHT, float u, float v, float w, float ff, float dd, float sd_vvp, char gap, float dbz,
+    float eta, float dens, float DBZH, float n, float n_dbz, float n_all, float n_dbz_all);
 
 int saveToODIM(RaveCoreObject* object, const char* filename);
 
