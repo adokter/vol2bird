@@ -17,7 +17,7 @@
  *
  */
 
-#include <libcsv/libcsv.h>
+#include <libcsv.h>
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
