@@ -421,7 +421,8 @@ int main(int argc, char** argv) {
     //save rave profile to ODIM hdf5 file
     if (fileVpOut != NULL){
         int result;
-        result = saveToODIM((RaveCoreObject*) alldata.vp, fileVpOut); 
+        // result = saveToODIM((RaveCoreObject*) alldata.vp, fileVpOut); 
+        result = saveToCSV((RaveCoreObject*) alldata.vp, fileVpOut);
         if (result == FALSE){
             fprintf(stderr, "critical error, cannot write file %s\n", fileVpOut);
             return -1;

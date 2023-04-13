@@ -3189,7 +3189,52 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
     return result;    
 }
 
+int saveToCSV(RaveCoreObject* object, const char* filename) {
 
+    FILE *fp;
+    csv_writer_t *writer;
+    RaveCoreObjectIter_t* iter;
+    char** fieldnames;
+    char** row;
+
+    // open the output file
+    fp = fopen(filename, "w");
+    if (!fp) {
+        fprintf(stderr, "Error: Could not open file '%s' for writing\n", filename);
+        return -1;
+    }
+
+    // create a CSV writer
+    writer = csv_writer_new_fp(fp);
+
+    // write the header row
+    iter = RaveCoreObject_getIter(object);
+    fieldnames = RaveCoreObject_getFieldNames(object);
+    while (RaveCoreObjectIter_next(iter)) {
+        csv_writer_write_field(writer, fieldnames[RaveCoreObjectIter_getIndex(iter)]);
+    }
+    csv_writer_end_row(writer);
+
+    // write the data rows
+    RaveCoreObject_resetIter(iter);
+    while (RaveCoreObjectIter_next(iter)) {
+        row = RaveCoreObject_toStringList(RaveCoreObjectIter_getValue(iter));
+        for (int i = 0; i < RaveCoreObject_getNumberOfFields(object); i++) {
+            csv_writer_write_field(writer, row[i]);
+        }
+        csv_writer_end_row(writer);
+        RaveCoreObject_freeStringList(row);
+    }
+
+    // cleanup
+    csv_writer_destroy(writer);
+    fclose(fp);
+    RAVE_OBJECT_RELEASE(iter);
+
+    return 0;
+}
+
+/*
 int saveToVPTS_CSV(RaveCoreObject* object, const char* filename){
 
     //define new Rave IO instance
@@ -3204,6 +3249,7 @@ int saveToVPTS_CSV(RaveCoreObject* object, const char* filename){
     return result
 
 }
+*/
 
 
 static void printCellProp(CELLPROP* cellProp, float elev, int nCells, int nCellsValid, vol2bird_t *alldata){
