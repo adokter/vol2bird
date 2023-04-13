@@ -2,6 +2,7 @@ FROM ubuntu:18.04
 MAINTAINER Adriaan Dokter
 
 # installs using apt-get:
+# * libcsv: library for parsing csv files
 # * libconfuse: library for parsing options
 # * libhdf5: HDF5, Hierarchichal Data Format library
 # * libgsl: the GNU Scientific Library
@@ -16,7 +17,7 @@ MAINTAINER Adriaan Dokter
 # * numpy 
 # * proj4 library
 # * flexold, otherwise configure script of RSL library does not function properly
-RUN apt-get update && apt-get install --no-install-recommends -y libconfuse-dev \
+RUN apt-get update && apt-get install --no-install-recommends -y libcsv-dev libconfuse-dev \
     libhdf5-dev gcc g++ wget unzip make cmake zlib1g-dev python-dev python-numpy libproj-dev flex-old file \
     && apt-get install -y git git-lfs && apt-get install -y libgsl-dev && apt-get install -y libbz2-dev
 

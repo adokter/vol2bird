@@ -3190,6 +3190,22 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
 }
 
 
+int saveToVPTS_CSV(RaveCoreObject* object, const char* filename){
+
+    //define new Rave IO instance
+    RaveIO_t* raveio = RAVE_OBJECT_NEW(&RaveIO_TYPE);
+
+    //set the object to be saved
+    RaveIO_setObject(raveio, object);
+
+    int result;
+    result = RaveIO_save(raveio, filename);
+
+    return result
+
+}
+
+
 static void printCellProp(CELLPROP* cellProp, float elev, int nCells, int nCellsValid, vol2bird_t *alldata){
     
     // ---------------------------------------------------------- //
