@@ -3191,47 +3191,62 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
 
 int saveToCSV(RaveCoreObject* object, const char* filename) {
 
-    FILE *fp;
-    csv_writer_t *writer;
-    RaveCoreObjectIter_t* iter;
-    char** fieldnames;
-    char** row;
+    FILE* fp;
+    RaveObjectIter* iter = RaveObject_getIter(object);
+    RaveAttribute_t* attr = NULL;
+    RaveField_t* field = NULL;
+    int num_fields = 0;
+    int i;
 
-    // open the output file
     fp = fopen(filename, "w");
     if (!fp) {
-        fprintf(stderr, "Error: Could not open file '%s' for writing\n", filename);
-        return -1;
+        fprintf(stderr, "Error: unable to open file '%s' for writing\n", filename);
+        return;
     }
 
-    // create a CSV writer
-    writer = csv_writer_new_fp(fp);
-
-    // write the header row
-    iter = RaveCoreObject_getIter(object);
-    fieldnames = RaveCoreObject_getFieldNames(object);
-    while (RaveCoreObjectIter_next(iter)) {
-        csv_writer_write_field(writer, fieldnames[RaveCoreObjectIter_getIndex(iter)]);
+    // Write out all attributes
+    while ((attr = RaveObjectIter_nextAttribute(iter)) != NULL) {
+        fprintf(fp, "%s,%s\n", attr->name, RaveAttribute_getString(attr));
     }
-    csv_writer_end_row(writer);
 
-    // write the data rows
-    RaveCoreObject_resetIter(iter);
-    while (RaveCoreObjectIter_next(iter)) {
-        row = RaveCoreObject_toStringList(RaveCoreObjectIter_getValue(iter));
-        for (int i = 0; i < RaveCoreObject_getNumberOfFields(object); i++) {
-            csv_writer_write_field(writer, row[i]);
+    // Write out all fields
+    num_fields = RaveObject_getNumberOfFields(object);
+    for (i = 0; i < num_fields; i++) {
+        field = RaveObject_getField(object, i);
+        if (field != NULL) {
+            fprintf(fp, "%s,%s,%s,%d,%d,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%f,%d,%f,%f,%f,%f,%s\n",
+                    RaveField_getQuantity(field),
+                    RaveField_getDateTimeISO8601(field),
+                    RaveField_getHeight(field),
+                    RaveField_getUComponent(field),
+                    RaveField_getVComponent(field),
+                    RaveField_getWComponent(field),
+                    RaveField_getHorizontalWindSpeed(field),
+                    RaveField_getHorizontalWindDirection(field),
+                    RaveField_getVerticalVelocity(field),
+                    RaveField_getGapValue(field),
+                    RaveField_getEtaValue(field),
+                    RaveField_getParticleDensity(field),
+                    RaveField_getDbzValue(field),
+                    RaveField_getDbzValueAll(field),
+                    RaveField_getNumberOfBins(field),
+                    RaveField_getNumberOfBinsWithData(field),
+                    RaveField_getNumberOfBinsAll(field),
+                    RaveField_getNumberOfBinsWithDataAll(field),
+                    RaveField_getRadarCrossSection(field),
+                    RaveField_getStandardDeviationThreshold(field),
+                    RaveField_getVolumeCappiProjection(field),
+                    RaveField_getLatitude(field),
+                    RaveField_getLongitude(field),
+                    RaveField_getHeightOverEllipsoid(field),
+                    RaveField_getWavelength(field),
+                    RaveField_getSourceFilename(field)
+                    );
         }
-        csv_writer_end_row(writer);
-        RaveCoreObject_freeStringList(row);
     }
 
-    // cleanup
-    csv_writer_destroy(writer);
     fclose(fp);
-    RAVE_OBJECT_RELEASE(iter);
 
-    return 0;
 }
 
 /*
