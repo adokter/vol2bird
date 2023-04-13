@@ -3189,65 +3189,38 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
     return result;    
 }
 
-int saveToCSV(RaveCoreObject* object, const char* filename) {
 
-    FILE* fp;
-    RaveObjectIter* iter = RaveObject_getIter(object);
-    RaveAttribute_t* attr = NULL;
-    RaveField_t* field = NULL;
-    int num_fields = 0;
-    int i;
-
-    fp = fopen(filename, "w");
-    if (!fp) {
-        fprintf(stderr, "Error: unable to open file '%s' for writing\n", filename);
+void printSummary(RaveCoreObject* object) {
+    if (object == NULL) {
+        printf("Error: RaveObject is NULL\n");
         return;
     }
-
-    // Write out all attributes
-    while ((attr = RaveObjectIter_nextAttribute(iter)) != NULL) {
-        fprintf(fp, "%s,%s\n", attr->name, RaveAttribute_getString(attr));
+    printf("Object type: %s\n", RAVE_OBJECT_CLASSNAME(object));
+    printf("Number of fields: %d\n", RaveCoreObject_getNumberOfFields(object));
+    printf("Number of scans: %d\n", RaveRadar_getNumberOfScans((RaveRadar*)object));
+    printf("Number of rays: %d\n", RaveRadar_getNumberOfRays((RaveRadar*)object));
+    printf("Latitude: %f\n", RaveRadar_getLatitude((RaveRadar*)object));
+    printf("Longitude: %f\n", RaveRadar_getLongitude((RaveRadar*)object));
+    printf("Height: %f\n", RaveRadar_getHeight((RaveRadar*)object));
+    printf("Wavelength: %f\n", RaveRadar_getWavelength((RaveRadar*)object));
+    printf("Date and time: %s\n", RaveCore_getDateTimeString(RaveCoreObject_getDateTime(object)));
+    printf("Number of quality fields: %d\n", RaveRadar_getNumberOfQualityFields((RaveRadar*)object));
+    printf("Elevation angles: ");
+    RaveFifo* elevs = RaveRadar_getElevationAngles((RaveRadar*)object);
+    for (int i = 0; i < RaveFifo_getNumberOfElements(elevs); i++) {
+        double elev = RaveFifo_getDoubleElementAt(elevs, i);
+        printf("%.2f ", elev);
     }
-
-    // Write out all fields
-    num_fields = RaveObject_getNumberOfFields(object);
-    for (i = 0; i < num_fields; i++) {
-        field = RaveObject_getField(object, i);
-        if (field != NULL) {
-            fprintf(fp, "%s,%s,%s,%d,%d,%f,%f,%f,%f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%f,%d,%f,%f,%f,%f,%s\n",
-                    RaveField_getQuantity(field),
-                    RaveField_getDateTimeISO8601(field),
-                    RaveField_getHeight(field),
-                    RaveField_getUComponent(field),
-                    RaveField_getVComponent(field),
-                    RaveField_getWComponent(field),
-                    RaveField_getHorizontalWindSpeed(field),
-                    RaveField_getHorizontalWindDirection(field),
-                    RaveField_getVerticalVelocity(field),
-                    RaveField_getGapValue(field),
-                    RaveField_getEtaValue(field),
-                    RaveField_getParticleDensity(field),
-                    RaveField_getDbzValue(field),
-                    RaveField_getDbzValueAll(field),
-                    RaveField_getNumberOfBins(field),
-                    RaveField_getNumberOfBinsWithData(field),
-                    RaveField_getNumberOfBinsAll(field),
-                    RaveField_getNumberOfBinsWithDataAll(field),
-                    RaveField_getRadarCrossSection(field),
-                    RaveField_getStandardDeviationThreshold(field),
-                    RaveField_getVolumeCappiProjection(field),
-                    RaveField_getLatitude(field),
-                    RaveField_getLongitude(field),
-                    RaveField_getHeightOverEllipsoid(field),
-                    RaveField_getWavelength(field),
-                    RaveField_getSourceFilename(field)
-                    );
-        }
+    printf("\n");
+    printf("Sweep types: ");
+    RaveFifo* sweeps = RaveRadar_getSweepTypes((RaveRadar*)object);
+    for (int i = 0; i < RaveFifo_getNumberOfElements(sweeps); i++) {
+        char* sweep = RaveFifo_getStringElementAt(sweeps, i);
+        printf("%s ", sweep);
     }
-
-    fclose(fp);
-
+    printf("\n");
 }
+
 
 /*
 int saveToVPTS_CSV(RaveCoreObject* object, const char* filename){
