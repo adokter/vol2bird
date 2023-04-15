@@ -39,6 +39,7 @@
 #include "hlhdf.h"
 #include "hlhdf_debug.h"
 #include "rave_debug.h"
+#include <vertical_profile.h>
 
 void usage(char* programName, int verbose){
     fprintf(stderr,"vol2bird version %s (%s)\n", VERSION, VERSIONDATE);
