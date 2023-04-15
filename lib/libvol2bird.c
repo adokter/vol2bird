@@ -3190,37 +3190,6 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
 }
 
 
-void printSummary(RaveCoreObject* object) {
-    if (object == NULL) {
-        printf("Error: RaveObject is NULL\n");
-        return;
-    }
-    printf("Object type: %s\n", RAVE_OBJECT_CLASSNAME(object));
-    printf("Number of fields: %d\n", RaveCoreObject_getNumberOfFields(object));
-    printf("Number of scans: %d\n", RaveRadar_getNumberOfScans((RaveRadar*)object));
-    printf("Number of rays: %d\n", RaveRadar_getNumberOfRays((RaveRadar*)object));
-    printf("Latitude: %f\n", RaveRadar_getLatitude((RaveRadar*)object));
-    printf("Longitude: %f\n", RaveRadar_getLongitude((RaveRadar*)object));
-    printf("Height: %f\n", RaveRadar_getHeight((RaveRadar*)object));
-    printf("Wavelength: %f\n", RaveRadar_getWavelength((RaveRadar*)object));
-    printf("Date and time: %s\n", RaveCore_getDateTimeString(RaveCoreObject_getDateTime(object)));
-    printf("Number of quality fields: %d\n", RaveRadar_getNumberOfQualityFields((RaveRadar*)object));
-    printf("Elevation angles: ");
-    RaveFifo* elevs = RaveRadar_getElevationAngles((RaveRadar*)object);
-    for (int i = 0; i < RaveFifo_getNumberOfElements(elevs); i++) {
-        double elev = RaveFifo_getDoubleElementAt(elevs, i);
-        printf("%.2f ", elev);
-    }
-    printf("\n");
-    printf("Sweep types: ");
-    RaveFifo* sweeps = RaveRadar_getSweepTypes((RaveRadar*)object);
-    for (int i = 0; i < RaveFifo_getNumberOfElements(sweeps); i++) {
-        char* sweep = RaveFifo_getStringElementAt(sweeps, i);
-        printf("%s ", sweep);
-    }
-    printf("\n");
-}
-
 
 /*
 int saveToVPTS_CSV(RaveCoreObject* object, const char* filename){
