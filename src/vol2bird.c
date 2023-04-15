@@ -419,10 +419,10 @@ int main(int argc, char** argv) {
     //map vol2bird profile data to Rave profile object
     mapDataToRave(volume, &alldata);
 
-    int num_rows = VerticalProfile_getNumberOfRows(alldata.vp);
-    int num_cols = VerticalProfile_getNumberOfColumns(alldata.vp);
-    printf("Number of rows: %d\n", num_rows);
-    printf("Number of columns: %d\n", num_cols);
+    RaveList_t* attnames = VerticalProfile_getAttributeNames(alldata.vp);
+    RaveObjectList_t* attvalues = VerticalProfile_getAttributeValues(alldata.vp);
+    printf("Number of rows: %d\n", attnames);
+    printf("Number of columns: %d\n", attvalues);
     
     //save rave profile to ODIM hdf5 file
     if (fileVpOut != NULL){
