@@ -418,7 +418,7 @@ int main(int argc, char** argv) {
     //map vol2bird profile data to Rave profile object
     mapDataToRave(volume, &alldata);
 
-    printf("vp: %p\n", alldata->vp);
+    printf("vp: %p\n", alldata.vp);
     
     //save rave profile to ODIM hdf5 file
     if (fileVpOut != NULL){
