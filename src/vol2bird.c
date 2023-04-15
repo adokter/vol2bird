@@ -40,6 +40,9 @@
 #include "hlhdf_debug.h"
 #include "rave_debug.h"
 #include <vertical_profile.h>
+#include "rave_list.h"
+#include "rave_utilities.h"
+#include "rave_alloc.h"
 
 void usage(char* programName, int verbose){
     fprintf(stderr,"vol2bird version %s (%s)\n", VERSION, VERSIONDATE);
@@ -421,8 +424,8 @@ int main(int argc, char** argv) {
 
     RaveList_t* attnames = VerticalProfile_getAttributeNames(alldata.vp);
     RaveObjectList_t* attvalues = VerticalProfile_getAttributeValues(alldata.vp);
-    printf("Number of rows: %d\n", attnames);
-    printf("Number of columns: %d\n", attvalues);
+    printf("Number of names: %d\n", attnames);
+    printf("Number of values: %d\n", attvalues);
     
     //save rave profile to ODIM hdf5 file
     if (fileVpOut != NULL){
