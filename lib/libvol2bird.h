@@ -468,6 +468,8 @@ void create_profile_printout_str(char* printbuffer, int buflen, const char* date
 
 int saveToODIM(RaveCoreObject* object, const char* filename);
 
+void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsProfile, int nColsProfile, char* source, char* fileIn, char* date, char* time);
+
 // void printSummary(RaveCoreObject* object);
 
 const char* libvol2bird_version(void);
