@@ -415,8 +415,7 @@ int main(int argc, char** argv) {
         //}
     } // getter scope end
 
-    void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsProfile, int nColsProfile, char* source, char* fileIn, char* date, char* time)
-    {
+    void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsProfile, int nColsProfile, char* source, char* fileIn, char* date, char* time){
         FILE *fp;
         fp = fopen(filename, "w");
         if (fp == NULL) {
@@ -468,7 +467,7 @@ int main(int argc, char** argv) {
     profileBio = NULL;
     free((void*) profileAll);
     free((void*) profileBio);
-    
+
     // ------------------------------------------------------------------- //
     //                 end of the getter example section                   //
     // ------------------------------------------------------------------- //            
