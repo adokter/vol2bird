@@ -435,13 +435,13 @@ int main(int argc, char** argv) {
     RaveObjectList_t* attvalues = VerticalProfile_getAttributeValues(alldata.vp);
     int num_attrs = RaveList_size(attnames);
     for (int i = 0; i < num_attrs; i++) {
-        RaveCoreObject* obj = RaveObjectList_get(attvalues, i);
-        RaveAttribute_t* attr = RAVE_CAST(RaveAttribute_t, obj);
+        RaveAttribute_t* attr = RaveObjectList_get(attvalues, i);
+
         char* value;
-        if (RaveAttribute_getString(attr, &value) == 0) {
-            printf("%s: %s\n", RaveList_get(attnames, i), value);
-            RAVE_FREE(value);
-        }
+        RaveAttribute_getString(attr, &value);
+        printf("%s: %s\n", RaveList_get(attnames, i), value);
+
+        free(value); 
     }
         
     //save rave profile to ODIM hdf5 file
