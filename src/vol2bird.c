@@ -43,6 +43,9 @@
 #include "rave_list.h"
 #include "rave_utilities.h"
 #include "rave_alloc.h"
+#include "raveobject_list.h"
+#include "rave_attribute.h"
+
 
 void usage(char* programName, int verbose){
     fprintf(stderr,"vol2bird version %s (%s)\n", VERSION, VERSIONDATE);
@@ -422,11 +425,20 @@ int main(int argc, char** argv) {
     //map vol2bird profile data to Rave profile object
     mapDataToRave(volume, &alldata);
 
+    //RaveList_t* attnames = VerticalProfile_getAttributeNames(alldata.vp);
+    //RaveObjectList_t* attvalues = VerticalProfile_getAttributeValues(alldata.vp);
+    //printf("Number of names: %d\n", attnames);
+    //printf("Number of values: %d\n", attvalues);
+
+
     RaveList_t* attnames = VerticalProfile_getAttributeNames(alldata.vp);
     RaveObjectList_t* attvalues = VerticalProfile_getAttributeValues(alldata.vp);
-    printf("Number of names: %d\n", attnames);
-    printf("Number of values: %d\n", attvalues);
-    
+    int num_attrs = RaveList_size(attnames);
+    for (int i = 0; i < num_attrs; i++) {
+        RaveAttribute_t* attr = RaveObjectList_get(attvalues, i);
+        printf("%s: %s\n", RaveList_get(attnames, i), RaveAttribute_getString(attr));
+    }
+        
     //save rave profile to ODIM hdf5 file
     if (fileVpOut != NULL){
         int result;
