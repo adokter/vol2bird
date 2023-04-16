@@ -437,9 +437,11 @@ int main(int argc, char** argv) {
     for (int i = 0; i < num_attrs; i++) {
         RaveAttribute_t* attr = RaveObjectList_get(attvalues, i);
 
-        char* value;
-        RaveAttribute_getString(attr, &value);
+    char* value = NULL;
+    if (RaveAttribute_getString(attr, &value)) {
         printf("%s: %s\n", RaveList_get(attnames, i), value);
+        free(value);
+    }
 
         free(value); 
     }
