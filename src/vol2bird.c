@@ -47,40 +47,6 @@
 #include "rave_attribute.h"
 
 
-void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsProfile, int nColsProfile, char* source, char* fileIn, char* date, char* time){
-    FILE *fp;
-    fp = fopen(filename, "w");
-    if (fp == NULL) {
-        printf("Failed to open file %s for writing.\n", filename);
-        return;
-    }
-
-    fprintf(fp, "source,%s\n", source);
-    fprintf(fp, "polar_volume_input,%s\n", fileIn);
-    fprintf(fp, "date,%s\n", date);
-    fprintf(fp, "time,%s\n", time);
-    fprintf(fp, "HGHT,u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all\n");
-
-    int iRowProfile;
-    int iCopied = 0;
-    for (iRowProfile = 0; iRowProfile < nRowsProfile; iRowProfile++) {
-        iCopied=iRowProfile*nColsProfile;
-        fprintf(fp, "%s,%.4s,", date, time);
-        fprintf(fp, "%.4f,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%c,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d\n",
-            profileBio[0+iCopied],
-            nanify(profileBio[2+iCopied]),nanify(profileBio[3+iCopied]),
-            nanify(profileBio[4+iCopied]),nanify(profileBio[5+iCopied]),
-            nanify(profileBio[6+iCopied]),nanify(profileAll[7+iCopied]),
-            profileBio[8+iCopied] == TRUE ? 'T' : 'F',
-            nanify(profileBio[9+iCopied]),nanify(profileBio[11+iCopied]),
-            nanify(profileBio[12+iCopied]),nanify(profileAll[9+iCopied]),
-            nanify(profileBio[10+iCopied]),nanify(profileBio[13+iCopied]),
-            nanify(profileAll[10+iCopied]),nanify(profileAll[13+iCopied]));
-    }
-
-    fclose(fp);
-}
-
 void usage(char* programName, int verbose){
     fprintf(stderr,"vol2bird version %s (%s)\n", VERSION, VERSIONDATE);
     fprintf(stderr,"   usage: %s <polar volume> [<ODIM hdf5 profile output> [<ODIM hdf5 volume output>]]\n",programName);
