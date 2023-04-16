@@ -408,6 +408,43 @@ int main(int argc, char** argv) {
                 nanify(profileAll[10+iCopied]),nanify(profileAll[13+iCopied]));
             }
             
+            void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsProfile, int nColsProfile, char* source, char* fileIn, char* date, char* time)
+            {
+                FILE *fp;
+                fp = fopen(filename, "w");
+                if (fp == NULL) {
+                    printf("Failed to open file %s for writing.\n", filename);
+                    return;
+                }
+
+                fprintf(fp, "source,%s\n", source);
+                fprintf(fp, "polar_volume_input,%s\n", fileIn);
+                fprintf(fp, "date,%s\n", date);
+                fprintf(fp, "time,%s\n", time);
+                fprintf(fp, "HGHT,u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all\n");
+
+                int iRowProfile;
+                int iCopied = 0;
+                for (iRowProfile = 0; iRowProfile < nRowsProfile; iRowProfile++) {
+                    iCopied=iRowProfile*nColsProfile;
+                    fprintf(fp, "%s,%.4s,", date, time);
+                    fprintf(fp, "%.4f,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%c,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d\n",
+                        profileBio[0+iCopied],
+                        nanify(profileBio[2+iCopied]),nanify(profileBio[3+iCopied]),
+                        nanify(profileBio[4+iCopied]),nanify(profileBio[5+iCopied]),
+                        nanify(profileBio[6+iCopied]),nanify(profileAll[7+iCopied]),
+                        profileBio[8+iCopied] == TRUE ? 'T' : 'F',
+                        nanify(profileBio[9+iCopied]),nanify(profileBio[11+iCopied]),
+                        nanify(profileBio[12+iCopied]),nanify(profileAll[9+iCopied]),
+                        nanify(profileBio[10+iCopied]),nanify(profileBio[13+iCopied]),
+                        nanify(profileAll[10+iCopied]),nanify(profileAll[13+iCopied]));
+                }
+
+                fclose(fp);
+            }
+                
+            writeCSV("output.csv", profileBio, profileAll, nRowsProfile, nColsProfile, source, fileIn[0], date, time);
+
             profileAll = NULL;
             profileBio = NULL;
             free((void*) profileAll);
@@ -431,21 +468,6 @@ int main(int argc, char** argv) {
     //printf("Number of values: %d\n", attvalues);
 
 
-    RaveList_t* attnames = VerticalProfile_getAttributeNames(alldata.vp);
-    RaveObjectList_t* attvalues = VerticalProfile_getAttributeValues(alldata.vp);
-    int num_attrs = RaveList_size(attnames);
-    for (int i = 0; i < num_attrs; i++) {
-        RaveAttribute_t* attr = RaveObjectList_get(attvalues, i);
-
-    char* value = NULL;
-    if (RaveAttribute_getString(attr, &value)) {
-        printf("%s: %s\n", RaveList_get(attnames, i), value);
-        free(value);
-    }
-
-        free(value); 
-    }
-        
     //save rave profile to ODIM hdf5 file
     if (fileVpOut != NULL){
         int result;
