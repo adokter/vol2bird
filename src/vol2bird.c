@@ -461,7 +461,6 @@ int main(int argc, char** argv) {
     vol2birdTearDown(&alldata);
     RAVE_OBJECT_RELEASE(volume);
 
-
     // output some performance data
     //clock_gettime(CLOCK_REALTIME, &ts);
     //double nSeconds = ((double) ts.tv_nsec)/1e9;
