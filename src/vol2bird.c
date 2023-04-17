@@ -426,8 +426,7 @@ int main(int argc, char** argv) {
     
     int iRowProfile;
     int iCopied = 0;
-    
-    
+
     writeCSV("output.csv", profileBio, profileAll, nRowsProfile, nColsProfile, source, fileIn[0], date, time);
 
     profileAll = NULL;
