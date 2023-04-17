@@ -45,7 +45,6 @@
 #include "raveobject_list.h"
 #include "rave_attribute.h"
 
-
 void usage(char* programName, int verbose){
     fprintf(stderr,"vol2bird version %s (%s)\n", VERSION, VERSIONDATE);
     fprintf(stderr,"   usage: %s <polar volume> [<ODIM hdf5 profile output> [<ODIM hdf5 volume output>]]\n",programName);
