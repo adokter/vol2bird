@@ -467,8 +467,6 @@ int main(int argc, char** argv) {
     //double nSeconds = ((double) ts.tv_nsec)/1e9;
     //fprintf(stderr, "Processing done in %.2f seconds\n",nSeconds);
 
-
-    
     return 0;
 
 }
