@@ -27,7 +27,6 @@
  * limitations under the License.
  */
 
-
 #include <stdio.h>
 #include <time.h>
 #include <getopt.h>
