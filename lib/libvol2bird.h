@@ -470,6 +470,8 @@ int saveToODIM(RaveCoreObject* object, const char* filename);
 
 void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, char* date, char* time, PolarVolume_t* pvol);
 
-// void printSummary(RaveCoreObject* object);
+extern const field_t fields[];
+
+extern const int num_fields;
 
 const char* libvol2bird_version(void);

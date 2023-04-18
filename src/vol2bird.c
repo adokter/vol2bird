@@ -413,7 +413,7 @@ int main(int argc, char **argv)
         fprintf(stdout, "# polar volume input: %s\n", fileIn[0]);
         if (alldata.misc.vcp > 0)
             fprintf(stdout, "# volume coverage pattern (VCP): %i\n", alldata.misc.vcp);
-        printf("# date   time HGHT    u      v       w     ff    dd  sd_vvp gap dbz     eta   dens   DBZH   n   n_dbz n_all n_dbz_all\n");
+        printf("# date   time HGHT u v w ff dd sd_vvp gap dbz eta dens DBZH   n   n_dbz n_all n_dbz_all\n");
 
         float *profileBio;
         float *profileAll;

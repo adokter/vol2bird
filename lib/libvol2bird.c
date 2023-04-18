@@ -20,6 +20,7 @@
 #include <csv.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include <limits.h>
 #ifndef NOCONFUSE
 #include <confuse.h>
@@ -3166,6 +3167,295 @@ static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* 
         return result;
 }
 
+const char *missing_values[] = {"", "NA", "NaN"};
+
+const field_t fields[] = {
+
+    {
+        .name = "radar",
+        .description = "Radar identifier.",
+        .type = "string",
+        .example = "KBGM",
+        .required = true,
+        .constraints = {
+            .required = true
+        }
+    },
+    {
+        .name = "datetime",
+        .description = "Nominal date and time of the measurement, as an ISO 8601 formatted string in UTC.",
+        .type = "datetime",
+        .format = "%Y-%m-%dT%H:%M:%SZ",
+        .example = "2016-09-01T00:02:00Z",
+        .required = true,
+        .constraints = {
+            .required = true
+        }
+    },
+    {
+        .name = "height",
+        .name_alternatives = (const char *[]){"HGHT", "bin_lower", NULL},
+        .description = "Lower bound of the altitude bin in m above sea level.",
+        .type = "integer",
+        .example = "600",
+        .required = true,
+        .constraints = {
+            .required = true,
+            .minimum = -200,
+            .maximum = 25000
+        }
+    },
+    {
+        .name = "u",
+        .description = "Ground speed component west to east in m/s.",
+        .type = "number",
+        .example = "4.14",
+        .required = false,
+        .constraints = {
+            .minimum = -100,
+            .maximum = 100
+        }
+    },
+    {
+        .name = "v",
+        .description = "Ground speed component north to south in m/s.",
+        .type = "number",
+        .example = "3.84",
+        .required = false,
+        .constraints = {
+            .minimum = -100,
+            .maximum = 100
+        }
+    },
+    {
+        .name = "w",
+        .description = "Vertical speed in m/s.",
+        .type = TYPE_NUMBER,
+        .example = "12.17"
+    },
+    {
+        .name = "ff",
+        .name_alternatives = "speed",
+        .description = "Horizontal ground speed in m/s.",
+        .type = TYPE_NUMBER,
+        .example = "5.65",
+        .constraints = {
+            .minimum = 0,
+            .maximum = 100
+        }
+    },
+    {
+        .name = "dd",
+        .name_alternatives = "direction",
+        .description = "Ground speed direction in degrees clockwise from north.",
+        .type = TYPE_NUMBER,
+        .example = "47.2",
+        .constraints = {
+            .minimum = 0,
+            .maximum = 360
+        }
+    },
+    {
+        .name = "sd_vvp",
+        .name_alternatives = "rmse",
+        .description = "VVP radial velocity standard deviation in m/s.",
+        .type = TYPE_NUMBER,
+        .example = "2.8",
+        .constraints = {
+            .minimum = 0,
+            .maximum = 100
+        }
+    },
+    {
+        .name = "gap",
+        .description = "Angular data gap detected.",
+        .type = TYPE_BOOLEAN,
+        .example = "FALSE"
+    },
+    {
+        .name = "eta",
+        .name_alternatives = "linear_eta",
+        .description = "Animal reflectivity in cm^2/km^3.",
+        .example = "46.9",
+        .type = TYPE_NUMBER,
+        .constraints = {
+            .minimum = 0,
+            .maximum = INFINITY
+        }
+    },
+    {
+        .name = "dens",
+        .description = "Animal density in animals/km^3.",
+        .type = TYPE_NUMBER,
+        .example = "4.263636363636364",
+        .constraints = {
+            .minimum = 0,
+            .maximum = INFINITY
+        }
+    },
+    {
+        .name = "dbz",
+        .description = "Animal reflectivity factor in dBZ.",
+        .type = TYPE_NUMBER,
+        .example = "3.36",
+        .constraints = {
+            .minimum = -INFINITY,
+            .maximum = 100
+        }
+    },
+    {
+        .name = "dbz_all",
+        .name_alternatives = "DBZH",
+        .description = "Total reflectivity factor (bio + meteo scattering) in dBZ.",
+        .type = TYPE_NUMBER,
+        .example = "0.5",
+        .constraints = {
+            .minimum = -INFINITY,
+            .maximum = 100
+        }
+    },
+    {
+        .name = "n",
+        .description = "Number of data points used for the ground speed estimates (quantities `u`, `v`, `w`, `ff`, `dd`).",
+        .type = TYPE_INTEGER,
+        .example = "9006",
+        .constraints = {
+            .minimum = 0
+        }
+    },    
+    {
+        .name = "n_dbz",
+        .description = "Number of data points used for reflectivity-based estimates (quantities `dbz`, `eta`, `dens`).",
+        .type = TYPE_INTEGER,
+        .example = "13442",
+        .constraints = {
+            .minimum = 0
+        }
+    },
+    {
+        .name = "n_all",
+        .description = "Number of data points used for the radial velocity standard deviation estimate (quantity `sd_vvp`).",
+        .type = TYPE_INTEGER,
+        .example = "65947",
+        .constraints = {
+            .minimum = 0
+        }
+    },
+    {
+        .name = "n_dbz_all",
+        .name_alternatives = "nbins",
+        .description = "Number of data points used for the total reflectivity estimate (quantity `dbz_all`).",
+        .type = TYPE_INTEGER,
+        .example = "104455",
+        .constraints = {
+            .minimum = 0
+        }
+    },
+    {
+        .name = "rcs",
+        .description = "Radar cross section per bird in cm^2.",
+        .type = TYPE_NUMBER,
+        .example = "11",
+        .constraints = {
+            .minimum = 1e-15,
+            .maximum = "Inf"
+        }
+    },
+    {
+        .name = "sd_vvp_threshold",
+        .description = "Lower threshold in radial velocity standard deviation (profile quantity `sd_vvp`) in m/s. Biological signals with `sd_vvp < sd_vvp_threshold` are set to zero. Defaults to 2 m/s for C-band radars and 1 m/s for S-band radars if not specified.",
+        .type = TYPE_NUMBER,
+        .example = "2",
+        .constraints = {
+            .minimum = 0,
+            .maximum = 100
+        }
+    },
+    {
+        .name = "vcp",
+        .name_alternatives = "scan_strategy",
+        .description = "Volume coverage pattern, unitless. Documented on [Wikipedia](https://en.wikipedia.org/wiki/NEXRAD#Scan_strategies) for NEXRAD.",
+        .type = TYPE_INTEGER,
+        .example = ""
+    },
+    {
+        .name = "radar_latitude",
+        .description = "Latitude of the radar location in decimal degrees, using the WGS84 datum. Constant for all records from the same `radar`.",
+        .type = TYPE_NUMBER,
+        .example = "42.19972",
+        .constraints = {
+            .required = true,
+            .minimum = -90,
+            .maximum = 90
+        }
+    },
+    {
+        .name = "radar_longitude",
+        .description = "Longitude of the radar location in decimal degrees, using the WGS84 datum. Constant for all records from the same `radar`.",
+        .type = TYPE_NUMBER,
+        .example = "-75.98472",
+        .constraints = {
+            .required = true,
+            .minimum = -180,
+            .maximum = 180
+        }
+    },
+    {
+        .name = "radar_height",
+        .description = "Height of the center of the radar antenna in m above sea level. Constant for all records from the same `radar`.",
+        .type = TYPE_INTEGER,
+        .example = "519",
+        .constraints = {
+            .required = true,
+            .minimum = -200,
+            .maximum = 9000
+        }
+    },
+        {
+        .name = "radar_wavelength",
+        .description = "Wavelength of the radar in cm. Constant for all records from the same `radar`. Most C-band radars operate at approximately 5.3 cm wavelength, most S-band radars at 10.6 cm.",
+        .type = TYPE_NUMBER,
+        .example = "10.6",
+        .constraints = {
+            .required = true,
+            .minimum = 0.1,
+            .maximum = 100
+        }
+    },
+    {
+        .name = "source_file",
+        .description = "URL or path to the source file from which the data were derived.",
+        .type = TYPE_STRING,
+        .example = "s3://noaa-nexrad-level2/2016/09/01/KBGM/KBGM20160901_000212_V06",
+        .constraints = {
+            .pattern = "^(?=^[^./~])(^((?!\\.{2}).)*$).*$"
+        }
+    }
+};
+
+void validate_fields(const field_t fields[], int num_fields, const char *values[]) {
+    for (int i = 0; i < num_fields; i++) {
+        if (fields[i].required) {
+            int j = 0;
+            while (values[j] != NULL) {
+                if (strcmp(fields[i].name, fields[j].name) == 0) {
+                    if (validate_value(fields[i], values[j])) {
+                        break;
+                    }
+                    else {
+                        printf("Invalid value for field '%s': %s\n", fields[i].name, values[j]);
+                        exit(1);
+                    }
+                }
+                j++;
+            }
+            if (values[j] == NULL) {
+                printf("Missing value for required field: '%s'\n", fields[i].name);
+                exit(1);
+            }
+        }
+    }
+}
 
 int saveToODIM(RaveCoreObject* object, const char* filename){
     
@@ -3188,8 +3478,6 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
 
     return result;    
 }
-
-//void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsProfile, int nColsProfile, char* source, char* fileIn, char* date, char* time){
 
 
 void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, char* date, char* time, PolarVolume_t* pvol){
@@ -3238,19 +3526,51 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     }
     // fprintf(fp, "radar,datetime,%s\n", source);
     // fprintf(fp, "polar_volume_input,%s\n", fileIn);
-    fprintf(fp, "radar, datetime, height, u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp\n");
+    fprintf(fp, "radar, datetime, height, u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelenght, source)\n");
 
     int iRowProfile;
     int iCopied = 0;
     for (iRowProfile = 0; iRowProfile < nRowsProfile; iRowProfile++) {
         iCopied=iRowProfile*nColsProfile;
 
-        int hght = (int)nanify(profileBio[0+iCopied]);
-        assert(hght >= -200 && hght <= 25000 && "HGHT value outside of valid range (-200 to 25000)");
-        
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:%.2sZ", date, date+5, date+8, time, time+2, time+4);
-        
+
+        const char *vpts_fields[] = {
+            radarName,
+            datetime,
+            profileBio[0 + iCopied],
+            profileBio[2 + iCopied],
+            profileBio[3 + iCopied],
+            profileBio[4 + iCopied],
+            profileBio[5 + iCopied],
+            profileBio[6 + iCopied],
+            profileBio[8 + iCopied] == TRUE ? "T" : "F",
+            profileBio[11 + iCopied],
+            profileBio[12 + iCopied],
+            profileBio[9 + iCopied],
+            profileAll[9 + iCopied],
+            (int)nanify(profileBio[10 + iCopied]),
+            (int)nanify(profileBio[13 + iCopied]),
+            (int)nanify(profileAll[10 + iCopied]),
+            (int)nanify(profileAll[13 + iCopied]),
+            *rcs,
+            *sd_vvp_thresh,
+            *vcp,
+            latitude,
+            longitude,
+            height,
+            *wavelength,
+            NULL
+        };
+
+        const int num_fields = sizeof(fields) / sizeof(fields[0]);
+        validate_fields(fields, num_fields, vpts_fields);
+
+
+        int hght = (int)nanify(profileBio[0+iCopied]);
+        //assert(hght >= -200 && hght <= 25000 && "HGHT value outside of valid range (-200 to 25000)");
+    
         fprintf(fp, "%s,%s,", radarName, datetime);
         fprintf(fp, "%d,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%c,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d,%.2f,%.2f,%d,%f,%f,%d\n",
 
@@ -3263,7 +3583,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         nanify(profileBio[9+iCopied]),nanify(profileAll[9+iCopied]), // dbz, dbz_all
         (int)nanify(profileBio[10+iCopied]),(int)nanify(profileBio[13+iCopied]), // n, n_dbz 
         (int)nanify(profileAll[10+iCopied]),(int)nanify(profileAll[13+iCopied]), // n_all, n_dbz_all
-        *rcs, *sd_vvp_thresh, *vcp);
+        *rcs, *sd_vvp_thresh, *vcp, latitude, longitude, height, *wavelength);
         // rcs , sd_vvp_threshold
         // vcp, radar_latitude, radar_longitude, radar_height, radar_wavelength, source_file
     }
