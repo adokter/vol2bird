@@ -370,6 +370,9 @@ int main(int argc, char** argv) {
     date = PolarVolume_getDate(volume);
     time = PolarVolume_getTime(volume);
     source = PolarVolume_getSource(volume);
+    longitude = PolarVolume_getLongitude(volume);
+    latitude = PolarVolume_getLatitude(volume);
+    height = PolarVolume_getHeight(volume);
 
     {  // getter example scope begin
 
@@ -399,8 +402,8 @@ int main(int argc, char** argv) {
             vcp = &alldata.misc.vcp;
 
             printf("vcp = %d\n", *vcp);
-
             printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
+            printf("Longitude = %f, Latitude = %f, Height = %f\n", longitude, latitude, height);
 
 /*
             float *rcs, *sd_vvp_thresh;
