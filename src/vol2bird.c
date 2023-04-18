@@ -392,6 +392,20 @@ int main(int argc, char** argv) {
             float *rcs, *sd_vvp_thresh;
             int *vcp;
 
+            printf("alldata.misc.vcp = %d\n", alldata.misc.vcp);
+
+            rcs = &alldata.options.birdRadarCrossSection;
+            sd_vvp_thresh = &alldata.options.stdDevMinBird;
+            vcp = &alldata.misc.vcp;
+
+            printf("vcp = %d\n", *vcp);
+
+            printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
+
+/*
+            float *rcs, *sd_vvp_thresh;
+            int *vcp;
+
             rcs = &alldata.options.birdRadarCrossSection, sd_vvp_thresh = &alldata.options.stdDevMinBird;
             vcp = alldata.misc.vcp;
 
@@ -401,6 +415,7 @@ int main(int argc, char** argv) {
             vol2birdPrintOptions(&alldata);
             //printf("%s\n", options);
 
+*/
 
             int iRowProfile;
             int iCopied = 0;
