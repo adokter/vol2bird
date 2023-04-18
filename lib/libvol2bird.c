@@ -3436,21 +3436,13 @@ const field_t fields[] = {
 void validate_fields(const field_t fields[], int num_fields, const char *values[]) {
     for (int i = 0; i < num_fields; i++) {
         if (fields[i].required) {
-            int j = 0;
-            while (values[j] != NULL) {
-                if (strcmp(fields[i].name, fields[j].name) == 0) {
-                    if (validate_value(fields[i], values[j])) {
-                        break;
-                    }
-                    else {
-                        printf("Invalid value for field '%s': %s\n", fields[i].name, values[j]);
-                        exit(1);
-                    }
-                }
-                j++;
-            }
-            if (values[j] == NULL) {
+            const char *value = values[i];
+            if (value == NULL || strcmp(value, "") == 0) {
                 printf("Missing value for required field: '%s'\n", fields[i].name);
+                exit(1);
+            }
+            else if (!validate_value(fields[i], value)) {
+                printf("Invalid value for field '%s': %s\n", fields[i].name, value);
                 exit(1);
             }
         }
@@ -3536,6 +3528,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:%.2sZ", date, date+5, date+8, time, time+2, time+4);
 
+        printf("Validating vpts fields...\n");
         const char *vpts_fields[] = {
             radarName,
             datetime,
