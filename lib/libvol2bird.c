@@ -3217,6 +3217,15 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     profileBio = vol2birdGetProfile(1, alldata);
     profileAll = vol2birdGetProfile(3, alldata);
 
+            
+    float *rcs, *sd_vvp_thresh, *wavelength;
+    int *vcp;
+
+    rcs = &alldata->options.birdRadarCrossSection;
+    sd_vvp_thresh = &alldata->options.stdDevMinBird;
+    vcp = &alldata->misc.vcp;
+    wavelength = &alldata->options.radarWavelength;
+
     // Extract the radar name from the source variable
     char* radarName = NULL;
     char* p = strstr(source, "radar_name:");
@@ -3232,14 +3241,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     int iCopied = 0;
     for (iRowProfile = 0; iRowProfile < nRowsProfile; iRowProfile++) {
         iCopied=iRowProfile*nColsProfile;
-        
-        float *rcs, *sd_vvp_thresh, *wavelength;
-        int *vcp;
-
-        rcs = &alldata->options.birdRadarCrossSection;
-        sd_vvp_thresh = &alldata->options.stdDevMinBird;
-        vcp = &alldata->misc.vcp;
-        wavelength = &alldata->options.radarWavelength;
 
         printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
         printf("longitude = %f, latitude = %f, height = %f, wavelength = %f\n", longitude, latitude, height, *wavelength);
