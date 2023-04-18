@@ -415,6 +415,26 @@ typedef enum radarDataFormat {
   radarDataFormat_IRIS = 3    /** Vaisala IRIS */
 } radarDataFormat;
 
+typedef struct {
+    // Field metadata
+    const char *name;
+    const char **name_alternatives;  // NULL-terminated array of alternative names
+    const char *description;
+    const char *type;
+    const char *format;
+    const char *example;
+    bool required;
+
+    // Constraints
+    struct {
+        bool required;
+        double minimum;
+        double maximum;
+        const char **allowed_values;  // NULL-terminated array of allowed values
+        const char *pattern;
+    } constraints;
+} field_t;
+
 
 // *****************************************************************************
 // Public function prototypes
