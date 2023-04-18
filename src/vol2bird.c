@@ -374,7 +374,6 @@ int main(int argc, char** argv) {
     longitude = PolarVolume_getLongitude(volume);
     latitude = PolarVolume_getLatitude(volume);
     height = PolarVolume_getHeight(volume);
-    wavelength = PolarVolume_getWavelength(volume);
 
     {  // getter example scope begin
 
@@ -396,12 +395,14 @@ int main(int argc, char** argv) {
 
             float *rcs, *sd_vvp_thresh;
             int *vcp;
+            double *wavelength;
 
             printf("alldata.misc.vcp = %d\n", alldata.misc.vcp);
 
             rcs = &alldata.options.birdRadarCrossSection;
             sd_vvp_thresh = &alldata.options.stdDevMinBird;
             vcp = &alldata.misc.vcp;
+            wavelength = &alldata.misc.radarWavelength;
 
             printf("vcp = %d\n", *vcp);
             printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
