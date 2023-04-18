@@ -3192,8 +3192,12 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
 //void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsProfile, int nColsProfile, char* source, char* fileIn, char* date, char* time){
 
 
-void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, char* date, char* time){
+void writeCSV(char *filename, vol2bird_t alldata, char* source, char* fileIn, char* date, char* time, polarvolume_t pvol){
     
+    longitude = PolarVolume_getLongitude(pvol);
+    latitude = PolarVolume_getLatitude(pvol);
+    height = PolarVolume_getHeight(pvol);
+
     FILE *fp;
     fp = fopen(filename, "w");
     if (fp == NULL) {
@@ -3233,6 +3237,9 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         sd_vvp_thresh = &alldata->options.stdDevMinBird;
         vcp = &alldata->misc.vcp;
         wavelength = &alldata->options.radarWavelength;
+
+        printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
+        printf("longitude = %f, latitude = %f, height = %f, wavelength = %f\n", longitude, latitude, height, *wavelength);
 
         int hght = (int)nanify(profileBio[0+iCopied]);
         assert(hght >= -200 && hght <= 25000 && "HGHT value outside of valid range (-200 to 25000)");

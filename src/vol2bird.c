@@ -403,9 +403,9 @@ int main(int argc, char** argv) {
             vcp = &alldata.misc.vcp;
             wavelength = &alldata.options.radarWavelength;
 
-            printf("vcp = %d\n", *vcp);
-            printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
-            printf("longitude = %f, latitude = %f, height = %f, wavelength = %f\n", longitude, latitude, height, *wavelength);
+            //printf("vcp = %d\n", *vcp);
+            //printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
+            //printf("longitude = %f, latitude = %f, height = %f, wavelength = %f\n", longitude, latitude, height, *wavelength);
 
 /*
             float *rcs, *sd_vvp_thresh;
@@ -448,7 +448,7 @@ int main(int argc, char** argv) {
     } // getter scope end
         
 
-    writeCSV("output.csv", &alldata, source, fileIn[0], date, time);
+    writeCSV("output.csv", &alldata, source, fileIn[0], date, time, volume);
 
     // ------------------------------------------------------------------- //
     //                 end of the getter example section                   //

@@ -468,7 +468,7 @@ void create_profile_printout_str(char* printbuffer, int buflen, const char* date
 
 int saveToODIM(RaveCoreObject* object, const char* filename);
 
-void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, char* date, char* time);
+writeCSV(char *filename, vol2bird_t alldata, char* source, char* fileIn, char* date, char* time, polarvolume_t pvol)
 
 // void printSummary(RaveCoreObject* object);
 
