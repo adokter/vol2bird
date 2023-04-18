@@ -3432,6 +3432,20 @@ const field_t fields[] = {
     }
 };
 
+bool is_float(const char *value) {
+    // check if the string can be converted to a floating-point number
+    char *endptr;
+    strtod(value, &endptr);
+    return endptr != value && *endptr == '\0';
+}
+
+bool is_integer(const char *value) {
+    // check if the string can be converted to an integer
+    char *endptr;
+    strtol(value, &endptr, 10);
+    return endptr != value && *endptr == '\0';
+}
+
 bool validate_value(const field_t field, const char *value) {
     if (strcmp(field.type, "string") == 0) {
         return true;  // No additional checks needed for string type
@@ -3479,7 +3493,6 @@ bool validate_value(const field_t field, const char *value) {
         return false;
     }
 }
-
 
 void validate_fields(const field_t fields[], int num_fields, const char *values[]) {
     for (int i = 0; i < num_fields; i++) {
