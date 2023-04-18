@@ -3205,7 +3205,6 @@ void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsPro
         p += strlen("radar_name:");
         radarName = strtok(p, ",");
     }
-    
     fprintf(fp, "radar,datetime,%s\n", source);
     fprintf(fp, "polar_volume_input,%s\n", fileIn);
     fprintf(fp, "HGHT,u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all\n");
@@ -3216,7 +3215,7 @@ void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsPro
         iCopied=iRowProfile*nColsProfile;
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:%.2sZ", date, date+5, date+8, time, time+2, time+4);
-        fprintf(fp, "%s,%s,", source->radar_name, datetime);
+        fprintf(fp, "%s,%s,", radarName, datetime);
         fprintf(fp, "%.4f,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%c,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d\n",
             profileBio[0+iCopied],
             nanify(profileBio[2+iCopied]),nanify(profileBio[3+iCopied]),
