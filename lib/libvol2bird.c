@@ -3198,6 +3198,14 @@ void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsPro
         return;
     }
 
+    // Extract the radar name from the source variable
+    char* radarName = NULL;
+    char* p = strstr(source, "radar_name:");
+    if (p != NULL) {
+        p += strlen("radar_name:");
+        radarName = strtok(p, ",");
+    }
+    
     fprintf(fp, "radar,datetime,%s\n", source);
     fprintf(fp, "polar_volume_input,%s\n", fileIn);
     fprintf(fp, "HGHT,u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all\n");
