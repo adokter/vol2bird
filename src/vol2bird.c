@@ -403,25 +403,6 @@ int main(int argc, char** argv) {
             vcp = &alldata.misc.vcp;
             wavelength = &alldata.options.radarWavelength;
 
-            //printf("vcp = %d\n", *vcp);
-            //printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
-            //printf("longitude = %f, latitude = %f, height = %f, wavelength = %f\n", longitude, latitude, height, *wavelength);
-
-/*
-            float *rcs, *sd_vvp_thresh;
-            int *vcp;
-
-            rcs = &alldata.options.birdRadarCrossSection, sd_vvp_thresh = &alldata.options.stdDevMinBird;
-            vcp = alldata.misc.vcp;
-
-            printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
-
-
-            vol2birdPrintOptions(&alldata);
-            //printf("%s\n", options);
-
-*/
-
             int iRowProfile;
             int iCopied = 0;
             
