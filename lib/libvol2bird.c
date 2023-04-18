@@ -3601,7 +3601,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             NULL
         };
 
-        const int num_fields = sizeof(fields) / sizeof(fields[0]);
+        const int num_fields = sizeof(vpts_fields) / sizeof(vpts_fields[0]);
         validate_fields(fields, num_fields, vpts_fields);
 
 
