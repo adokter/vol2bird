@@ -4293,8 +4293,6 @@ void vol2birdCalcProfiles(vol2bird_t *alldata) {
 } // vol2birdCalcProfiles
 
 
-
-
 int vol2birdGetNColsProfile(vol2bird_t *alldata) {
 
     if (alldata->misc.initializationSuccessful==FALSE) {
