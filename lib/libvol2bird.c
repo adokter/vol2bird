@@ -3252,8 +3252,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             nanify(profileBio[9+iCopied]),nanify(profileAll[9+iCopied]), // dbz, dbz_all
             nanify(profileBio[10+iCopied]),nanify(profileBio[13+iCopied]), //  n, n_dbz 
             nanify(profileAll[10+iCopied]),nanify(profileAll[13+iCopied]), // n_all, n_dbz_all
-            *rcs, *sd_vvp_thresh, *vcp, 
-                                                                        );
+            *rcs, *sd_vvp_thresh, *vcp);
             // rcs , sd_vvp_threshold
             // vcp, radar_latitude, radar_longitude, radar_height, radar_wavelength, source_file
     }
