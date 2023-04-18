@@ -3213,11 +3213,17 @@ void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsPro
     int iCopied = 0;
     for (iRowProfile = 0; iRowProfile < nRowsProfile; iRowProfile++) {
         iCopied=iRowProfile*nColsProfile;
+        
+        int hght = (int)nanify(profileBio[0+iCopied]);
+        assert(hght >= -200 && hght <= 25000 && "HGHT value outside of valid range (-200 to 25000)");
+        
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:%.2sZ", date, date+5, date+8, time, time+2, time+4);
+        
         fprintf(fp, "%s,%s,", radarName, datetime);
-        fprintf(fp, "%.4f,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%c,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d\n",
-            profileBio[0+iCopied],
+        fprintf(fp, "%d,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%c,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d\n",
+
+            hght,
             nanify(profileBio[2+iCopied]),nanify(profileBio[3+iCopied]),
             nanify(profileBio[4+iCopied]),nanify(profileBio[5+iCopied]),
             nanify(profileBio[6+iCopied]),nanify(profileAll[7+iCopied]),
