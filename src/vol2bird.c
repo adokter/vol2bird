@@ -407,7 +407,7 @@ int main(int argc, char** argv) {
             printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
             printf("longitude = %f, latitude = %f, height = %f, wavelength = %f\n", longitude, latitude, height, *wavelength);
 
-/*
+
             float *rcs, *sd_vvp_thresh;
             int *vcp;
 
@@ -420,7 +420,7 @@ int main(int argc, char** argv) {
             vol2birdPrintOptions(&alldata);
             //printf("%s\n", options);
 
-*/
+
 
             int iRowProfile;
             int iCopied = 0;
