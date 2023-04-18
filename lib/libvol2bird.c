@@ -3457,7 +3457,7 @@ bool validate_value(const field_t field, const char *value) {
         }
         double d_value = atof(value);
         // Check if the value is within the minimum and maximum bounds
-        if (field.constraints.minimum != NULL && d_value < atof(field.constraints.minimum)) {
+        if (field.constraints.minimum != NULL && d_value < atof((const char*)field.constraints.minimum)) {
             return false;
         }
         if (field.constraints.maximum != NULL && strcmp(field.constraints.maximum, "Inf") != 0 && d_value > atof(field.constraints.maximum)) {
