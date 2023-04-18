@@ -389,10 +389,11 @@ int main(int argc, char** argv) {
             profileAll = vol2birdGetProfile(3, &alldata);
             
 
-            float *rcs, *sd_vvp_thresh, *vcp;
+            float *rcs, *sd_vvp_thresh;
+            int *vcp;
 
             rcs = &alldata.options.birdRadarCrossSection, sd_vvp_thresh = &alldata.options.stdDevMinBird;
-            vcp = &alldata.misc.vcp;
+            vcp = alldata.misc.vcp;
 
             printf("rcs = %f, sd_vvp_thresh = %f, vcp = %f\n", *rcs, *sd_vvp_thresh, *vcp);
 
