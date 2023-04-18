@@ -3445,6 +3445,49 @@ void validate_fields(const field_t fields[], int num_fields, const char *values[
                 printf("Invalid value for field '%s': %s\n", fields[i].name, value);
                 exit(1);
             }
+            else if (fields[i].minimum != NULL && strcmp(fields[i].minimum, "") != 0) {
+                double d_value = atof(value);
+                double d_min = atof(fields[i].minimum);
+                if (d_value < d_min) {
+                    printf("Value for field '%s' is below minimum value of %s: %s\n", fields[i].name, fields[i].minimum, value);
+                    exit(1);
+                }
+            }
+            else if (fields[i].maximum != NULL && strcmp(fields[i].maximum, "") != 0 && strcmp(fields[i].maximum, "Inf") != 0) {
+                double d_value = atof(value);
+                double d_max = atof(fields[i].maximum);
+                if (d_value > d_max) {
+                    printf("Value for field '%s' is above maximum value of %s: %s\n", fields[i].name, fields[i].maximum, value);
+                    exit(1);
+                }
+            }
+            else if (strcmp(fields[i].type, TYPE_NUMBER) == 0 || strcmp(fields[i].type, "number") == 0) {
+                if (!is_float(value)) {
+                    printf("Invalid value for field '%s': %s (expected float)\n", fields[i].name, value);
+                    exit(1);
+                }
+            }
+            else if (strcmp(fields[i].type, TYPE_STRING) == 0 || strcmp(fields[i].type, "string") == 0) {
+                // no additional checks needed for string type
+            }
+            else if (strcmp(fields[i].type, "datetime") == 0) {
+                if (!is_datetime(value, fields[i].format)) {
+                    printf("Invalid value for field '%s': %s (expected datetime in format '%s')\n", fields[i].name, value, fields[i].format);
+                    exit(1);
+                }
+            }
+            else if (strcmp(fields[i].type, TYPE_INTEGER) == 0 || strcmp(fields[i].type, "integer") == 0) {
+                if (!is_integer(value)) {
+                    printf("Invalid value for field '%s': %s (expected integer)\n", fields[i].name, value);
+                    exit(1);
+                }
+            }
+            else if (strcmp(fields[i].type, "boolean") == 0) {
+                if (!is_boolean(value)) {
+                    printf("Invalid value for field '%s': %s (expected boolean)\n", fields[i].name, value);
+                    exit(1);
+                }
+            }
         }
     }
 }
