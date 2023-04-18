@@ -388,7 +388,9 @@ int main(int argc, char** argv) {
             profileBio = vol2birdGetProfile(1, &alldata);
             profileAll = vol2birdGetProfile(3, &alldata);
             
-            vol2birdPrintOptions(alldata);
+            options = vol2birdPrintOptions(&alldata);
+            printf("%s\n", options);
+
 
             int iRowProfile;
             int iCopied = 0;
