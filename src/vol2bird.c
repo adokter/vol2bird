@@ -390,10 +390,13 @@ int main(int argc, char** argv) {
             
 
             float *rcs, *sd_vvp_thresh;
+            int *vcp; 
+            
             rcs = &alldata.options.birdRadarCrossSection, sd_vvp_thresh = &alldata.options.stdDevMinBird;
+            vcp = &alldata.misc.vcp
 
-            printf("%f\n", *rcs);
-            printf("%f\n", alldata.options.birdRadarCrossSection);
+            printf("rcs = %f, sd_vvp_thresh = %f, vcp = %f\n", *rcs, *sd_vvp_thresh, *vcp);
+
 
             vol2birdPrintOptions(&alldata);
             //printf("%s\n", options);
