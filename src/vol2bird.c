@@ -447,24 +447,8 @@ int main(int argc, char** argv) {
         //}
     } // getter scope end
         
-    int nRowsProfile = vol2birdGetNRowsProfile(&alldata);
-    int nColsProfile = vol2birdGetNColsProfile(&alldata);
-
-    float *profileBio;
-    float *profileAll;
-
-    profileBio = vol2birdGetProfile(1, &alldata);
-    profileAll = vol2birdGetProfile(3, &alldata);
-    
-    int iRowProfile;
-    int iCopied = 0;
 
     writeCSV("output.csv", &alldata, source, fileIn[0], date, time);
-
-    profileAll = NULL;
-    profileBio = NULL;
-    free((void*) profileAll);
-    free((void*) profileBio);
 
     // ------------------------------------------------------------------- //
     //                 end of the getter example section                   //
