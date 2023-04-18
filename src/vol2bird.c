@@ -388,9 +388,12 @@ int main(int argc, char** argv) {
             profileBio = vol2birdGetProfile(1, &alldata);
             profileAll = vol2birdGetProfile(3, &alldata);
             
+
+            float *rcs
+            rcs = alldata.options.birdRadarCrossSection;
             //float *options;
             //options = 
-            printf("%f\n", alldata.options.birdRadarCrossSection);
+            printf("%f\n", rcs);
             vol2birdPrintOptions(&alldata);
             //printf("%s\n", options);
 
