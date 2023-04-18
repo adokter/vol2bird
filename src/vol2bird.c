@@ -391,9 +391,11 @@ int main(int argc, char** argv) {
 
             float *rcs;
             rcs = &alldata.options.birdRadarCrossSection;
-            //float *options;
-            //options = 
+
             printf("%f\n", rcs);
+            printf("%f\n", alldata.options.birdRadarCrossSection);
+            
+            
             vol2birdPrintOptions(&alldata);
             //printf("%s\n", options);
 
