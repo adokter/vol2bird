@@ -397,7 +397,6 @@ int main(int argc, char** argv) {
 
             printf("rcs = %f, sd_vvp_thresh = %f, vcp = %f\n", *rcs, *sd_vvp_thresh, *vcp);
 
-
             vol2birdPrintOptions(&alldata);
             //printf("%s\n", options);
 
