@@ -402,7 +402,7 @@ int main(int argc, char** argv) {
             rcs = &alldata.options.birdRadarCrossSection;
             sd_vvp_thresh = &alldata.options.stdDevMinBird;
             vcp = &alldata.misc.vcp;
-            wavelength = &alldata.misc.radarWavelength;
+            wavelength = &alldata.options.radarWavelength;
 
             printf("vcp = %d\n", *vcp);
             printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
