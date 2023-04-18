@@ -3571,7 +3571,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:%.2sZ", date, date+5, date+8, time, time+2, time+4);
 
-        printf("Validating vpts fields...\n");
+        printf("Validating vpts fields for row %d\n", iRowProfile);
         const char *vpts_fields[] = {
             radarName,
             datetime,
