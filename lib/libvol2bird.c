@@ -3432,6 +3432,55 @@ const field_t fields[] = {
     }
 };
 
+bool validate_value(const field_t field, const char *value) {
+    if (strcmp(field.type, "string") == 0) {
+        return true;  // No additional checks needed for string type
+    }
+    else if (strcmp(field.type, "number") == 0) {
+        // Check if the value is a floating-point number
+        if (!is_float(value)) {
+            return false;
+        }
+        double d_value = atof(value);
+        // Check if the value is within the minimum and maximum bounds
+        if (field.constraints.minimum != NULL && d_value < atof(field.constraints.minimum)) {
+            return false;
+        }
+        if (field.constraints.maximum != NULL && strcmp(field.constraints.maximum, "Inf") != 0 && d_value > atof(field.constraints.maximum)) {
+            return false;
+        }
+        return true;
+    }
+    else if (strcmp(field.type, "integer") == 0) {
+        // Check if the value is an integer
+        if (!is_integer(value)) {
+            return false;
+        }
+        int i_value = atoi(value);
+        // Check if the value is within the minimum and maximum bounds
+        if (field.constraints.minimum != NULL && i_value < atoi(field.constraints.minimum)) {
+            return false;
+        }
+        if (field.constraints.maximum != NULL && strcmp(field.constraints.maximum, "Inf") != 0 && i_value > atoi(field.constraints.maximum)) {
+            return false;
+        }
+        return true;
+    }
+    else if (strcmp(field.type, "datetime") == 0) {
+        // Check if the value is a valid datetime in the expected format
+        return is_datetime(value, field.format);
+    }
+    else if (strcmp(field.type, "boolean") == 0) {
+        // Check if the value is a boolean
+        return is_boolean(value);
+    }
+    else {
+        // Invalid type
+        return false;
+    }
+}
+
+
 void validate_fields(const field_t fields[], int num_fields, const char *values[]) {
     for (int i = 0; i < num_fields; i++) {
         if (fields[i].required) {
