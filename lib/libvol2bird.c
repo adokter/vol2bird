@@ -3223,15 +3223,18 @@ void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsPro
         fprintf(fp, "%s,%s,", radarName, datetime);
         fprintf(fp, "%d,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%c,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d\n",
 
-            hght,
-            nanify(profileBio[2+iCopied]),nanify(profileBio[3+iCopied]),
-            nanify(profileBio[4+iCopied]),nanify(profileBio[5+iCopied]),
-            nanify(profileBio[6+iCopied]),nanify(profileAll[7+iCopied]),
-            profileBio[8+iCopied] == TRUE ? 'T' : 'F',
-            nanify(profileBio[9+iCopied]),nanify(profileBio[11+iCopied]),
-            nanify(profileBio[12+iCopied]),nanify(profileAll[9+iCopied]),
-            nanify(profileBio[10+iCopied]),nanify(profileBio[13+iCopied]),
-            nanify(profileAll[10+iCopied]),nanify(profileAll[13+iCopied]));
+            hght, 
+            nanify(profileBio[2+iCopied]),nanify(profileBio[3+iCopied]), // u,v
+            nanify(profileBio[4+iCopied]),nanify(profileBio[5+iCopied]), // w,ff
+            nanify(profileBio[6+iCopied]),nanify(profileAll[7+iCopied]), // dd,sd_vvp
+            profileBio[8+iCopied] == TRUE ? 'T' : 'F', // gap
+            nanify(profileBio[11+iCopied]), nanify(profileBio[12+iCopied]), // eta, dens
+            nanify(profileBio[9+iCopied]),nanify(profileAll[9+iCopied]), // dbz, dbz_all
+            nanify(profileBio[10+iCopied]),nanify(profileBio[13+iCopied]), //  n, n_dbz 
+            nanify(profileAll[10+iCopied]),nanify(profileAll[13+iCopied])); // n_all, n_dbz_all
+
+            // rcs , sd_vvp_threshold
+            // vcp, radar_latitude, radar_longitude, radar_height, radar_wavelength, source_file
     }
 
     fclose(fp);
