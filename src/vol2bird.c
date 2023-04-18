@@ -374,6 +374,7 @@ int main(int argc, char** argv) {
     longitude = PolarVolume_getLongitude(volume);
     latitude = PolarVolume_getLatitude(volume);
     height = PolarVolume_getHeight(volume);
+    wavelength = PolarVolume_getWavelength(volume);
 
     {  // getter example scope begin
 
@@ -404,7 +405,7 @@ int main(int argc, char** argv) {
 
             printf("vcp = %d\n", *vcp);
             printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
-            printf("Longitude = %f, Latitude = %f, Height = %f\n", longitude, latitude, height);
+            printf("longitude = %f, latitude = %f, height = %f\n, wavelength = %f\n", longitude, latitude, height, wavelength);
 
 /*
             float *rcs, *sd_vvp_thresh;
