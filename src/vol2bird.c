@@ -393,9 +393,8 @@ int main(int argc, char** argv) {
             profileAll = vol2birdGetProfile(3, &alldata);
             
 
-            float *rcs, *sd_vvp_thresh;
+            float *rcs, *sd_vvp_thresh, *wavelength;
             int *vcp;
-            double *wavelength;
 
             printf("alldata.misc.vcp = %d\n", alldata.misc.vcp);
 
