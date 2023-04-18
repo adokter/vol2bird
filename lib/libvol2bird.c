@@ -3461,13 +3461,13 @@ void validate_fields(const field_t fields[], int num_fields, const char *values[
                     exit(1);
                 }
             }
-            else if (strcmp(fields[i].type, TYPE_NUMBER) == 0 || strcmp(fields[i].type, "number") == 0) {
+            else if (strcmp(fields[i].type, "number") == 0) {
                 if (!is_float(value)) {
                     printf("Invalid value for field '%s': %s (expected float)\n", fields[i].name, value);
                     exit(1);
                 }
             }
-            else if (strcmp(fields[i].type, TYPE_STRING) == 0 || strcmp(fields[i].type, "string") == 0) {
+            else if (strcmp(fields[i].type, "string") == 0) {
                 // no additional checks needed for string type
             }
             else if (strcmp(fields[i].type, "datetime") == 0) {
@@ -3476,7 +3476,7 @@ void validate_fields(const field_t fields[], int num_fields, const char *values[
                     exit(1);
                 }
             }
-            else if (strcmp(fields[i].type, TYPE_INTEGER) == 0 || strcmp(fields[i].type, "integer") == 0) {
+            else if (strcmp(fields[i].type, "integer") == 0) {
                 if (!is_integer(value)) {
                     printf("Invalid value for field '%s': %s (expected integer)\n", fields[i].name, value);
                     exit(1);
