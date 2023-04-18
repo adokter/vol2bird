@@ -3230,14 +3230,14 @@ const field_t fields[] = {
     {
         .name = "w",
         .description = "Vertical speed in m/s.",
-        .type = TYPE_NUMBER,
+        .type = "number",
         .example = "12.17"
     },
     {
         .name = "ff",
         .name_alternatives = "speed",
         .description = "Horizontal ground speed in m/s.",
-        .type = TYPE_NUMBER,
+        .type = "number",
         .example = "5.65",
         .constraints = {
             .minimum = 0,
@@ -3248,7 +3248,7 @@ const field_t fields[] = {
         .name = "dd",
         .name_alternatives = "direction",
         .description = "Ground speed direction in degrees clockwise from north.",
-        .type = TYPE_NUMBER,
+        .type = "number",
         .example = "47.2",
         .constraints = {
             .minimum = 0,
@@ -3259,7 +3259,7 @@ const field_t fields[] = {
         .name = "sd_vvp",
         .name_alternatives = "rmse",
         .description = "VVP radial velocity standard deviation in m/s.",
-        .type = TYPE_NUMBER,
+        .type = "number",
         .example = "2.8",
         .constraints = {
             .minimum = 0,
@@ -3269,7 +3269,7 @@ const field_t fields[] = {
     {
         .name = "gap",
         .description = "Angular data gap detected.",
-        .type = TYPE_BOOLEAN,
+        .type = "boolean",
         .example = "FALSE"
     },
     {
@@ -3277,7 +3277,7 @@ const field_t fields[] = {
         .name_alternatives = "linear_eta",
         .description = "Animal reflectivity in cm^2/km^3.",
         .example = "46.9",
-        .type = TYPE_NUMBER,
+        .type = "number",
         .constraints = {
             .minimum = 0,
             .maximum = INFINITY
@@ -3286,7 +3286,7 @@ const field_t fields[] = {
     {
         .name = "dens",
         .description = "Animal density in animals/km^3.",
-        .type = TYPE_NUMBER,
+        .type = "number",
         .example = "4.263636363636364",
         .constraints = {
             .minimum = 0,
@@ -3296,7 +3296,7 @@ const field_t fields[] = {
     {
         .name = "dbz",
         .description = "Animal reflectivity factor in dBZ.",
-        .type = TYPE_NUMBER,
+        .type = "number",
         .example = "3.36",
         .constraints = {
             .minimum = -INFINITY,
@@ -3307,7 +3307,7 @@ const field_t fields[] = {
         .name = "dbz_all",
         .name_alternatives = "DBZH",
         .description = "Total reflectivity factor (bio + meteo scattering) in dBZ.",
-        .type = TYPE_NUMBER,
+        .type = "number",
         .example = "0.5",
         .constraints = {
             .minimum = -INFINITY,
@@ -3317,7 +3317,7 @@ const field_t fields[] = {
     {
         .name = "n",
         .description = "Number of data points used for the ground speed estimates (quantities `u`, `v`, `w`, `ff`, `dd`).",
-        .type = TYPE_INTEGER,
+        .type = "integer",
         .example = "9006",
         .constraints = {
             .minimum = 0
@@ -3326,7 +3326,7 @@ const field_t fields[] = {
     {
         .name = "n_dbz",
         .description = "Number of data points used for reflectivity-based estimates (quantities `dbz`, `eta`, `dens`).",
-        .type = TYPE_INTEGER,
+        .type = "integer",
         .example = "13442",
         .constraints = {
             .minimum = 0
@@ -3335,7 +3335,7 @@ const field_t fields[] = {
     {
         .name = "n_all",
         .description = "Number of data points used for the radial velocity standard deviation estimate (quantity `sd_vvp`).",
-        .type = TYPE_INTEGER,
+        .type = "integer",
         .example = "65947",
         .constraints = {
             .minimum = 0
@@ -3345,7 +3345,7 @@ const field_t fields[] = {
         .name = "n_dbz_all",
         .name_alternatives = "nbins",
         .description = "Number of data points used for the total reflectivity estimate (quantity `dbz_all`).",
-        .type = TYPE_INTEGER,
+        .type ="integer",
         .example = "104455",
         .constraints = {
             .minimum = 0
@@ -3354,7 +3354,7 @@ const field_t fields[] = {
     {
         .name = "rcs",
         .description = "Radar cross section per bird in cm^2.",
-        .type = TYPE_NUMBER,
+        .type = "number",
         .example = "11",
         .constraints = {
             .minimum = 1e-15,
@@ -3364,7 +3364,7 @@ const field_t fields[] = {
     {
         .name = "sd_vvp_threshold",
         .description = "Lower threshold in radial velocity standard deviation (profile quantity `sd_vvp`) in m/s. Biological signals with `sd_vvp < sd_vvp_threshold` are set to zero. Defaults to 2 m/s for C-band radars and 1 m/s for S-band radars if not specified.",
-        .type = TYPE_NUMBER,
+        .type = "number",
         .example = "2",
         .constraints = {
             .minimum = 0,
@@ -3375,13 +3375,13 @@ const field_t fields[] = {
         .name = "vcp",
         .name_alternatives = "scan_strategy",
         .description = "Volume coverage pattern, unitless. Documented on [Wikipedia](https://en.wikipedia.org/wiki/NEXRAD#Scan_strategies) for NEXRAD.",
-        .type = TYPE_INTEGER,
+        .type = "integer",
         .example = ""
     },
     {
         .name = "radar_latitude",
         .description = "Latitude of the radar location in decimal degrees, using the WGS84 datum. Constant for all records from the same `radar`.",
-        .type = TYPE_NUMBER,
+        .type = "number",
         .example = "42.19972",
         .constraints = {
             .required = true,
@@ -3392,7 +3392,7 @@ const field_t fields[] = {
     {
         .name = "radar_longitude",
         .description = "Longitude of the radar location in decimal degrees, using the WGS84 datum. Constant for all records from the same `radar`.",
-        .type = TYPE_NUMBER,
+        .type = "number",
         .example = "-75.98472",
         .constraints = {
             .required = true,
@@ -3403,7 +3403,7 @@ const field_t fields[] = {
     {
         .name = "radar_height",
         .description = "Height of the center of the radar antenna in m above sea level. Constant for all records from the same `radar`.",
-        .type = TYPE_INTEGER,
+        .type = "integer",
         .example = "519",
         .constraints = {
             .required = true,
@@ -3414,7 +3414,7 @@ const field_t fields[] = {
         {
         .name = "radar_wavelength",
         .description = "Wavelength of the radar in cm. Constant for all records from the same `radar`. Most C-band radars operate at approximately 5.3 cm wavelength, most S-band radars at 10.6 cm.",
-        .type = TYPE_NUMBER,
+        .type = "number",
         .example = "10.6",
         .constraints = {
             .required = true,
@@ -3425,7 +3425,7 @@ const field_t fields[] = {
     {
         .name = "source_file",
         .description = "URL or path to the source file from which the data were derived.",
-        .type = TYPE_STRING,
+        .type = "string",
         .example = "s3://noaa-nexrad-level2/2016/09/01/KBGM/KBGM20160901_000212_V06",
         .constraints = {
             .pattern = "^(?=^[^./~])(^((?!\\.{2}).)*$).*$"
