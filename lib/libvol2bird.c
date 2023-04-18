@@ -3201,14 +3201,14 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         return;
     }
 
-    int nRowsProfile = vol2birdGetNRowsProfile(&alldata);
-    int nColsProfile = vol2birdGetNColsProfile(&alldata);
+    int nRowsProfile = vol2birdGetNRowsProfile(alldata);
+    int nColsProfile = vol2birdGetNColsProfile(alldata);
 
     float *profileBio;
     float *profileAll;
 
-    profileBio = vol2birdGetProfile(1, &alldata);
-    profileAll = vol2birdGetProfile(3, &alldata);
+    profileBio = vol2birdGetProfile(1, alldata);
+    profileAll = vol2birdGetProfile(3, alldata);
 
     // Extract the radar name from the source variable
     char* radarName = NULL;
