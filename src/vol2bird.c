@@ -366,7 +366,7 @@ int main(int argc, char** argv) {
     const char* date;
     const char* time;
     const char* source;
-    const double* longitude, *latitude, *height;
+    double longitude, latitude, height;
 
     date = PolarVolume_getDate(volume);
     time = PolarVolume_getTime(volume);
