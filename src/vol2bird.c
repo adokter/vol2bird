@@ -389,7 +389,7 @@ int main(int argc, char** argv) {
             profileAll = vol2birdGetProfile(3, &alldata);
             
             float *options;
-            *options = vol2birdPrintOptions(&alldata);
+            options = vol2birdPrintOptions(&alldata);
             printf("%s\n", options);
 
 
