@@ -3226,6 +3226,9 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     vcp = &alldata->misc.vcp;
     wavelength = &alldata->options.radarWavelength;
 
+    printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
+    printf("longitude = %f, latitude = %f, height = %f, wavelength = %f\n", longitude, latitude, height, *wavelength);
+
     // Extract the radar name from the source variable
     char* radarName = NULL;
     char* p = strstr(source, "radar_name:");
@@ -3241,9 +3244,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     int iCopied = 0;
     for (iRowProfile = 0; iRowProfile < nRowsProfile; iRowProfile++) {
         iCopied=iRowProfile*nColsProfile;
-
-        printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
-        printf("longitude = %f, latitude = %f, height = %f, wavelength = %f\n", longitude, latitude, height, *wavelength);
 
         int hght = (int)nanify(profileBio[0+iCopied]);
         assert(hght >= -200 && hght <= 25000 && "HGHT value outside of valid range (-200 to 25000)");
