@@ -23,6 +23,8 @@
 
 #define DEG2RAD 0.01745329251994329576 // Degrees to radians.
 #define RAD2DEG (57.29578)    // Radians to degrees.
+#define MAX_DOUBLE DBL_MAX // Allow Inf in max values
+
 
 // ****************************************************************************
 // Definition of general macros:

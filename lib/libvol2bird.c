@@ -30,7 +30,6 @@
 #include <math.h>
 #include <unistd.h>
 #include <vertical_profile.h>
-
 #include "rave_io.h"
 #include "rave_debug.h"
 #include "polarvolume.h"
