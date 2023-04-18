@@ -3207,7 +3207,7 @@ void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsPro
     for (iRowProfile = 0; iRowProfile < nRowsProfile; iRowProfile++) {
         iCopied=iRowProfile*nColsProfile;
         char datetime[24];
-        sprintf(datetime, "%.10sT%.6sZ", date, time);
+        sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:%.2sZ", date, date+5, date+8, time, time+2, time+4);
         fprintf(fp, "%s,%s,", source, datetime);
         fprintf(fp, "%.4f,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%c,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d\n",
             profileBio[0+iCopied],
