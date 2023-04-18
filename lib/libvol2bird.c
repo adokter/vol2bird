@@ -3233,10 +3233,10 @@ void writeCSV(char *filename, vol2bird_t alldata, char* source, char* fileIn, ch
         float *rcs, *sd_vvp_thresh, *wavelength;
         int *vcp;
 
-        rcs = &alldata->options.birdRadarCrossSection;
-        sd_vvp_thresh = &alldata->options.stdDevMinBird;
-        vcp = &alldata->misc.vcp;
-        wavelength = &alldata->options.radarWavelength;
+        rcs = &alldata.options.birdRadarCrossSection;
+        sd_vvp_thresh = &alldata.options.stdDevMinBird;
+        vcp = &alldata.misc.vcp;
+        wavelength = &alldata.options.radarWavelength;
 
         printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
         printf("longitude = %f, latitude = %f, height = %f, wavelength = %f\n", longitude, latitude, height, *wavelength);
