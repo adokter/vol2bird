@@ -3357,7 +3357,7 @@ const field_t fields[] = {
         .example = "11",
         .constraints = {
             .minimum = 1e-15,
-            .maximum = "Inf"
+            .maximum = INFINITY
         }
     },
     {
@@ -3372,7 +3372,7 @@ const field_t fields[] = {
     },
     {
         .name = "vcp",
-        .name_alternatives = "scan_strategy",
+        .name_alternatives = (const char *[]){"scan_strategy", NULL},
         .description = "Volume coverage pattern, unitless. Documented on [Wikipedia](https://en.wikipedia.org/wiki/NEXRAD#Scan_strategies) for NEXRAD.",
         .type = "integer",
         .example = ""
