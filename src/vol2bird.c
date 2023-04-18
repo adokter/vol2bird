@@ -459,7 +459,7 @@ int main(int argc, char** argv) {
     int iRowProfile;
     int iCopied = 0;
 
-    writeCSV("output.csv", alldata, source, fileIn[0], date, time);
+    writeCSV("output.csv", &alldata, source, fileIn[0], date, time);
 
     profileAll = NULL;
     profileBio = NULL;
