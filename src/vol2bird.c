@@ -389,7 +389,7 @@ int main(int argc, char** argv) {
             profileAll = vol2birdGetProfile(3, &alldata);
             
 
-            float *rcs
+            float *rcs;
             rcs = alldata.options.birdRadarCrossSection;
             //float *options;
             //options = 
