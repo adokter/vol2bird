@@ -3229,12 +3229,10 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         float *rcs, *sd_vvp_thresh, *wavelength;
         int *vcp;
 
-        rcs = alldata.options.birdRadarCrossSection;
-        sd_vvp_thresh = alldata.options.stdDevMinBird;
-        vcp = alldata.misc.vcp;
-        wavelength = alldata.options.radarWavelength;
-
-        
+        rcs = &alldata.options.birdRadarCrossSection;
+        sd_vvp_thresh = &alldata.options.stdDevMinBird;
+        vcp = &alldata.misc.vcp;
+        wavelength = &alldata.options.radarWavelength;
 
         int hght = (int)nanify(profileBio[0+iCopied]);
         assert(hght >= -200 && hght <= 25000 && "HGHT value outside of valid range (-200 to 25000)");
