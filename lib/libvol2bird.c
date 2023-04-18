@@ -3251,7 +3251,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:%.2sZ", date, date+5, date+8, time, time+2, time+4);
         
         fprintf(fp, "%s,%s,", radarName, datetime);
-        fprintf(fp, "%d,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%c,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d,%f,%f,%f,%f,%f,%d\n",
+        fprintf(fp, "%d,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%c,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%f,%f,%f,%f,%f,%f,%d\n",
 
         hght, 
         nanify(profileBio[2+iCopied]),nanify(profileBio[3+iCopied]), // u,v
