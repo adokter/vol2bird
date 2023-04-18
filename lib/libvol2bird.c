@@ -3189,7 +3189,10 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
     return result;    
 }
 
-void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsProfile, int nColsProfile, char* source, char* fileIn, char* date, char* time){
+//void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsProfile, int nColsProfile, char* source, char* fileIn, char* date, char* time){
+
+
+void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, char* date, char* time){
     
     FILE *fp;
     fp = fopen(filename, "w");
@@ -3197,6 +3200,15 @@ void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsPro
         printf("Failed to open file %s for writing.\n", filename);
         return;
     }
+
+    int nRowsProfile = vol2birdGetNRowsProfile(&alldata);
+    int nColsProfile = vol2birdGetNColsProfile(&alldata);
+
+    float *profileBio;
+    float *profileAll;
+
+    profileBio = vol2birdGetProfile(1, &alldata);
+    profileAll = vol2birdGetProfile(3, &alldata);
 
     // Extract the radar name from the source variable
     char* radarName = NULL;
@@ -3214,6 +3226,14 @@ void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsPro
     for (iRowProfile = 0; iRowProfile < nRowsProfile; iRowProfile++) {
         iCopied=iRowProfile*nColsProfile;
         
+        float *rcs, *sd_vvp_thresh, *wavelength;
+        int *vcp;
+
+        rcs = &alldata.options.birdRadarCrossSection;
+        sd_vvp_thresh = &alldata.options.stdDevMinBird;
+        vcp = &alldata.misc.vcp;
+        wavelength = &alldata.options.radarWavelength;
+
         int hght = (int)nanify(profileBio[0+iCopied]);
         assert(hght >= -200 && hght <= 25000 && "HGHT value outside of valid range (-200 to 25000)");
         
@@ -3221,7 +3241,7 @@ void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsPro
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:%.2sZ", date, date+5, date+8, time, time+2, time+4);
         
         fprintf(fp, "%s,%s,", radarName, datetime);
-        fprintf(fp, "%d,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%c,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d\n",
+        fprintf(fp, "%d,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%c,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d,%f,%f,%f\n",
 
             hght, 
             nanify(profileBio[2+iCopied]),nanify(profileBio[3+iCopied]), // u,v
@@ -3231,31 +3251,20 @@ void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsPro
             nanify(profileBio[11+iCopied]), nanify(profileBio[12+iCopied]), // eta, dens
             nanify(profileBio[9+iCopied]),nanify(profileAll[9+iCopied]), // dbz, dbz_all
             nanify(profileBio[10+iCopied]),nanify(profileBio[13+iCopied]), //  n, n_dbz 
-            nanify(profileAll[10+iCopied]),nanify(profileAll[13+iCopied])); // n_all, n_dbz_all
-
+            nanify(profileAll[10+iCopied]),nanify(profileAll[13+iCopied]), // n_all, n_dbz_all
+            *rcs, *sd_vvp_thresh, *vcp, 
+                                                                        );
             // rcs , sd_vvp_threshold
             // vcp, radar_latitude, radar_longitude, radar_height, radar_wavelength, source_file
     }
 
+    profileAll = NULL;
+    profileBio = NULL;
+    free((void*) profileAll);
+    free((void*) profileBio);
+
     fclose(fp);
 }
-
-/*
-int saveToVPTS_CSV(RaveCoreObject* object, const char* filename){
-
-    //define new Rave IO instance
-    RaveIO_t* raveio = RAVE_OBJECT_NEW(&RaveIO_TYPE);
-
-    //set the object to be saved
-    RaveIO_setObject(raveio, object);
-
-    int result;
-    result = RaveIO_save(raveio, filename);
-
-    return result
-
-}
-*/
 
 
 static void printCellProp(CELLPROP* cellProp, float elev, int nCells, int nCellsValid, vol2bird_t *alldata){
