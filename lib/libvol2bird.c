@@ -3575,6 +3575,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         const char *vpts_fields[] = {
             radarName,
             datetime,
+            (int)nanify(profileBio[0+iCopied]), //hght
             profileBio[0 + iCopied],
             profileBio[2 + iCopied],
             profileBio[3 + iCopied],
