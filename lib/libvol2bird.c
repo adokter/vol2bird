@@ -40,7 +40,7 @@
 #undef RAD2DEG // to suppress redefine warning, also defined in dealias.h
 #undef DEG2RAD // to suppress redefine warning, also defined in dealias.h
 #include "libdealias.h"
-
+#include <assert.h>
 #include "librender.h"
 
 #ifdef RSL
