@@ -3192,7 +3192,7 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
 //void writeCSV(char *filename, float *profileBio, float *profileAll, int nRowsProfile, int nColsProfile, char* source, char* fileIn, char* date, char* time){
 
 
-void writeCSV(char *filename, vol2bird_t alldata, char* source, char* fileIn, char* date, char* time, PolarVolume_t pvol){
+void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, char* date, char* time, PolarVolume_t* pvol){
     
     longitude = PolarVolume_getLongitude(pvol);
     latitude = PolarVolume_getLatitude(pvol);
