@@ -3447,6 +3447,17 @@ bool is_integer(const char *value) {
 }
 
 bool validate_value(const field_t field, const char *value) {
+    int i = -1;
+    for (int j = 0; j < num_fields; j++) {
+        if (strcmp(fields[j].name, field.name) == 0) {
+            i = j;
+            break;
+        }
+    }
+    if (i == -1) {
+        // Invalid field name
+        return false;
+    }
     if (strcmp(field.type, "string") == 0) {
         return true;  // No additional checks needed for string type
     }
@@ -3457,7 +3468,7 @@ bool validate_value(const field_t field, const char *value) {
         }
         double d_value = atof(value);
 
-        if (field.constraints.minimum != NULL && d_value < atof((const char*)field.constraints.minimum)) {
+        if (field.constraints.minimum != NULL && d_value < atof((const char*)field.constraints.minimum)) {  
             printf("Value for field '%s' is below minimum value of %s: %s\n", fields[i].name, field.constraints.minimum, value);
         }   
         if (field.constraints.maximum != NULL && strcmp((const char*)field.constraints.maximum, "Inf") != 0 && d_value > atof((const char*)field.constraints.maximum)) {
