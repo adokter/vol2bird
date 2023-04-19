@@ -3468,18 +3468,19 @@ bool validate_value(const field_t field, const char *value) {
             return false;
         }
         double d_value = atof(value);
-
-        // printf("Minimum value for field '%s': %f\n", fields[i].name, *(double*)field.constraints.minimum);
-
-        if (!isnan(field.constraints.minimum)) {
-            double min_value = *(double*)field.constraints.minimum;
+        
+        // Check if minimum value is set and validate
+        if (field.constraints.required && !isnan(field.constraints.minimum)) {
+            double min_value = field.constraints.minimum;
             if (d_value < min_value) {
                 printf("Value for field '%s' is below minimum value of %f: %s\n", fields[i].name, min_value, value);
                 return false;
             }
         }
-        if (!isnan(field.constraints.maximum)) {
-            double max_value = *(double*)field.constraints.maximum;
+
+        // Check if maximum value is set and validate
+        if (field.constraints.required && !isnan(field.constraints.maximum)) {
+            double max_value = field.constraints.maximum;
             if (strcmp(field.constraints.maximum, "Inf") != 0 && d_value > max_value) {
                 printf("Value for field '%s' is above maximum value of %f: %s\n", fields[i].name, max_value, value);
                 return false;
