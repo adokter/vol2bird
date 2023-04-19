@@ -3595,10 +3595,19 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     float *profileBio;
     float *profileAll;
 
+    const int num_fields = sizeof(vpts_fields) / sizeof(vpts_fields[0]);
+
     profileBio = vol2birdGetProfile(1, alldata);
     profileAll = vol2birdGetProfile(3, alldata);
 
-            
+    union VptsValue {
+        int i;
+        float f;
+        bool b;
+    };
+
+    union VptsValue vpts_values[num_fields];
+
     float *rcs, *sd_vvp_thresh, *wavelength;
     int *vcp;
 
@@ -3619,7 +3628,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     }
     // fprintf(fp, "radar,datetime,%s\n", source);
     // fprintf(fp, "polar_volume_input,%s\n", fileIn);
-    fprintf(fp, "radar, datetime, height, u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelenght, source)\n");
+    fprintf(fp, "radar, datetime, height, u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelenght,source)\n");
 
     int iRowProfile;
     int iCopied = 0;
@@ -3629,42 +3638,39 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:%.2sZ", date, date+5, date+8, time, time+2, time+4);
 
-        
-
         printf("Validating vpts fields for row %d\n", iRowProfile);
         const char *vpts_fields[] = {
-            radarName,
-            datetime,
-            (int)nanify(profileBio[0+iCopied]), //hght
-            profileBio[0 + iCopied],
-            profileBio[2 + iCopied],
-            profileBio[3 + iCopied],
-            profileBio[4 + iCopied],
-            profileBio[5 + iCopied],
-            profileBio[6 + iCopied],
-            profileBio[8 + iCopied] == TRUE ? "T" : "F",
-            profileBio[11 + iCopied],
-            profileBio[12 + iCopied],
-            profileBio[9 + iCopied],
-            profileAll[9 + iCopied],
-            (int)nanify(profileBio[10 + iCopied]),
-            (int)nanify(profileBio[13 + iCopied]),
-            (int)nanify(profileAll[10 + iCopied]),
-            (int)nanify(profileAll[13 + iCopied]),
-            *rcs,
-            *sd_vvp_thresh,
-            *vcp,
-            latitude,
-            longitude,
-            height,
-            *wavelength,
+            radarName,                                          //radar*
+            datetime,                                           //datetime*
+            (int)nanify(profileBio[0+iCopied]),                 //height*
+            profileBio[0 + iCopied],                            //u
+            profileBio[2 + iCopied],                            //v
+            profileBio[3 + iCopied],                            //w
+            profileBio[4 + iCopied],                            //ff
+            profileBio[5 + iCopied],                            //dd
+            profileBio[6 + iCopied],                            //sd_vvp
+            profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE", //gap
+            profileBio[11 + iCopied],                           //eta
+            profileBio[12 + iCopied],                           //dens
+            profileBio[9 + iCopied],                            //dbz
+            profileAll[9 + iCopied],                            //DBZH
+            (int)nanify(profileBio[10 + iCopied]),              //n
+            (int)nanify(profileBio[13 + iCopied]),              //n_dbz
+            (int)nanify(profileAll[10 + iCopied]),              //n_all
+            (int)nanify(profileAll[13 + iCopied]),              //n_dbz_all
+            *rcs,                                               //rcs                                            
+            *sd_vvp_thresh,                                     //sd_vvp_threshold
+            *vcp,                                               //vcp
+            latitude,                                           //radar_latitude
+            longitude,                                          //radar_longitude
+            height,                                             //radar_height
+            *wavelength,                                        //radar_wavelength
+            source,                                             //source
             NULL
         };
 
-        const int num_fields = sizeof(vpts_fields) / sizeof(vpts_fields[0]);
         validate_fields(fields, num_fields, vpts_fields);
         
-
         int hght = (int)nanify(profileBio[0+iCopied]);
         //assert(hght >= -200 && hght <= 25000 && "HGHT value outside of valid range (-200 to 25000)");
     

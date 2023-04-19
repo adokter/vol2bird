@@ -437,6 +437,12 @@ typedef struct {
     } constraints;
 } field_t;
 
+typedef union {
+    int i;
+    float f;
+    bool b;
+} value_t;
+
 
 // *****************************************************************************
 // Public function prototypes
