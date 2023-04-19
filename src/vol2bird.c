@@ -413,7 +413,7 @@ int main(int argc, char **argv)
         fprintf(stdout, "# polar volume input: %s\n", fileIn[0]);
         if (alldata.misc.vcp > 0)
             fprintf(stdout, "# volume coverage pattern (VCP): %i\n", alldata.misc.vcp);
-        printf("# date   time HGHT u v w ff dd sd_vvp gap dbz eta dens DBZH   n   n_dbz n_all n_dbz_all\n");
+        printf("# date   time HGHT u v w ff dd sd_vvp gap dbz eta dens   DBZH   n   n_dbz n_all n_dbz_all\n");
 
         float *profileBio;
         float *profileAll;
@@ -443,7 +443,7 @@ int main(int argc, char **argv)
                    nanify(profileBio[2 + iCopied]), nanify(profileBio[3 + iCopied]),  // u,v
                    nanify(profileBio[4 + iCopied]), nanify(profileBio[5 + iCopied]),  // w,ff
                    nanify(profileBio[6 + iCopied]), nanify(profileAll[7 + iCopied]),  // dd,sd_vvp
-                   profileBio[8 + iCopied] == TRUE ? 'TRUE' : 'FALSE',                       // gap
+                   profileBio[8 + iCopied] == TRUE ? 'T' : 'F',                       // gap
                    nanify(profileBio[9 + iCopied]), nanify(profileBio[11 + iCopied]), //  dbz,eta
                    nanify(profileBio[12 + iCopied]), nanify(profileAll[9 + iCopied]), //  dens, dbz_all (dbzh)
                    nanify(profileBio[10 + iCopied]), nanify(profileBio[13 + iCopied]),
