@@ -3702,6 +3702,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         (int)nanify(profileAll[13+iCopied]),                    // n_dbz_all
         *rcs, *sd_vvp_thresh, *vcp, latitude, longitude, height, *wavelength, source);
 
+
     }
 
     profileAll = NULL;
