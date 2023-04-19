@@ -3701,13 +3701,13 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         //assert(hght >= -200 && hght <= 25000 && "HGHT value outside of valid range (-200 to 25000)");
     
         fprintf(fp, "%s,%s,", radarName, datetime);
-        fprintf(fp, "%d,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%c,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d,%.2f,%.2f,%d,%f,%f,%d\n",
+        fprintf(fp, "%d,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%s,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d,%.2f,%.2f,%d,%f,%f,%d\n",
 
         hght, 
         nanify(profileBio[2+iCopied]),nanify(profileBio[3+iCopied]), // u,v
         nanify(profileBio[4+iCopied]),nanify(profileBio[5+iCopied]), // w,ff
         nanify(profileBio[6+iCopied]),nanify(profileAll[7+iCopied]), // dd,sd_vvp
-        profileBio[8+iCopied] == TRUE ? 'T' : 'F', // gap
+        profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE", // gap
         nanify(profileBio[11+iCopied]), nanify(profileBio[12+iCopied]), // eta, dens
         nanify(profileBio[9+iCopied]),nanify(profileAll[9+iCopied]), // dbz, dbz_all
         (int)nanify(profileBio[10+iCopied]),(int)nanify(profileBio[13+iCopied]), // n, n_dbz 
