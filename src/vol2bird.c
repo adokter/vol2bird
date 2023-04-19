@@ -438,12 +438,12 @@ int main(int argc, char **argv)
         {
             iCopied = iRowProfile * nColsProfile;
             printf("%8s %.4s ", date, time);
-            printf("%4.f %6.2f %6.2f %7.2f %5.2f %5.1f %6.2f %1c %6.2f %6.1f %6.2f %6.2f %5.f %5.f %5.f %5.f\n",
+            printf("%4.f %6.2f %6.2f %7.2f %5.2f %5.1f %6.2f %s %6.2f %6.1f %6.2f %6.2f %5.f %5.f %5.f %5.f\n",
                    profileBio[0 + iCopied],                                           // hght
                    nanify(profileBio[2 + iCopied]), nanify(profileBio[3 + iCopied]),  // u,v
                    nanify(profileBio[4 + iCopied]), nanify(profileBio[5 + iCopied]),  // w,ff
                    nanify(profileBio[6 + iCopied]), nanify(profileAll[7 + iCopied]),  // dd,sd_vvp
-                   profileBio[8 + iCopied] == TRUE ? 'T' : 'F',                       // gap
+                   profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE",                       // gap
                    nanify(profileBio[9 + iCopied]), nanify(profileBio[11 + iCopied]), //  dbz,eta
                    nanify(profileBio[12 + iCopied]), nanify(profileAll[9 + iCopied]), //  dens, dbz_all (dbzh)
                    nanify(profileBio[10 + iCopied]), nanify(profileBio[13 + iCopied]),
