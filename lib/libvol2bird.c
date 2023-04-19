@@ -3476,15 +3476,6 @@ bool validate_value(const field_t field, const char *value) {
         if (field.constraints.maximum != NULL && strcmp(*(double*)field.constraints.maximum, "Inf") != 0 && d_value > *(double*)field.constraints.maximum) {
             printf("Value for field '%s' is above maximum value of %s: %s\n", fields[i].name, field.constraints.maximum, value);
         }
-        // Check if the value is within the minimum and maximum bounds
-        /*
-        if (field.constraints.minimum != NULL && d_value < atof((const char*)field.constraints.minimum)) {
-            return false;
-        }
-        if (field.constraints.maximum != NULL && strcmp(field.constraints.maximum, "Inf") != 0 && d_value > atof(field.constraints.maximum)) {
-            return false;
-        }
-        return true;*/
     }
     else if (strcmp(field.type, "integer") == 0) {
         // Check if the value is an integer
