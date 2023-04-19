@@ -3448,6 +3448,7 @@ bool is_integer(const char *value) {
 
 bool validate_value(const field_t field, const char *value) {
     int i = -1;
+    int num_fields = sizeof(fields) / sizeof(fields[0]);
     for (int j = 0; j < num_fields; j++) {
         if (strcmp(fields[j].name, field.name) == 0) {
             i = j;
@@ -3468,10 +3469,10 @@ bool validate_value(const field_t field, const char *value) {
         }
         double d_value = atof(value);
 
-        if (field.constraints.minimum != NULL && d_value < atof((const char*)field.constraints.minimum)) {  
+        if (field.constraints.minimum != NULL && d_value < *(double*)field.constraints.minimum)) {  
             printf("Value for field '%s' is below minimum value of %s: %s\n", fields[i].name, field.constraints.minimum, value);
         }   
-        if (field.constraints.maximum != NULL && strcmp((const char*)field.constraints.maximum, "Inf") != 0 && d_value > atof((const char*)field.constraints.maximum)) {
+        if (field.constraints.maximum != NULL && strcmp(*(double*)field.constraints.maximum, "Inf") != 0 && d_value > *(double*)field.constraints.maximum) {
             printf("Value for field '%s' is above maximum value of %s: %s\n", fields[i].name, field.constraints.maximum, value);
         }
         // Check if the value is within the minimum and maximum bounds
