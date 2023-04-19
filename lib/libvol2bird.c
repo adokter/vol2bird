@@ -3493,12 +3493,16 @@ bool validate_value(const field_t field, const char *value) {
             return false;
         }
         int i_value = atoi(value);
+
         // Check if the value is within the minimum and maximum bounds
-        if (field.constraints.minimum != NULL && i_value < atoi(field.constraints.minimum)) {
+        if (!isnan(field.constraints.minimum) && i_value < (int)field.constraints.minimum) {
             return false;
         }
-        if (field.constraints.maximum != NULL && strcmp(field.constraints.maximum, "Inf") != 0 && i_value > atoi(field.constraints.maximum)) {
-            return false;
+
+        if (!isnan(field.constraints.maximum)) {
+            if (i_value > (int)field.constraints.maximum) {
+                return false;
+            }
         }
         return true;
     }
