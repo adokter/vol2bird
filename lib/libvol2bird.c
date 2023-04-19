@@ -43,6 +43,7 @@
 #include <assert.h>
 #include "librender.h"
 
+
 #ifdef RSL
 #include "rsl.h"
 #include "librsl.h"
@@ -3432,6 +3433,7 @@ const field_t fields[] = {
     }
 };
 
+/*
 bool is_float(const char *value) {
     // check if the string can be converted to a floating-point number
     char *endptr;
@@ -3578,6 +3580,7 @@ void validate_fields(const field_t fields[], int num_fields, const char *values[
         }
     }
 }
+*/
 
 int saveToODIM(RaveCoreObject* object, const char* filename){
     
@@ -3658,6 +3661,8 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:%.2sZ", date, date+5, date+8, time, time+2, time+4);
 
+        /*
+
         printf("Validating vpts fields for row %d\n", iRowProfile);
         const char *vpts_fields[] = {
             radarName,
@@ -3690,7 +3695,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
 
         const int num_fields = sizeof(vpts_fields) / sizeof(vpts_fields[0]);
         validate_fields(fields, num_fields, vpts_fields);
-
+        */
 
         int hght = (int)nanify(profileBio[0+iCopied]);
         //assert(hght >= -200 && hght <= 25000 && "HGHT value outside of valid range (-200 to 25000)");
