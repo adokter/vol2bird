@@ -3469,14 +3469,21 @@ bool validate_value(const field_t field, const char *value) {
         }
         double d_value = atof(value);
 
-        printf("Minimum value for field '%s': %f\n", fields[i].name, *(double*)field.constraints.minimum);
+        // printf("Minimum value for field '%s': %f\n", fields[i].name, *(double*)field.constraints.minimum);
 
-        if (field.constraints.minimum != NULL && d_value < *(double*)field.constraints.minimum) {  
-            printf("Value for field '%s' is below minimum value of %f: %s\n", fields[i].name, field.constraints.minimum, value);
-            return false;
-        }   
-        if (field.constraints.maximum != NULL && strcmp(*(double*)field.constraints.maximum, "Inf") != 0 && d_value > *(double*)field.constraints.maximum) {
-            printf("Value for field '%s' is above maximum value of %s: %s\n", fields[i].name, field.constraints.maximum, value);
+        if (field.constraints.minimum != NULL) {
+            double min_value = *(double*)field.constraints.minimum;
+            if (d_value < min_value) {
+                printf("Value for field '%s' is below minimum value of %f: %s\n", fields[i].name, min_value, value);
+                return false;
+            }
+        }
+        if (field.constraints.maximum != NULL) {
+            double max_value = *(double*)field.constraints.maximum;
+            if (strcmp(field.constraints.maximum, "Inf") != 0 && d_value > max_value) {
+                printf("Value for field '%s' is above maximum value of %f: %s\n", fields[i].name, max_value, value);
+                return false;
+            }
         }
     }
     else if (strcmp(field.type, "integer") == 0) {
