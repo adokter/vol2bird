@@ -438,7 +438,7 @@ int main(int argc, char **argv)
         {
             iCopied = iRowProfile * nColsProfile;
             printf("%8s %.4s ", date, time);
-            printf("%4.f %6.2f %6.2f %7.2f %5.2f %5.1f %6.2f %5c %6.2f %6.1f %6.2f %6.2f %5.f %5.f %5.f %5.f\n",
+            printf("%4.f %6.2f %6.2f %7.2f %5.2f %5.1f %6.2f %5s %6.2f %6.1f %6.2f %6.2f %5.f %5.f %5.f %5.f\n",
                    profileBio[0 + iCopied],                                           // hght
                    nanify(profileBio[2 + iCopied]), nanify(profileBio[3 + iCopied]),  // u,v
                    nanify(profileBio[4 + iCopied]), nanify(profileBio[5 + iCopied]),  // w,ff
