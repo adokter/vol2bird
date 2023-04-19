@@ -3434,6 +3434,17 @@ const field_t fields[] = {
 };
 
 
+int is_datetime(const char *value, const char *format) {
+    // Check if the value is in the correct format
+    struct tm tm;
+    return (strptime(value, format, &tm) != NULL);
+}
+
+int is_boolean(const char *value) {
+    // Check if the value is either TRUE or FALSE
+    return (strcmp(value, "TRUE") == 0 || strcmp(value, "FALSE") == 0);
+}
+
 bool is_float(const char *value) {
     // check if the string can be converted to a floating-point number
     char *endptr;
@@ -3510,7 +3521,7 @@ bool validate_value(const field_t field, const char *value) {
     }
     else if (strcmp(field.type, "datetime") == 0) {
         // Check if the value is a valid datetime in the expected format
-        return is_datetime(value, field.format);
+        return is_datetime(value, "%Y-%m-%dT%H:%M:%SZ");
     }
     else if (strcmp(field.type, "boolean") == 0) {
         // Check if the value is a boolean
