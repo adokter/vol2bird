@@ -3433,6 +3433,7 @@ const field_t fields[] = {
     }
 };
 
+/*
 
 int is_datetime(const char *value, const char *format) {
     // Check if the value is in the correct format
@@ -3549,6 +3550,8 @@ void validate_fields(const field_t fields[], int num_fields, const char *values[
     }
 }
 
+*/
+
 
 int saveToODIM(RaveCoreObject* object, const char* filename){
     
@@ -3600,6 +3603,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     profileBio = vol2birdGetProfile(1, alldata);
     profileAll = vol2birdGetProfile(3, alldata);
 
+    /*
     union VptsValue {
         int i;
         float f;
@@ -3607,6 +3611,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     };
 
     union VptsValue vpts_values[num_fields];
+    */
 
     float *rcs, *sd_vvp_thresh, *wavelength;
     int *vcp;
@@ -3638,23 +3643,24 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:%.2sZ", date, date+5, date+8, time, time+2, time+4);
 
+        /*
         //validate fields
         printf("Validating vpts fields for row %d\n", iRowProfile);
         union VptsValue vpts_values[] = {
             { .c = radarName },                                           // radar*
             { .c = datetime },                                            // datetime*
             { .i = (int)nanify(profileBio[0+iCopied]) },                  // height*
-            { .f = nanify(profileBio[0 + iCopied])},                       // u
-            { .f = profileBio[2 + iCopied] },                             // v
-            { .f = profileBio[3 + iCopied] },                             // w
-            { .f = profileBio[4 + iCopied] },                             // ff
-            { .f = profileBio[5 + iCopied] },                             // dd
-            { .f = profileBio[6 + iCopied] },                             // sd_vvp
+            { .f = nanify(profileBio[0 + iCopied])},                      // u
+            { .f = nanify(profileBio[2 + iCopied])},                             // v
+            { .f = nanify(profileBio[3 + iCopied])},                      // w
+            { .f = nanify(profileBio[4 + iCopied])},                      // ff
+            { .f = nanify(profileBio[5 + iCopied])},                      // dd
+            { .f = nanify(profileBio[6 + iCopied])},                      // sd_vvp
             { .c = profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE",  },// gap
-            { .f = profileBio[11 + iCopied]},                            // eta
-            { .f = nanify(profileBio[12 + iCopied])},                      // dens
-            { .f = nanify(profileBio[9 + iCopied])},                       // dbz
-            { .f = nanify(profileAll[9 + iCopied])},                        // DBZH
+            { .f = nanify(profileBio[11 + iCopied])},                             // eta
+            { .f = nanify(profileBio[12 + iCopied])},                     // dens
+            { .f = nanify(profileBio[9 + iCopied])},                      // dbz
+            { .f = nanify(profileAll[9 + iCopied])},                      // DBZH
             { .i = (int)nanify(profileBio[10 + iCopied]) },               // n
             { .i = (int)nanify(profileBio[13 + iCopied]) },               // n_dbz
             { .i = (int)nanify(profileAll[10 + iCopied]) },               // n_all
@@ -3670,6 +3676,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .c = NULL }                                                 // End of union
         };
         validate_fields(fields, num_fields, vpts_fields);
+        */
         
         //write to CSV format
         fprintf(fp,"%s,%s,%d,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%s,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d,%.2f,%.2f,%d,%f,%f,%d\n",
