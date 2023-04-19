@@ -3603,7 +3603,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     union VptsValue {
         int i;
         float f;
-        bool b;
+        char* c;
     };
 
     union VptsValue vpts_values[num_fields];
@@ -3640,36 +3640,35 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
 
         //validate fields
         printf("Validating vpts fields for row %d\n", iRowProfile);
-        const char *vpts_fields[] = {
-            radarName,                                          //radar*
-            datetime,                                           //datetime*
-            (int)nanify(profileBio[0+iCopied]),                 //height*
-            profileBio[0 + iCopied],                            //u
-            profileBio[2 + iCopied],                            //v
-            profileBio[3 + iCopied],                            //w
-            profileBio[4 + iCopied],                            //ff
-            profileBio[5 + iCopied],                            //dd
-            profileBio[6 + iCopied],                            //sd_vvp
-            profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE", //gap
-            profileBio[11 + iCopied],                           //eta
-            profileBio[12 + iCopied],                           //dens
-            profileBio[9 + iCopied],                            //dbz
-            profileAll[9 + iCopied],                            //DBZH
-            (int)nanify(profileBio[10 + iCopied]),              //n
-            (int)nanify(profileBio[13 + iCopied]),              //n_dbz
-            (int)nanify(profileAll[10 + iCopied]),              //n_all
-            (int)nanify(profileAll[13 + iCopied]),              //n_dbz_all
-            *rcs,                                               //rcs                                            
-            *sd_vvp_thresh,                                     //sd_vvp_threshold
-            *vcp,                                               //vcp
-            latitude,                                           //radar_latitude
-            longitude,                                          //radar_longitude
-            height,                                             //radar_height
-            *wavelength,                                        //radar_wavelength
-            source,                                             //source
-            NULL
+        union VptsValue vpts_values[] = {
+            { .c = radarName },                                           // radar*
+            { .c = datetime },                                            // datetime*
+            { .i = (int)nanify(profileBio[0+iCopied]) },                  // height*
+            { .f = nanify(profileBio[0 + iCopied])},                       // u
+            { .f = profileBio[2 + iCopied] },                             // v
+            { .f = profileBio[3 + iCopied] },                             // w
+            { .f = profileBio[4 + iCopied] },                             // ff
+            { .f = profileBio[5 + iCopied] },                             // dd
+            { .f = profileBio[6 + iCopied] },                             // sd_vvp
+            { .c = profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE",  },// gap
+            { .f = profileBio[11 + iCopied]},                            // eta
+            { .f = nanify(profileBio[12 + iCopied])},                      // dens
+            { .f = nanify(profileBio[9 + iCopied])},                       // dbz
+            { .f = nanify(profileAll[9 + iCopied])},                        // DBZH
+            { .i = (int)nanify(profileBio[10 + iCopied]) },               // n
+            { .i = (int)nanify(profileBio[13 + iCopied]) },               // n_dbz
+            { .i = (int)nanify(profileAll[10 + iCopied]) },               // n_all
+            { .i = (int)nanify(profileAll[13 + iCopied]) },               // n_dbz_all
+            { .f = *rcs },                                                // rcs
+            { .f = *sd_vvp_thresh },                                      // sd_vvp_threshold
+            { .i = *vcp },                                                // vcp
+            { .f = latitude },                                            // radar_latitude
+            { .f = longitude },                                           // radar_longitude
+            { .f = height },                                              // radar_height
+            { .f = *wavelength },                                         // radar_wavelength
+            { .c = source },                                              // source_file
+            { .c = NULL }                                                 // End of union
         };
-
         validate_fields(fields, num_fields, vpts_fields);
         
         //write to CSV format
