@@ -3469,6 +3469,8 @@ bool validate_value(const field_t field, const char *value) {
         }
         double d_value = atof(value);
 
+        printf("Minimum value for field '%s': %f\n", fields[i].name, *(double*)field.constraints.minimum);
+
         if (field.constraints.minimum != NULL && d_value < *(double*)field.constraints.minimum) {  
             printf("Value for field '%s' is below minimum value of %f: %s\n", fields[i].name, field.constraints.minimum, value);
             return false;
