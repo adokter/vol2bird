@@ -3651,7 +3651,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .c = datetime },                                            // datetime*
             { .i = (int)nanify(profileBio[0+iCopied]) },                  // height*
             { .f = nanify(profileBio[0 + iCopied])},                      // u
-            { .f = nanify(profileBio[2 + iCopied])},                             // v
+            { .f = nanify(profileBio[2 + iCopied])},                      // v
             { .f = nanify(profileBio[3 + iCopied])},                      // w
             { .f = nanify(profileBio[4 + iCopied])},                      // ff
             { .f = nanify(profileBio[5 + iCopied])},                      // dd
