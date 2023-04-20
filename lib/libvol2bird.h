@@ -437,11 +437,6 @@ typedef struct {
     } constraints;
 } field_t;
 
-typedef union {
-    int i;
-    float f;
-    char* c;
-} VptsValue;
 
 
 // *****************************************************************************

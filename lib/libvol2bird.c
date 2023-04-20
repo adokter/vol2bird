@@ -3533,6 +3533,12 @@ bool validate_value(const field_t field, const char *value) {
     }
 }
 
+typedef union {
+    int i;
+    float f;
+    char* c;
+} VptsValue;
+
 void validate_fields(const field_t fields[], int num_fields, const union VptsValue values[]) {
     for (int i = 0; i < num_fields; i++) {
         if (fields[i].required) {
