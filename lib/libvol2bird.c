@@ -3629,7 +3629,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     }
     // fprintf(fp, "radar,datetime,%s\n", source);
     // fprintf(fp, "polar_volume_input,%s\n", fileIn);
-    fprintf(fp, "radar, datetime, height, u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelenght,source\n");
+    fprintf(fp, "radar, datetime, height, u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelenght,source_file\n");
 
     int iRowProfile;
     int iCopied = 0;
