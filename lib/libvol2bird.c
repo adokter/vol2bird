@@ -3632,7 +3632,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         iCopied=iRowProfile*nColsProfile;
 
         char datetime[24];
-        sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:%.2sZ", date, date+5, date+8, time, time+3, time+6);
+        sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:%.2sZ", date, date+5, date+8, time, time+2, time+3);
 
         //validate fields
         printf("Validating vpts fields for row %d\n", iRowProfile);
