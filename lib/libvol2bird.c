@@ -3539,10 +3539,10 @@ typedef union {
     char* c;
 } VptsValue;
 
-void validate_fields(const field_t fields[], int num_fields, const union VptsValue values[]) {
+void validate_fields(const field_t fields[], int num_fields, const VptsValue values[]) {
     for (int i = 0; i < num_fields; i++) {
         if (fields[i].required) {
-            const union VptsValue value = values[i];
+            const VptsValue value = values[i];
             if (value.c == NULL || strcmp(value.c, "") == 0) {
                 printf("WARNING! Missing value for required field: '%s'\n", fields[i].name);
             }
