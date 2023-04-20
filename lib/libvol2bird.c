@@ -3533,15 +3533,15 @@ bool validate_value(const field_t field, const char *value) {
     }
 }
 
-void validate_fields(const field_t fields[], int num_fields, const char *values[]) {
+void validate_fields(const field_t fields[], int num_fields, const union VptsValue values[]) {
     for (int i = 0; i < num_fields; i++) {
         if (fields[i].required) {
-            const char *value = values[i];
-            if (value == NULL || strcmp(value, "") == 0) {
+            const union VptsValue value = values[i];
+            if (value.c == NULL || strcmp(value.c, "") == 0) {
                 printf("WARNING! Missing value for required field: '%s'\n", fields[i].name);
             }
-            else if (!validate_value(fields[i], value)) {
-                printf("WARNING! Invalid value for field '%s': %s\n", fields[i].name, value);
+            else if (!validate_value(fields[i], value.c)) {
+                printf("WARNING! Invalid value for field '%s': %s\n", fields[i].name, value.c);
             }
         }
     }
