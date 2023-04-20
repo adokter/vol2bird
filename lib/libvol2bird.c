@@ -3433,7 +3433,7 @@ const field_t fields[] = {
     }
 };
 
-/*
+
 int is_datetime(const char *value, const char *format) {
     // Check if the value is in the correct format
     struct tm tm;
@@ -3547,7 +3547,6 @@ void validate_fields(const field_t fields[], int num_fields, const char *values[
     }
 }
 
-*/
 
 int saveToODIM(RaveCoreObject* object, const char* filename){
     
