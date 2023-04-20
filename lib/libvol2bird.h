@@ -440,8 +440,8 @@ typedef struct {
 typedef union {
     int i;
     float f;
-    bool b;
-} value_t;
+    char* c;
+} VptsValue;
 
 
 // *****************************************************************************
