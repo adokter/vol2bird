@@ -3433,8 +3433,6 @@ const field_t fields[] = {
     }
 };
 
-/*
-
 int is_datetime(const char *value, const char *format) {
     // Check if the value is in the correct format
     struct tm tm;
@@ -3539,18 +3537,15 @@ void validate_fields(const field_t fields[], int num_fields, const char *values[
         if (fields[i].required) {
             const char *value = values[i];
             if (value == NULL || strcmp(value, "") == 0) {
-                printf("Missing value for required field: '%s'\n", fields[i].name);
-                exit(1);
+                printf("WARNING! Missing value for required field: '%s'\n", fields[i].name);
             }
             else if (!validate_value(fields[i], value)) {
-                printf("Invalid value for field '%s': %s\n", fields[i].name, value);
-                exit(1);
+                printf("WARNING! Invalid value for field '%s': %s\n", fields[i].name, value);
             }
         }
     }
 }
 
-*/
 
 
 int saveToODIM(RaveCoreObject* object, const char* filename){
@@ -3598,12 +3593,8 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     float *profileBio;
     float *profileAll;
 
-
-
     profileBio = vol2birdGetProfile(1, alldata);
     profileAll = vol2birdGetProfile(3, alldata);
-
-    /*
 
     const int num_fields = sizeof(vpts_fields) / sizeof(vpts_fields[0]);
     union VptsValue {
@@ -3613,7 +3604,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     };
 
     union VptsValue vpts_values[num_fields];
-    */
 
     float *rcs, *sd_vvp_thresh, *wavelength;
     int *vcp;
@@ -3645,7 +3635,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:%.2sZ", date, date+5, date+8, time, time+2, time+4);
 
-        /*
         //validate fields
         printf("Validating vpts fields for row %d\n", iRowProfile);
         union VptsValue vpts_values[] = {
@@ -3678,7 +3667,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .c = NULL }                                                 // End of union
         };
         validate_fields(fields, num_fields, vpts_fields);
-        */
         
         //write to CSV format
         fprintf(fp,"%s,%s,%d,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%s,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d,%.2f,%.2f,%d,%f,%f,%f,%f,%s\n",
@@ -3702,7 +3690,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         (int)nanify(profileAll[13+iCopied]),                    // n_dbz_all
         *rcs, *sd_vvp_thresh, *vcp, latitude, longitude, height, *wavelength, source);
 
-
     }
 
     profileAll = NULL;
@@ -3712,7 +3699,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
 
     fclose(fp);
 }
-
 
 static void printCellProp(CELLPROP* cellProp, float elev, int nCells, int nCellsValid, vol2bird_t *alldata){
     
