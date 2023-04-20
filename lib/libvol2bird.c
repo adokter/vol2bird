@@ -3596,7 +3596,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     profileBio = vol2birdGetProfile(1, alldata);
     profileAll = vol2birdGetProfile(3, alldata);
 
-/*
+
     const int num_fields = sizeof(fields) / sizeof(fields[0]);
 
     union VptsValue {
@@ -3606,7 +3606,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     };
 
     union VptsValue vpts_values[num_fields];
-*/
+
 
     float *rcs, *sd_vvp_thresh, *wavelength;
     int *vcp;
