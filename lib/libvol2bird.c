@@ -3433,6 +3433,7 @@ const field_t fields[] = {
     }
 };
 
+/*
 int is_datetime(const char *value, const char *format) {
     // Check if the value is in the correct format
     struct tm tm;
@@ -3546,6 +3547,8 @@ void validate_fields(const field_t fields[], int num_fields, const char *values[
     }
 }
 
+*/
+
 int saveToODIM(RaveCoreObject* object, const char* filename){
     
     //define new Rave IO instance
@@ -3594,6 +3597,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     profileBio = vol2birdGetProfile(1, alldata);
     profileAll = vol2birdGetProfile(3, alldata);
 
+/*
     const int num_fields = sizeof(fields) / sizeof(fields[0]);
 
     union VptsValue {
@@ -3603,6 +3607,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     };
 
     union VptsValue vpts_values[num_fields];
+*/
 
     float *rcs, *sd_vvp_thresh, *wavelength;
     int *vcp;
@@ -3633,7 +3638,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
 
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:00Z", date, date+4, date+6, time, time+2);
-        
+/*
         //validate fields
         printf("Validating vpts fields for row %d\n", iRowProfile);
         union VptsValue vpts_values[] = {
@@ -3665,8 +3670,10 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .c = source },                                              // source_file
             { .c = NULL }                                                 // End of union
         };
+
         validate_fields(fields, num_fields, vpts_values);
         
+*/        
         //write to CSV format
         fprintf(fp,"%s,%s,%d,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%s,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d,%.2f,%.2f,%d,%f,%f,%f,%f,%s\n",
         radarName,                                              //radar*
