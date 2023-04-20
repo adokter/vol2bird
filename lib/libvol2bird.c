@@ -3546,8 +3546,6 @@ void validate_fields(const field_t fields[], int num_fields, const char *values[
     }
 }
 
-
-
 int saveToODIM(RaveCoreObject* object, const char* filename){
     
     //define new Rave IO instance
@@ -3667,7 +3665,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .c = source },                                              // source_file
             { .c = NULL }                                                 // End of union
         };
-        validate_fields(fields, num_fields, vpts_fields);
+        validate_fields(fields, num_fields, vpts_values);
         
         //write to CSV format
         fprintf(fp,"%s,%s,%d,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%s,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d,%.2f,%.2f,%d,%f,%f,%f,%f,%s\n",
