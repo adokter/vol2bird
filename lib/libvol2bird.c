@@ -3643,7 +3643,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
 
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:00Z", date, date+4, date+6, time, time+2);
-/*
+
         //validate fields
         printf("Validating vpts fields for row %d\n", iRowProfile);
         union VptsValue vpts_values[] = {
@@ -3677,8 +3677,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         };
 
         validate_fields(fields, num_fields, vpts_values);
-        
-*/        
+                
         //write to CSV format
         fprintf(fp,"%s,%s,%d,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%s,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d,%.2f,%.2f,%d,%f,%f,%f,%f,%s\n",
         radarName,                                              //radar*
