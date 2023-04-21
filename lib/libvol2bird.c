@@ -3656,23 +3656,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:00Z", date, date+4, date+6, time, time+2);
 
-
-
-  nanify_str(s_u, "%6.2f", u);
-  nanify_str(s_v, "%6.2f", v);
-  nanify_str(s_w, "%7.2f", w);
-  nanify_str(s_ff, "%5.2f", ff);
-  nanify_str(s_dd, "%5.1f", dd);
-  nanify_str(s_sd_vvp, "%6.2f", sd_vvp);
-  nanify_str(s_dbz, "%6.2f", dbz);
-  nanify_str(s_eta, "%6.1f", eta);
-  nanify_str(s_dens, "%6.2f", dens);
-  nanify_str(s_DBZH, "%6.2f", DBZH);
-  nanify_str(s_n, "%5.f", n);
-  nanify_str(s_n_dbz, "%5.f", n_dbz);
-  nanify_str(s_n_all, "%5.f", n_all);
-  nanify_str(s_n_dbz_all, "%5.f", n_dbz_all);
-
         //validate fields
         printf("Validating vpts fields for row %d\n", iRowProfile);
         union VptsValue vpts_values[] = {
