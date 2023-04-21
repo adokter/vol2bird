@@ -3196,7 +3196,7 @@ const field_t fields[] = {
     {
         .name = "datetime",
         .description = "Nominal date and time of the measurement, as an ISO 8601 formatted string in UTC.",
-        .type = "datetime",
+        .type = "string",
         .format = "%Y-%m-%dT%H:%M:%SZ",
         .example = "2016-09-01T00:02:00Z",
         .required = true,
@@ -3686,19 +3686,23 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .c = source }                                              // source_file
         };
 
-        printf("vpts_values:\n");
         for (int i = 0; i < num_fields; i++) {
             printf("%s: ", fields[i].name);
             switch (fields[i].type) {
-                case CHAR:
+                case "string":
                     printf("%s\n", vpts_values[i].c);
                     break;
-                case INT:
+                case "integer":
                     printf("%d\n", vpts_values[i].i);
                     break;
-                case FLOAT:
+                case "boolean":
+                    printf("%s\n", vpts_values[i].c);
+                    break;
+                case "number":
                     printf("%f\n", vpts_values[i].f);
                     break;
+                default:
+                    printf("Unknown field type\n");
             }
         }
 
