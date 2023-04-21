@@ -3058,14 +3058,16 @@ void nanify_str(char* buff, const char* fmt, double v) {
   }
 }
 
-void nanify_vpts(char* buff, const char* fmt, double v) {
-  if (v == NODATA) {
-    strcpy(buff, "");
-  } else if (v ==   UNDETECT) {
-    strcpy(buff, "nan");
+char* nanify_vpts(float value, const char* fmt) {
+  char* output = malloc(16); // Allocate enough memory for a 15-character float string
+  if (value == NODATA) {
+    strcpy(output, "");
+  } else if (value == UNDETECT) {
+    strcpy(output, "NaN");
   } else {
-    sprintf(buff, fmt, v);
+    sprintf(output, fmt, value);
   }
+  return output;
 }
 
 void create_profile_printout_str(char* printbuffer, int buflen, const char* date, const char* time,
@@ -3654,27 +3656,44 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:00Z", date, date+4, date+6, time, time+2);
 
+
+
+  nanify_str(s_u, "%6.2f", u);
+  nanify_str(s_v, "%6.2f", v);
+  nanify_str(s_w, "%7.2f", w);
+  nanify_str(s_ff, "%5.2f", ff);
+  nanify_str(s_dd, "%5.1f", dd);
+  nanify_str(s_sd_vvp, "%6.2f", sd_vvp);
+  nanify_str(s_dbz, "%6.2f", dbz);
+  nanify_str(s_eta, "%6.1f", eta);
+  nanify_str(s_dens, "%6.2f", dens);
+  nanify_str(s_DBZH, "%6.2f", DBZH);
+  nanify_str(s_n, "%5.f", n);
+  nanify_str(s_n_dbz, "%5.f", n_dbz);
+  nanify_str(s_n_all, "%5.f", n_all);
+  nanify_str(s_n_dbz_all, "%5.f", n_dbz_all);
+
         //validate fields
         printf("Validating vpts fields for row %d\n", iRowProfile);
         union VptsValue vpts_values[] = {
             { .c = radarName },                                           // radar*
             { .c = datetime },                                            // datetime*
-            { .i = (int)nanify(profileBio[0+iCopied]) },                  // height*
-            { .f = nanify(profileBio[0 + iCopied])},                      // u
-            { .f = nanify(profileBio[2 + iCopied])},                      // v
-            { .f = nanify(profileBio[3 + iCopied])},                      // w
+            { .i = (int)nanify(profileBio[0+iCopied])},                  // height*
+            { .f = nanify(profileBio[0 + iCopied])},                         // u
+            { .f = nanify(profileBio[2 + iCopied])},                        // v
+            { .f = nanify(profileBio[3 + iCopied])},                        // w
             { .f = nanify(profileBio[4 + iCopied])},                      // ff
             { .f = nanify(profileBio[5 + iCopied])},                      // dd
-            { .f = nanify(profileBio[6 + iCopied])},                      // sd_vvp
-            { .c = profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE",  },// gap
-            { .f = nanify(profileBio[11 + iCopied])},                             // eta
+            { .f = nanify(profileBio[6 + iCopied],  "%6.2f")},            // sd_vvp
+            { .c = profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE"},   // gap
+            { .f = nanify(profileBio[11 + iCopied])},                     // eta
             { .f = nanify(profileBio[12 + iCopied])},                     // dens
             { .f = nanify(profileBio[9 + iCopied])},                      // dbz
-            { .f = nanify(profileAll[9 + iCopied])},                      // DBZH
-            { .i = (int)nanify(profileBio[10 + iCopied]) },               // n
-            { .i = (int)nanify(profileBio[13 + iCopied]) },               // n_dbz
-            { .i = (int)nanify(profileAll[10 + iCopied]) },               // n_all
-            { .i = (int)nanify(profileAll[13 + iCopied]) },               // n_dbz_all
+            { .f = nanify(profileAll[9 + iCopied])},                       // DBZH
+            { .f = nanify(profileBio[10 + iCopied])},                     // n
+            { .f = nanify(profileBio[13 + iCopied])},                     // n_dbz
+            { .f = nanify(profileAll[10 + iCopied])},                     // n_all
+            { .f = nanify(profileAll[13 + iCopied])},                    // n_dbz_all
             { .f = *rcs },                                                // rcs
             { .f = *sd_vvp_thresh },                                      // sd_vvp_threshold
             { .i = *vcp },                                                // vcp
@@ -3689,27 +3708,26 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         validate_fields(fields, num_fields, vpts_values);
                 
         //write to CSV format
-        fprintf(fp,"%s,%s,%d,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%s,%.2f,%.1f,%.2f,%.2f,%d,%d,%d,%d,%.2f,%.2f,%d,%f,%f,%f,%f,%s\n",
-        radarName,                                              //radar*
-        datetime,                                             //datetime*    
-        (int)nanify(profileBio[0+iCopied]),                     //height*
-        nanify(profileBio[2+iCopied]),                          //u
-        nanify(profileBio[3+iCopied]),                          //v
-        nanify(profileBio[4+iCopied]),                          //w
-        nanify(profileBio[5+iCopied]),                          //ff
-        nanify(profileBio[6+iCopied]),                          //dd
-        nanify(profileAll[7+iCopied]),                          //sd_vvp
-        profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE",     // gap
-        nanify(profileBio[11+iCopied]),                         // eta
-        nanify(profileBio[12+iCopied]),                         // dens
-        nanify(profileBio[9+iCopied]),                          // dbz
-        nanify(profileAll[9+iCopied]),                          // DBZH
-        (int)nanify(profileBio[10+iCopied]),                    // n
-        (int)nanify(profileBio[13+iCopied]),                    // n_dbz
-        (int)nanify(profileAll[10+iCopied]),                    // n_all
-        (int)nanify(profileAll[13+iCopied]),                    // n_dbz_all
+        fprintf(fp,"%s,%s,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%.2f,%.2f,%d,%f,%f,%f,%f,%s\n",
+        radarName,                                                              //radar*
+        datetime,                                                               //datetime*    
+        (int)nanify(profileBio[0+iCopied]),                                     //height*
+        nanify_vpts(profileBio[0 + iCopied],"%6.2f"),                           //u
+        nanify_vpts(profileBio[2 + iCopied], "%6.2f"),                          //v
+        nanify_vpts(profileBio[3 + iCopied], "%7.2f"),                          //w
+        nanify_vpts(profileBio[4 + iCopied], "%5.2f"),                          //ff
+        nanify_vpts(profileBio[5 + iCopied], "%5.1f"),                          //dd
+        nanify_vpts(profileBio[6 + iCopied],  "%6.2f"),                         //sd_vvp
+        profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE",                     // gap
+        nanify_vpts(profileBio[11 + iCopied],  "%6.1f"),                        // eta
+        nanify_vpts(profileBio[12 + iCopied],  "%6.2f"),                        // dens
+        nanify_vpts(profileBio[9 + iCopied], "%6.2f"),                          // dbz
+        nanify_vpts(profileAll[9 + iCopied], "%6.2f"),                          // DBZH
+        nanify_vpts(profileBio[10 + iCopied],  "%5.f"),                         // n
+        nanify_vpts(profileBio[13 + iCopied],  "%5.f"),                        // n_dbz
+        nanify_vpts(profileAll[10 + iCopied],  "%5.f"),                        // n_all
+        nanify_vpts(profileAll[13 + iCopied], "%5.f"),                        // n_dbz_all
         *rcs, *sd_vvp_thresh, *vcp, latitude, longitude, height, *wavelength, fileIn);
-
     }
 
     profileAll = NULL;
