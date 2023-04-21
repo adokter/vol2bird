@@ -3687,22 +3687,14 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         };
 
         for (int i = 0; i < num_fields; i++) {
-            printf("%s: ", fields[i].name);
-            switch (fields[i].type) {
-                case "string":
-                    printf("%s\n", vpts_values[i].c);
-                    break;
-                case "integer":
-                    printf("%d\n", vpts_values[i].i);
-                    break;
-                case "boolean":
-                    printf("%s\n", vpts_values[i].c);
-                    break;
-                case "number":
-                    printf("%f\n", vpts_values[i].f);
-                    break;
-                default:
-                    printf("Unknown field type\n");
+            if (strcmp(fields[i].type, "string") == 0) {
+                printf("%s: %s\n", fields[i].name, vpts_values[i].c);
+            } else if (strcmp(fields[i].type, "integer") == 0) {
+                printf("%s: %d\n", fields[i].name, vpts_values[i].i);
+            } else if (strcmp(fields[i].type, "boolean") == 0) {
+                printf("%s: %s\n", fields[i].name, vpts_values[i].c);
+            } else if (strcmp(fields[i].type, "number") == 0) {
+                printf("%s: %f\n", fields[i].name, vpts_values[i].f);
             }
         }
 
