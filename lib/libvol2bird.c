@@ -3684,7 +3684,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .f = nanify(profileBio[3 + iCopied])},                        // w
             { .f = nanify(profileBio[4 + iCopied])},                      // ff
             { .f = nanify(profileBio[5 + iCopied])},                      // dd
-            { .f = nanify(profileBio[6 + iCopied],  "%6.2f")},            // sd_vvp
+            { .f = nanify(profileBio[6 + iCopied]},                       // sd_vvp
             { .c = profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE"},   // gap
             { .f = nanify(profileBio[11 + iCopied])},                     // eta
             { .f = nanify(profileBio[12 + iCopied])},                     // dens
@@ -3726,7 +3726,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         nanify_vpts(profileBio[10 + iCopied],  "%5.f"),                         // n
         nanify_vpts(profileBio[13 + iCopied],  "%5.f"),                        // n_dbz
         nanify_vpts(profileAll[10 + iCopied],  "%5.f"),                        // n_all
-        nanify_vpts(profileAll[13 + iCopied], "%5.f"),                        // n_dbz_all
+        nanify_vpts(profileAll[13 + iCopied], "%5.f"),                         // n_dbz_all
         *rcs, *sd_vvp_thresh, *vcp, latitude, longitude, height, *wavelength, fileIn);
     }
 
