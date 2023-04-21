@@ -3664,10 +3664,10 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .i = (int)nanify(profileBio[0+iCopied])},                  // height*
             { .f = nanify(profileBio[0 + iCopied])},                      // u
             { .f = nanify(profileBio[2 + iCopied])},                      // v
-            { .f = nanify(profileBio[3 + iCopied])},                      // w
+            { .f = nanify(profileBio[3 + iCopied])},                        // w
             { .f = nanify(profileBio[4 + iCopied])},                      // ff
             { .f = nanify(profileBio[5 + iCopied])},                      // dd
-            { .f = nanify(profileBio[6 + iCopied])},                      // sd_vvp
+            { .f = nanify(profileBio[6 + iCopied])},                       // sd_vvp
             { .c = profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE"},   // gap
             { .f = nanify(profileBio[11 + iCopied])},                     // eta
             { .f = nanify(profileBio[12 + iCopied])},                     // dens
@@ -3691,7 +3691,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         validate_fields(fields, num_fields, vpts_values);
                 
         //write to CSV format
-        /*
         fprintf(fp,"%s,%s,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%.2f,%.2f,%d,%f,%f,%f,%f,%s\n",
         radarName,                                                              //radar*
         datetime,                                                               //datetime*    
@@ -3713,8 +3712,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         nanify_vpts(profileAll[13 + iCopied], "%5.f"),                         // n_dbz_all
         *rcs, *sd_vvp_thresh, *vcp, latitude, longitude, height, *wavelength, fileIn);
     }
-    */
-   
+
     profileAll = NULL;
     profileBio = NULL;
     free((void*) profileAll);
