@@ -3625,7 +3625,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
 
     union VptsValue vpts_values[num_fields];
 
-
     float *rcs, *sd_vvp_thresh, *wavelength;
     int *vcp;
 
@@ -3687,7 +3686,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .c = source }                                              // source_file
         };
 
-        validate_fields(fields, num_fields, vpts_values);
+        //validate_fields(fields, num_fields, vpts_values);
 
         /*
         //write to CSV format
