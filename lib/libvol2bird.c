@@ -3686,15 +3686,21 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .c = source }                                              // source_file
         };
 
-        printf("num_fields: %d\n", num_fields);
-
         printf("vpts_values:\n");
         for (int i = 0; i < num_fields; i++) {
             printf("%s: ", fields[i].name);
-            printf("Field %d: %f\n", i, vpts_values[i]);
- 
+            switch (fields[i].type) {
+                case CHAR:
+                    printf("%s\n", vpts_values[i].c);
+                    break;
+                case INT:
+                    printf("%d\n", vpts_values[i].i);
+                    break;
+                case FLOAT:
+                    printf("%f\n", vpts_values[i].f);
+                    break;
+            }
         }
-
 
         //validate_fields(fields, num_fields, vpts_values);
 
