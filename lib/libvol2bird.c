@@ -3684,8 +3684,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .f = longitude },                                           // radar_longitude
             { .f = height },                                              // radar_height
             { .f = *wavelength },                                         // radar_wavelength
-            { .c = source },                                              // source_file
-            { .c = NULL }                                                 // End of union
+            { .c = source }                                              // source_file
         };
 
         validate_fields(fields, num_fields, vpts_values);
