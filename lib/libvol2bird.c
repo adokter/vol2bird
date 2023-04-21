@@ -3686,6 +3686,21 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .c = source }                                              // source_file
         };
 
+        printf("num_fields: %d\n", num_fields);
+
+        printf("vpts_values:\n");
+        for (int i = 0; i < num_fields; i++) {
+            printf("%s: ", fields[i].name);
+            if (strcmp(fields[i].type, "integer") == 0) {
+                printf("%d\n", vpts_values[i].i);
+            } else if (strcmp(fields[i].type, "float") == 0) {
+                printf("%f\n", vpts_values[i].f);
+            } else if (strcmp(fields[i].type, "string") == 0) {
+                printf("%s\n", vpts_values[i].c);
+            }
+        }
+
+
         //validate_fields(fields, num_fields, vpts_values);
 
         /*
