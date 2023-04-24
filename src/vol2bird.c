@@ -463,12 +463,6 @@ int main(int argc, char **argv)
     // map vol2bird profile data to Rave profile object
     mapDataToRave(volume, &alldata);
 
-    double vp_latitude = VerticalProfile_getLatitude(alldata.vp);
-    double vp_longitude = VerticalProfile_getLongitude(alldata.vp);
-
-    printf("Latitude: %lf\n", vp_latitude);
-    printf("Longitude: %lf\n", vp_longitude);
-
     // RaveList_t* attnames = VerticalProfile_getAttributeNames(alldata.vp);
     // RaveObjectList_t* attvalues = VerticalProfile_getAttributeValues(alldata.vp);
     // printf("Number of names: %d\n", attnames);
