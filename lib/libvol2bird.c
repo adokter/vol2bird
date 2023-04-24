@@ -3661,12 +3661,12 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .c = radarName },                                           // radar*
             { .c = datetime },                                            // datetime*
             { .i = (int)nanify(profileBio[0+iCopied])},                  // height*
-            { .f = nanify(profileBio[0 + iCopied])},                      // u
-            { .f = nanify(profileBio[2 + iCopied])},                      // v
-            { .f = nanify(profileBio[3 + iCopied])},                        // w
-            { .f = nanify(profileBio[4 + iCopied])},                      // ff
-            { .f = nanify(profileBio[5 + iCopied])},                      // dd
-            { .f = nanify(profileBio[6 + iCopied])},                       // sd_vvp
+            { .f = nanify(profileBio[2 + iCopied])},                      // u
+            { .f = nanify(profileBio[3 + iCopied])},                      // v
+            { .f = nanify(profileBio[4 + iCopied])},                        // w
+            { .f = nanify(profileBio[5 + iCopied])},                      // ff
+            { .f = nanify(profileBio[6 + iCopied])},                      // dd
+            { .f = nanify(profileBio[7 + iCopied])},                       // sd_vvp
             { .c = profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE"},   // gap
             { .f = nanify(profileBio[11 + iCopied])},                     // eta
             { .f = nanify(profileBio[12 + iCopied])},                     // dens
