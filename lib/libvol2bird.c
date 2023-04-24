@@ -3634,7 +3634,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     wavelength = &alldata->options.radarWavelength;
 
     printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
-    printf("longitude = %f, latitude = %f, height = %f, wavelength = %f\n", longitude, latitude, height, *wavelength);
+    printf("longitude = %f, latitude = %f, height = %f, wavelength = %f\n", &longitude, &latitude, height, *wavelength);
 
     // Extract the radar name from the source variable
     char* radarName = NULL;
