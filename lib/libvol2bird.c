@@ -3672,7 +3672,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .f = nanify(profileBio[12 + iCopied])},                     // dens
             { .f = nanify(profileBio[9 + iCopied])},                      // dbz
             { .f = nanify(profileAll[9 + iCopied])},                       // DBZH
-            { .f = nanify(profileBio[10 + iCopied])},                     // n
+            { .f = profileBio[10 + iCopied]},                     // n
             { .f = nanify(profileBio[13 + iCopied])},                     // n_dbz
             { .f = nanify(profileAll[10 + iCopied])},                     // n_all
             { .f = nanify(profileAll[13 + iCopied])},                    // n_dbz_all
