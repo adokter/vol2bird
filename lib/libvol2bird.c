@@ -3619,7 +3619,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
 
     union VptsValue {
         int i;
-        float f;
+        double d;
         char* c;
     };
 
@@ -3661,28 +3661,28 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .c = radarName },                                           // radar*
             { .c = datetime },                                            // datetime*
             { .i = (int)nanify(profileBio[0+iCopied])},                  // height*
-            { .f = nanify(profileBio[2 + iCopied])},                      // u
-            { .f = nanify(profileBio[3 + iCopied])},                      // v
-            { .f = nanify(profileBio[4 + iCopied])},                        // w
-            { .f = nanify(profileBio[5 + iCopied])},                      // ff
-            { .f = nanify(profileBio[6 + iCopied])},                      // dd
-            { .f = nanify(profileBio[7 + iCopied])},                       // sd_vvp
+            { .d = nanify(profileBio[2 + iCopied])},                      // u
+            { .d = nanify(profileBio[3 + iCopied])},                      // v
+            { .d = nanify(profileBio[4 + iCopied])},                        // w
+            { .d = nanify(profileBio[5 + iCopied])},                      // ff
+            { .d = nanify(profileBio[6 + iCopied])},                      // dd
+            { .d = nanify(profileBio[7 + iCopied])},                       // sd_vvp
             { .c = profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE"},   // gap
-            { .f = nanify(profileBio[11 + iCopied])},                     // eta
-            { .f = nanify(profileBio[12 + iCopied])},                     // dens
-            { .f = nanify(profileBio[9 + iCopied])},                      // dbz
-            { .f = nanify(profileAll[9 + iCopied])},                       // DBZH
-            { .f = profileBio[10 + iCopied]},                              // n
-            { .f = nanify(profileBio[13 + iCopied])},                     // n_dbz
-            { .f = nanify(profileAll[10 + iCopied])},                     // n_all
-            { .f = nanify(profileAll[13 + iCopied])},                    // n_dbz_all
-            { .f = *rcs },                                                // rcs
-            { .f = *sd_vvp_thresh },                                      // sd_vvp_threshold
+            { .d = nanify(profileBio[11 + iCopied])},                     // eta
+            { .d = nanify(profileBio[12 + iCopied])},                     // dens
+            { .d = nanify(profileBio[9 + iCopied])},                      // dbz
+            { .d = nanify(profileAll[9 + iCopied])},                       // DBZH
+            { .d = profileBio[10 + iCopied]},                              // n
+            { .d = nanify(profileBio[13 + iCopied])},                     // n_dbz
+            { .d = nanify(profileAll[10 + iCopied])},                     // n_all
+            { .d = nanify(profileAll[13 + iCopied])},                    // n_dbz_all
+            { .d = *rcs },                                                // rcs
+            { .d = *sd_vvp_thresh },                                      // sd_vvp_threshold
             { .i = *vcp },                                                // vcp
-            { .f = &latitude },                                            // radar_latitude
-            { .f = &longitude },                                           // radar_longitude
-            { .f = &height },                                              // radar_height
-            { .f = *wavelength },                                         // radar_wavelength
+            { .d = &latitude },                                            // radar_latitude
+            { .d = &longitude },                                           // radar_longitude
+            { .d = &height },                                              // radar_height
+            { .d = *wavelength },                                         // radar_wavelength
             { .c = source }                                              // source_file
         };
 
@@ -3694,7 +3694,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             } else if (strcmp(fields[i].type, "boolean") == 0) {
                 printf("%s: %s\n", fields[i].name, vpts_values[i].c);
             } else if (strcmp(fields[i].type, "number") == 0) {
-                printf("%s: %f\n", fields[i].name, vpts_values[i].f);
+                printf("%s: %f\n", fields[i].name, vpts_values[i].d);
             }
         }
 
