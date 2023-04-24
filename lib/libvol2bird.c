@@ -3679,9 +3679,9 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .f = *rcs },                                                // rcs
             { .f = *sd_vvp_thresh },                                      // sd_vvp_threshold
             { .i = *vcp },                                                // vcp
-            { .f = *latitude },                                            // radar_latitude
-            { .f = *longitude },                                           // radar_longitude
-            { .f = *height },                                              // radar_height
+            { .f = &latitude },                                            // radar_latitude
+            { .f = &longitude },                                           // radar_longitude
+            { .f = &height },                                              // radar_height
             { .f = *wavelength },                                         // radar_wavelength
             { .c = source }                                              // source_file
         };
