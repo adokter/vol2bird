@@ -402,6 +402,7 @@ int main(int argc, char **argv)
     longitude = PolarVolume_getLongitude(volume);
     latitude = PolarVolume_getLatitude(volume);
     height = PolarVolume_getHeight(volume);
+    printf("Longitude: %f, Latitude: %f, Height: %f\n", longitude, latitude, height);
 
     { // getter example scope begin
 
