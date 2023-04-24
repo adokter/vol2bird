@@ -399,11 +399,7 @@ int main(int argc, char **argv)
     date = PolarVolume_getDate(volume);
     time = PolarVolume_getTime(volume);
     source = PolarVolume_getSource(volume);
-    longitude = PolarVolume_getLongitude(volume);
-    latitude = PolarVolume_getLatitude(volume);
-    height = PolarVolume_getHeight(volume);
     
-    printf("Longitude: %f, Latitude: %f, Height: %f\n", longitude, latitude, height);
     { // getter example scope begin
 
         int nRowsProfile = vol2birdGetNRowsProfile(&alldata);
