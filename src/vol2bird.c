@@ -402,8 +402,8 @@ int main(int argc, char **argv)
     longitude = PolarVolume_getLongitude(volume);
     latitude = PolarVolume_getLatitude(volume);
     height = PolarVolume_getHeight(volume);
+    
     printf("Longitude: %f, Latitude: %f, Height: %f\n", longitude, latitude, height);
-
     { // getter example scope begin
 
         int nRowsProfile = vol2birdGetNRowsProfile(&alldata);
@@ -466,6 +466,12 @@ int main(int argc, char **argv)
 
     // map vol2bird profile data to Rave profile object
     mapDataToRave(volume, &alldata);
+
+    double latitude = VerticalProfile_getLatitude(alldata.vp);
+    double longitude = VerticalProfile_getLongitude(alldata.vp);
+
+    printf("Latitude: %lf\n", latitude);
+    printf("Longitude: %lf\n", longitude);
 
     // RaveList_t* attnames = VerticalProfile_getAttributeNames(alldata.vp);
     // RaveObjectList_t* attvalues = VerticalProfile_getAttributeValues(alldata.vp);
