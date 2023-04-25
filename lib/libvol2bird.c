@@ -3654,22 +3654,22 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         union VptsValue vpts_values[] = {
             { .c = radarName },                                           // radar*
             { .c = datetime },                                            // datetime*
-            { .i = (int)nanify(profileBio[0+iCopied])},                  // height*
+            { .i = (int)nanify(profileBio[0+iCopied])},                   // height*
             { .d = nanify(profileBio[2 + iCopied])},                      // u
             { .d = nanify(profileBio[3 + iCopied])},                      // v
-            { .d = nanify(profileBio[4 + iCopied])},                        // w
+            { .d = nanify(profileBio[4 + iCopied])},                      // w
             { .d = nanify(profileBio[5 + iCopied])},                      // ff
             { .d = nanify(profileBio[6 + iCopied])},                      // dd
-            { .d = nanify(profileBio[7 + iCopied])},                       // sd_vvp
+            { .d = nanify(profileBio[7 + iCopied])},                      // sd_vvp
             { .c = profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE"},   // gap
             { .d = nanify(profileBio[11 + iCopied])},                     // eta
             { .d = nanify(profileBio[12 + iCopied])},                     // dens
             { .d = nanify(profileBio[9 + iCopied])},                      // dbz
-            { .d = nanify(profileAll[9 + iCopied])},                       // DBZH
-            { .d = profileBio[10 + iCopied]},                              // n
+            { .d = nanify(profileAll[9 + iCopied])},                      // DBZH
+            { .d = profileBio[10 + iCopied]},                             // n
             { .d = nanify(profileBio[13 + iCopied])},                     // n_dbz
             { .d = nanify(profileAll[10 + iCopied])},                     // n_all
-            { .d = nanify(profileAll[13 + iCopied])},                    // n_dbz_all
+            { .d = nanify(profileAll[13 + iCopied])},                     // n_dbz_all
             { .d = *rcs },                                                // rcs
             { .d = *sd_vvp_thresh },                                      // sd_vvp_threshold
             { .i = *vcp },                                                // vcp
@@ -3677,7 +3677,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .d = longitude },                                           // radar_longitude
             { .i = height },                                              // radar_height
             { .d = *wavelength },                                         // radar_wavelength
-            { .c = source }                                              // source_file
+            { .c = source }                                               // source_file
         };
 
         validate_fields(fields, num_fields, vpts_values);
