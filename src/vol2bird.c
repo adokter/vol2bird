@@ -277,6 +277,12 @@ int main(int argc, char **argv)
             }
         }
 
+        // Check if the last argument is --csv
+        if (argc > 1 && strcmp(argv[argc-1], "--csv") == 0)
+        {
+            formatCSV = 1;
+        }
+
         /* Print any remaining command line arguments (not options). */
         if (optind < argc)
         {
