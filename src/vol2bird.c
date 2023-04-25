@@ -171,8 +171,8 @@ int main(int argc, char **argv)
         nInputFiles = 1;
 
         //to output to csv, add a --csv flag as the last argument 
-        if (argc==4){
-            if (strcmp(argv[i], "--csv") == 0) {
+        if (argc == 4){
+            if (strcmp(argv[argc - 1], "--csv") == 0) {
                 formatCSV = 1;
             }
         }
