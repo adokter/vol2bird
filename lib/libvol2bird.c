@@ -3607,12 +3607,10 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     int nRowsProfile = vol2birdGetNRowsProfile(alldata);
     int nColsProfile = vol2birdGetNColsProfile(alldata);
 
-    float *profileBio;
-    float *profileAll;
+    float *profileBio, *profileAll;
 
     profileBio = vol2birdGetProfile(1, alldata);
     profileAll = vol2birdGetProfile(3, alldata);
-
 
     const int num_fields = sizeof(fields) / sizeof(fields[0]);
 
