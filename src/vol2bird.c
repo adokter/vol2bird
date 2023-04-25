@@ -155,7 +155,7 @@ int main(int argc, char **argv)
     if (commandLineFormat == 0)
     {
         // check to see if we have the right number of input arguments
-        if (argc > 4)
+        if (argc > 5)
         {
             fprintf(stderr, "Error: Invalid command line arguments\n");
             usage(argv[0], 0);
@@ -170,7 +170,13 @@ int main(int argc, char **argv)
         fileIn[0] = argv[1];
         nInputFiles = 1;
 
-        if (argc == 3)
+        //to output to csv, add a --csv flag as the last argument 
+        if (argc==4){
+            if (strcmp(argv[i], "--csv") == 0) {
+                formatCSV = 1;
+            }
+        }
+        else if (argc == 3)
         {
             fileVpOut = argv[2];
             fileVolOut = NULL;
