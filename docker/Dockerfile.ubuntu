@@ -16,7 +16,7 @@ MAINTAINER Adriaan Dokter
 # * numpy 
 # * proj4 library
 # * flexold, otherwise configure script of RSL library does not function properly
-RUN apt-get update && apt-get install --no-install-recommends -y libcsv-dev libconfuse-dev \
+RUN apt-get update && apt-get install --no-install-recommends -y libconfuse-dev \
     libhdf5-dev gcc g++ wget unzip make cmake zlib1g-dev python python-dev python-numpy libproj-dev flex-old file \
     && apt-get install -y git git-lfs && apt-get install -y libgsl-dev && apt-get install -y libbz2-dev
 RUN apt-get install --no-install-recommends -y python3 python3-dev python3-numpy
