@@ -3695,7 +3695,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         }
 */
 
-        validate_fields(fields, 10, vpts_values);
+        validate_fields(fields, num_fields, vpts_values);
 
         
         //write to CSV format
