@@ -468,32 +468,35 @@ int main(int argc, char **argv)
         //}
     } // getter scope end
 
-    writeCSV("output.csv", &alldata, source, fileIn[0], date, time, volume);
+    if (formatCSV){
+    
+        writeCSV("output.csv", &alldata, source, fileIn[0], date, time, volume);
 
+    } else {
     // ------------------------------------------------------------------- //
     //                 end of the getter example section                   //
     // ------------------------------------------------------------------- //
 
-    // map vol2bird profile data to Rave profile object
-    mapDataToRave(volume, &alldata);
+        // map vol2bird profile data to Rave profile object
+        mapDataToRave(volume, &alldata);
 
-    // RaveList_t* attnames = VerticalProfile_getAttributeNames(alldata.vp);
-    // RaveObjectList_t* attvalues = VerticalProfile_getAttributeValues(alldata.vp);
-    // printf("Number of names: %d\n", attnames);
-    // printf("Number of values: %d\n", attvalues);
+        // RaveList_t* attnames = VerticalProfile_getAttributeNames(alldata.vp);
+        // RaveObjectList_t* attvalues = VerticalProfile_getAttributeValues(alldata.vp);
+        // printf("Number of names: %d\n", attnames);
+        // printf("Number of values: %d\n", attvalues);
 
-    // save rave profile to ODIM hdf5 file
-    if (fileVpOut != NULL)
-    {
-        int result;
-        result = saveToODIM((RaveCoreObject *)alldata.vp, fileVpOut);
-        if (result == FALSE)
+        // save rave profile to ODIM hdf5 file
+        if (fileVpOut != NULL)
         {
-            fprintf(stderr, "critical error, cannot write file %s\n", fileVpOut);
-            return -1;
+            int result;
+            result = saveToODIM((RaveCoreObject *)alldata.vp, fileVpOut);
+            if (result == FALSE)
+            {
+                fprintf(stderr, "critical error, cannot write file %s\n", fileVpOut);
+                return -1;
+            }
         }
     }
-
     // tear down vol2bird, give memory back
     vol2birdTearDown(&alldata);
     RAVE_OBJECT_RELEASE(volume);
@@ -502,6 +505,5 @@ int main(int argc, char **argv)
     // clock_gettime(CLOCK_REALTIME, &ts);
     // double nSeconds = ((double) ts.tv_nsec)/1e9;
     // fprintf(stderr, "Processing done in %.2f seconds\n",nSeconds);
-
     return 0;
 }
