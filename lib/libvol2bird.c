@@ -3587,11 +3587,12 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
 void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, char* date, char* time, PolarVolume_t* pvol){
     
 
-    double longitude, latitude, height;
+    double longitude, latitude
+    int height;
 
     longitude = PolarVolume_getLongitude(pvol) / (M_PI/180.0);
     latitude = PolarVolume_getLatitude(pvol) / (M_PI/180.0);
-    height = round(PolarVolume_getHeight(pvol));
+    height = (int)PolarVolume_getHeight(pvol);
 
     if (sizeof(height) == sizeof(int)) {
     printf("The data type of height is: int\n");
@@ -3635,7 +3636,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     wavelength = &alldata->options.radarWavelength;
 
     //printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
-    printf("longitude = %f, latitude = %f, height = %d, wavelength = %f\n", longitude, latitude, int(height), *wavelength);
+    printf("longitude = %f, latitude = %f, height = %d, wavelength = %f\n", longitude, latitude, height, *wavelength);
 
     // Extract the radar name from the source variable
     char* radarName = NULL;
