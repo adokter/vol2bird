@@ -3471,34 +3471,35 @@ bool is_integer(const char *value) {
     return endptr != value && *endptr == '\0';
 }
 
-bool validate_value(const field_t field, const char *value) {
-    int i = -1;
-    int num_fields = sizeof(fields) / sizeof(fields[0]);
-    for (int j = 0; j < num_fields; j++) {
-        if (strcmp(fields[j].name, field.name) == 0) {
-            i = j;
-            break;
-        }
-    }
-    if (i == -1) {
-        // Invalid field name
-        return false;
-    }
+
+typedef union {
+    int i;
+    double d;
+    char* c;
+} VptsValue;
+
+
+bool validate_value(const field_t field, const VptsValue value) {
     if (strcmp(field.type, "string") == 0) {
-        return true;  // No additional checks needed for string type
-    }
-    else if (strcmp(field.type, "number") == 0) {
-        // Check if the value is a floating-point number
-        if (!is_float(value)) {
+        // Check if the value is a string
+        if (!is_string(value.c)) {
             return false;
         }
-        double d_value = atof(value);
+        // No additional checks needed for string type
+        return true;
+    }
+    else if (strcmp(field.type, "number") == 0) {
+        // Check if the value is a number
+        if (!is_float(value.c)) {
+            return false;
+        }
+        double d_value = value.d;
 
         // Check if minimum value is set and validate
         if (!isnan(field.constraints.minimum)) {
             double min_value = field.constraints.minimum;
             if (d_value < min_value) {
-                printf("Value for field '%s' is below minimum value of %f: %s\n", fields[i].name, min_value, value);
+                printf("Value for field '%s' is below minimum value of %f: %f\n", field.name, min_value, d_value);
                 return false;
             }
         }
@@ -3507,49 +3508,37 @@ bool validate_value(const field_t field, const char *value) {
         if (!isnan(field.constraints.maximum)) {
             double max_value = field.constraints.maximum;
             if (max_value != INFINITY && d_value > max_value) {
-                printf("Value for field '%s' is above maximum value of %f: %s\n", fields[i].name, max_value, value);
+                printf("Value for field '%s' is above maximum value of %f: %f\n", field.name, max_value, d_value);
                 return false;
             }
         }
     }
     else if (strcmp(field.type, "integer") == 0) {
         // Check if the value is an integer
-        if (!is_integer(value)) {
+        if (!is_integer(value.i)) {
             return false;
         }
-        int i_value = atoi(value);
+        int i_value = value.i;
 
         // Check if the value is within the minimum and maximum bounds
         if (!isnan(field.constraints.minimum) && i_value < (int)field.constraints.minimum) {
+            printf("Value for field '%s' is below minimum value of %d: %d\n", field.name, (int)field.constraints.minimum, i_value);
             return false;
         }
 
         if (!isnan(field.constraints.maximum)) {
             if (i_value > (int)field.constraints.maximum) {
+                printf("Value for field '%s' is above maximum value of %d: %d\n", field.name, (int)field.constraints.maximum, i_value);
                 return false;
             }
         }
-        return true;
-    }
-    else if (strcmp(field.type, "datetime") == 0) {
-        // Check if the value is a valid datetime in the expected format
-        return is_datetime(value, "%Y-%m-%dT%H:%M:%SZ");
-    }
-    else if (strcmp(field.type, "boolean") == 0) {
-        // Check if the value is a boolean
-        return is_boolean(value);
     }
     else {
         // Invalid type
         return false;
     }
+    return true;
 }
-
-typedef union {
-    int i;
-    double d;
-    char* c;
-} VptsValue;
 
 
 void validate_fields(const field_t fields[], int num_fields, const VptsValue values[]) {
