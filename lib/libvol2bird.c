@@ -3630,8 +3630,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     vcp = &alldata->misc.vcp;
     wavelength = &alldata->options.radarWavelength;
 
-    printf("longitude = %f, latitude = %f, height = %d, wavelength = %f\n", longitude, latitude, height, *wavelength);
-
     // Extract the radar name from the source variable
     char* radarName = NULL;
     char* p = strstr(source, "radar_name:");
@@ -3649,11 +3647,8 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:00Z", date, date+4, date+6, time, time+2);
 
-        //validate fields
+        //validate field functions
         /*
-        
-        printf("Validating vpts fields for row %d\n", iRowProfile);
-
         union VptsValue vpts_values[] = {
             { .c = radarName },                                           // radar*
             { .c = datetime },                                            // datetime*
