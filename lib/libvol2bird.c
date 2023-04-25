@@ -3687,6 +3687,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .c = source }                                              // source_file
         };
 
+        /*
         for (int i = 0; i < num_fields; i++) {
             if (strcmp(fields[i].type, "string") == 0) {
                 printf("%s: %s\n", fields[i].name, vpts_values[i].c);
@@ -3698,8 +3699,12 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
                 printf("%s: %f\n", fields[i].name, vpts_values[i].d);
             }
         }
+        */
 
-        validate_fields(fields, 1, vpts_values);
+        for (int i = 0; i < num_fields; i++) {
+            printf("Valid until field %s\n", i);
+            validate_fields(fields, i, vpts_values);
+        }
 
         /*
         //write to CSV format
