@@ -3594,12 +3594,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     latitude = PolarVolume_getLatitude(pvol) / (M_PI/180.0);
     height = (int)PolarVolume_getHeight(pvol);
 
-    if (sizeof(height) == sizeof(int)) {
-    printf("The data type of height is: int\n");
-    } else {
-        printf("The data type of height is not int\n");
-    }
-
     FILE *fp;
     fp = fopen(filename, "w");
     if (fp == NULL) {
@@ -3635,7 +3629,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     vcp = &alldata->misc.vcp;
     wavelength = &alldata->options.radarWavelength;
 
-    //printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
     printf("longitude = %f, latitude = %f, height = %d, wavelength = %f\n", longitude, latitude, height, *wavelength);
 
     // Extract the radar name from the source variable
@@ -3645,8 +3638,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         p += strlen("radar_name:");
         radarName = strtok(p, ",");
     }
-    // fprintf(fp, "radar,datetime,%s\n", source);
-    // fprintf(fp, "polar_volume_input,%s\n", fileIn);
     fprintf(fp, "radar, datetime, height, u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelenght,source_file\n");
 
     int iRowProfile;
@@ -3658,7 +3649,8 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:00Z", date, date+4, date+6, time, time+2);
 
         //validate fields
-        printf("Validating vpts fields for row %d\n", iRowProfile);
+        //printf("Validating vpts fields for row %d\n", iRowProfile);
+
         union VptsValue vpts_values[] = {
             { .c = radarName },                                           // radar*
             { .c = datetime },                                            // datetime*
