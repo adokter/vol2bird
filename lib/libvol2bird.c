@@ -3703,12 +3703,12 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         radarName,                                                              //radar*
         datetime,                                                               //datetime*    
         (int)nanify(profileBio[0+iCopied]),                                     //height*
-        nanify_vpts(profileBio[0 + iCopied],"%6.2f"),                           //u
-        nanify_vpts(profileBio[2 + iCopied], "%6.2f"),                          //v
-        nanify_vpts(profileBio[3 + iCopied], "%7.2f"),                          //w
-        nanify_vpts(profileBio[4 + iCopied], "%5.2f"),                          //ff
-        nanify_vpts(profileBio[5 + iCopied], "%5.1f"),                          //dd
-        nanify_vpts(profileBio[6 + iCopied],  "%6.2f"),                         //sd_vvp
+        nanify_vpts(profileBio[2 + iCopied],"%6.2f"),                           //u
+        nanify_vpts(profileBio[3 + iCopied], "%6.2f"),                          //v
+        nanify_vpts(profileBio[4 + iCopied], "%7.2f"),                          //w
+        nanify_vpts(profileBio[5 + iCopied], "%5.2f"),                          //ff
+        nanify_vpts(profileBio[6 + iCopied], "%5.1f"),                          //dd
+        nanify_vpts(profileBio[7 + iCopied],  "%6.2f"),                         //sd_vvp
         profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE",                     // gap
         nanify_vpts(profileBio[11 + iCopied],  "%6.1f"),                        // eta
         nanify_vpts(profileBio[12 + iCopied],  "%6.2f"),                        // dens
