@@ -3545,10 +3545,10 @@ void validate_fields(const field_t fields[], int num_fields, const VptsValue val
     for (int i = 0; i < num_fields; i++) {
         if (fields[i].required) {
             const VptsValue value = values[i];
-            if (value.c == NULL || strcmp(value.c, "") == 0) {
+            if (value.c == NULL || !is_number(value.d) || !is_integer(value.i)) {
                 printf("WARNING! Missing value for required field: '%s'\n", fields[i].name);
             }
-            else if (!validate_value(fields[i], value.c)) {
+            else if (!validate_value(fields[i], value)) {
                 printf("WARNING! Invalid value for field '%s': %s\n", fields[i].name, value.c);
             }
         }
