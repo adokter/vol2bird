@@ -3586,6 +3586,9 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
 
 void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, char* date, char* time, PolarVolume_t* pvol){
     
+    // ---------------------------------------------------------- //
+    // this function writes the vertical profile to CSV format   //
+    // ---------------------------------------------------------- //
 
     double longitude, latitude;
     int height;
