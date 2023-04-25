@@ -174,17 +174,16 @@ int main(int argc, char **argv)
         if (argc == 4){
             if (strcmp(argv[argc - 1], "--csv") == 0) {
                 formatCSV = 1;
+                fileVpOut = argv[2];
+            } else {
+                fileVpOut = argv[2];
+                fileVolOut = argv[3];
             }
         }
         else if (argc == 3)
         {
             fileVpOut = argv[2];
             fileVolOut = NULL;
-        }
-        else if (argc == 4)
-        {
-            fileVpOut = argv[2];
-            fileVolOut = argv[3];
         }
         else
         {
@@ -470,7 +469,7 @@ int main(int argc, char **argv)
 
     if (formatCSV){
     
-        writeCSV("output.csv", &alldata, source, fileIn[0], date, time, volume);
+        writeCSV(fileVpOut, &alldata, source, fileIn[0], date, time, volume);
 
     } else {
     // ------------------------------------------------------------------- //
