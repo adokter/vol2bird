@@ -3474,7 +3474,6 @@ bool is_number(double value) {
 }
 
 
-
 typedef union {
     int i;
     double d;
