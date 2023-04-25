@@ -3495,7 +3495,7 @@ bool validate_value(const field_t field, const char *value) {
         double d_value = atof(value);
 
         // Check if minimum value is set and validate
-        if (field.constraints.required && !isnan(field.constraints.minimum)) {
+        if (!isnan(field.constraints.minimum)) {
             double min_value = field.constraints.minimum;
             if (d_value < min_value) {
                 printf("Value for field '%s' is below minimum value of %f: %s\n", fields[i].name, min_value, value);
@@ -3504,7 +3504,7 @@ bool validate_value(const field_t field, const char *value) {
         }
 
         // Check if maximum value is set and validate
-        if (field.constraints.required && !isnan(field.constraints.maximum)) {
+        if (!isnan(field.constraints.maximum)) {
             double max_value = field.constraints.maximum;
             if (max_value != INFINITY && d_value > max_value) {
                 printf("Value for field '%s' is above maximum value of %f: %s\n", fields[i].name, max_value, value);
@@ -3547,9 +3547,10 @@ bool validate_value(const field_t field, const char *value) {
 
 typedef union {
     int i;
-    float f;
+    double d;
     char* c;
 } VptsValue;
+
 
 void validate_fields(const field_t fields[], int num_fields, const VptsValue values[]) {
     for (int i = 0; i < num_fields; i++) {
@@ -3698,7 +3699,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             }
         }
 
-        //validate_fields(fields, num_fields, vpts_values);
+        validate_fields(fields, num_fields, vpts_values);
 
         /*
         //write to CSV format
