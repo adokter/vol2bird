@@ -3464,12 +3464,15 @@ bool is_float(const char *value) {
     return endptr != value && *endptr == '\0';
 }
 
-bool is_integer(const char *value) {
-    // check if the string can be converted to an integer
-    char *endptr;
-    strtol(value, &endptr, 10);
-    return endptr != value && *endptr == '\0';
+bool is_integer(int value) {
+    // an integer is always a valid value
+    return true;
 }
+bool is_number(double value) {
+    // check if the given value is a number (not NaN or infinity)
+    return isfinite(value) || isnan(value);
+}
+
 
 
 typedef union {
@@ -3490,7 +3493,7 @@ bool validate_value(const field_t field, const VptsValue value) {
     }
     else if (strcmp(field.type, "number") == 0) {
         // Check if the value is a number
-        if (!is_float(value.c)) {
+        if (!isfinite(value.d)) {
             return false;
         }
         double d_value = value.d;
@@ -3549,7 +3552,7 @@ void validate_fields(const field_t fields[], int num_fields, const VptsValue val
                 printf("WARNING! Missing value for required field: '%s'\n", fields[i].name);
             }
             else if (!validate_value(fields[i], value)) {
-                printf("WARNING! Invalid value for field '%s': %s\n", fields[i].name, value.c);
+                printf("WARNING! Missing or invalid value for required field '%s' of type '%s'\n", fields[i].name, fields[i].type);
             }
         }
     }
