@@ -3681,6 +3681,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
             { .c = source }                                              // source_file
         };
 
+/*
         for (int i = 0; i < num_fields; i++) {
             if (strcmp(fields[i].type, "string") == 0) {
                 printf("%s: %s\n", fields[i].name, vpts_values[i].c);
@@ -3692,10 +3693,11 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
                 printf("%s: %f\n", fields[i].name, vpts_values[i].d);
             }
         }
+*/
 
         validate_fields(fields, 10, vpts_values);
 
-        /*
+        
         //write to CSV format
         fprintf(fp,"%s,%s,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%.2f,%.2f,%d,%f,%f,%f,%f,%s\n",
         radarName,                                                              //radar*
@@ -3717,7 +3719,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         nanify_vpts(profileAll[10 + iCopied],  "%5.f"),                        // n_all
         nanify_vpts(profileAll[13 + iCopied], "%5.f"),                         // n_dbz_all
         *rcs, *sd_vvp_thresh, *vcp, latitude, longitude, height, *wavelength, fileIn);
-        */
+        
 
     }
 
