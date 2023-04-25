@@ -481,7 +481,7 @@ void vol2birdTearDown(vol2bird_t* alldata);
 
 int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata);
 
-float nanify(float value);
+double nanify(double value);
 
 void nanify_str(char* buff, const char* fmt, double v);
 
