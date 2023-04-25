@@ -3591,7 +3591,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
 
     longitude = PolarVolume_getLongitude(pvol) / (M_PI/180.0);
     latitude = PolarVolume_getLatitude(pvol) / (M_PI/180.0);
-    height = (int)round(PolarVolume_getHeight(pvol));
+    height = round(PolarVolume_getHeight(pvol));
 
     if (sizeof(height) == sizeof(int)) {
     printf("The data type of height is: int\n");
