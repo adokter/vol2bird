@@ -3473,6 +3473,9 @@ bool is_number(double value) {
     return isfinite(value) || isnan(value);
 }
 
+bool is_string(const char *value) {
+    return (value != NULL);
+}
 
 typedef union {
     int i;
