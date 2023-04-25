@@ -496,6 +496,7 @@ int main(int argc, char **argv)
             }
         }
     }
+    
     // tear down vol2bird, give memory back
     vol2birdTearDown(&alldata);
     RAVE_OBJECT_RELEASE(volume);
