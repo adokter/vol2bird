@@ -3059,7 +3059,7 @@ void nanify_str(char* buff, const char* fmt, double v) {
 }
 
 char* nanify_vpts(float value, const char* fmt) {
-  char* output = malloc(16); // Allocate enough memory for a 15-character float string
+  char* output = malloc(15 + 1); // Allocate enough memory for a 15-character float string plus null terminator
   if (value == NODATA) {
     strcpy(output, "");
   } else if (value == UNDETECT) {
@@ -3067,6 +3067,7 @@ char* nanify_vpts(float value, const char* fmt) {
   } else {
     sprintf(output, fmt, value);
   }
+  output[15] = '\0'; // Ensure output is null-terminated
   return output;
 }
 
@@ -3180,6 +3181,11 @@ static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* 
 }
 
 const char *missing_values[] = {"", "NA", "NaN"};
+
+//----------------------------------------------------------//
+//   vpts exchange format https://aloftdata.eu/vpts-csv    //
+//---------------------------------------------------------//
+    
 
 const field_t fields[] = {
 
@@ -3445,6 +3451,10 @@ const field_t fields[] = {
     }
 };
 
+//-----------------------------------------//
+//   functions to validate vpts fields    //
+//---------------------------------------//
+    
 
 int is_datetime(const char *value, const char *format) {
     // Check if the value is in the correct format
@@ -3586,9 +3596,9 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
 
 void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, char* date, char* time, PolarVolume_t* pvol){
     
-    // ---------------------------------------------------------- //
-    // this function writes the vertical profile to CSV format   //
-    // ---------------------------------------------------------- //
+    // ----------------------------------------------------------------------------------------- //
+    // this function writes the vertical profile to CSV format https://aloftdata.eu/vpts-csv     //
+    // ---------------------------------------------------------------------------------------- //
 
     double longitude, latitude;
     int height;
