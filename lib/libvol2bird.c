@@ -3041,8 +3041,8 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
 
 
 // this function replaces NODATA and UNDETECT float values to NA and NAN
-float nanify(float value){
-    float output = value;
+double nanify(double value){
+    double output = value;
     if(value == NODATA) output = NAN;
     if(value == UNDETECT) output = NAN;
     return output;
