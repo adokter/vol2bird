@@ -3593,6 +3593,12 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     latitude = PolarVolume_getLatitude(pvol) / (M_PI/180.0);
     height = (int)round(PolarVolume_getHeight(pvol));
 
+    if (sizeof(height) == sizeof(int)) {
+    printf("The data type of height is: int\n");
+    } else {
+        printf("The data type of height is not int\n");
+    }
+
     FILE *fp;
     fp = fopen(filename, "w");
     if (fp == NULL) {
@@ -3629,7 +3635,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     wavelength = &alldata->options.radarWavelength;
 
     //printf("rcs = %f, sd_vvp_thresh = %f, vcp = %d\n", *rcs, *sd_vvp_thresh, *vcp);
-    printf("longitude = %f, latitude = %f, height = %d, wavelength = %f\n", longitude, latitude, height, *wavelength);
+    printf("longitude = %f, latitude = %f, height = %f, wavelength = %f\n", longitude, latitude, height, *wavelength);
 
     // Extract the radar name from the source variable
     char* radarName = NULL;
