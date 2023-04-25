@@ -133,6 +133,8 @@ int main(int argc, char **argv)
     const char *fileVolOut = NULL;
     // the (optional) options.conf file path that the user specified as input
     const char *optionsFile = NULL;
+    // the optional flag to output vpts in CSV format
+    int formatCSV = 0;
 
     // determine whether we deal with legacy command line format (0) or getopt command line format (1)
     int commandLineFormat = 0;
