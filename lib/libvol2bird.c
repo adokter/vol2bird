@@ -3057,18 +3057,16 @@ void nanify_str(char* buff, const char* fmt, double v) {
   }
 }
 
-char* nanify_vpts(float value, const char* fmt) {
-  char* output = malloc(15 + 1); // Allocate enough memory for a 15-character float string plus null terminator
-  if (value == NODATA) {
-    strcpy(output, "");
-  } else if (value == UNDETECT) {
-    strcpy(output, "NaN");
+void nanify_str_csv(char* buff, const char* fmt, double v) {
+  if (v == NODATA) {
+    strcpy(buff, "");
+  } else if (v == UNDETECT) {
+    strcpy(buff, "NaN");
   } else {
-    sprintf(output, fmt, value);
+    sprintf(buff, fmt, v);
   }
-  output[15] = '\0'; // Ensure output is null-terminated
-  return output;
 }
+
 
 void create_profile_printout_str(char* printbuffer, int buflen, const char* date, const char* time,
     float HGHT, float u, float v, float w, float ff, float dd,
@@ -3179,7 +3177,6 @@ static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* 
         return result;
 }
 
-
 int saveToODIM(RaveCoreObject* object, const char* filename){
     
     //define new Rave IO instance
@@ -3201,7 +3198,6 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
 
     return result;    
 }
-
 
 void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, char* date, char* time, PolarVolume_t* pvol){
     
@@ -3265,40 +3261,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
 
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:00Z", date, date+4, date+6, time, time+2);
-
-        //validate field functions
-        /*
-        union VptsValue vpts_values[] = {
-            { .c = radarName },                                           // radar*
-            { .c = datetime },                                            // datetime*
-            { .i = (int)nanify(profileBio[0+iCopied])},                   // height*
-            { .d = nanify(profileBio[2 + iCopied])},                      // u
-            { .d = nanify(profileBio[3 + iCopied])},                      // v
-            { .d = nanify(profileBio[4 + iCopied])},                      // w
-            { .d = nanify(profileBio[5 + iCopied])},                      // ff
-            { .d = nanify(profileBio[6 + iCopied])},                      // dd
-            { .d = nanify(profileBio[7 + iCopied])},                      // sd_vvp
-            { .c = profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE"},   // gap
-            { .d = nanify(profileBio[11 + iCopied])},                     // eta
-            { .d = nanify(profileBio[12 + iCopied])},                     // dens
-            { .d = nanify(profileBio[9 + iCopied])},                      // dbz
-            { .d = nanify(profileAll[9 + iCopied])},                      // DBZH
-            { .d = profileBio[10 + iCopied]},                             // n
-            { .d = nanify(profileBio[13 + iCopied])},                     // n_dbz
-            { .d = nanify(profileAll[10 + iCopied])},                     // n_all
-            { .d = nanify(profileAll[13 + iCopied])},                     // n_dbz_all
-            { .d = *rcs },                                                // rcs
-            { .d = *sd_vvp_thresh },                                      // sd_vvp_threshold
-            { .i = *vcp },                                                // vcp
-            { .d = latitude },                                            // radar_latitude
-            { .d = longitude },                                           // radar_longitude
-            { .i = height },                                              // radar_height
-            { .d = *wavelength },                                         // radar_wavelength
-            { .c = source }                                               // source_file
-        };
-
-        validate_fields(fields, num_fields, vpts_values);
-        */
 
         //write to CSV format
         fprintf(fp,"%s,%s,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%.2f,%.2f,%d,%f,%f,%d,%f,%s\n",
