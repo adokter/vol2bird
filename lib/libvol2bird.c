@@ -39,6 +39,7 @@
 #undef DEG2RAD // to suppress redefine warning, also defined in dealias.h
 #include "libdealias.h"
 #include "librender.h"
+#include <ctype.h>
 
 
 #ifdef RSL
