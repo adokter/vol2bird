@@ -3244,7 +3244,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
     radar_name = alldata->misc.radarName;
     fileIn = alldata->misc.filename_pvol;
 
-    fprintf(fp, "radar,datetime,height,u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,dbz_all,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelenght,source_file\n");
+    fprintf(fp, "radar,datetime,height,u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,dbz_all,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelenght,source_file");
 
     int iRowProfile;
     int iCopied = 0;
