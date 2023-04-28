@@ -3605,6 +3605,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     longitude = PolarVolume_getLongitude(pvol) / (M_PI/180.0);
     latitude = PolarVolume_getLatitude(pvol) / (M_PI/180.0);
     height = (int)PolarVolume_getHeight(pvol);
+    source = PolarVolume_getSource(pvol);
 
     FILE *fp;
     fp = fopen(filename, "w");
@@ -3646,6 +3647,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         p += strlen("radar_name:");
         radarName = strtok(p, ",");
     }
+
     fprintf(fp, "radar, datetime, height, u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelenght,source_file\n");
 
     int iRowProfile;
@@ -5395,6 +5397,25 @@ int vol2birdLoadConfig(vol2bird_t* alldata, const char* optionsFile) {
 
 #endif
 
+char* get_radar_name(char* source) {
+    char* radarName = NULL;
+    char* p = strstr(source, "RAD:");
+    if (p != NULL) {
+        p += strlen("RAD:");
+        radarName = p;
+        char* end = strchr(p, ',');
+        if (end != NULL) {
+            *end = '\0';
+        }
+    }
+
+    if (radarName == NULL) {
+        radarName = "UNKNOWN";
+    }
+
+    return radarName;
+}
+
 //int vol2birdSetUp(PolarVolume_t* volume, cfg_t** cfg, vol2bird_t* alldata) {
 int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
     
@@ -5409,6 +5430,9 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         return -1;
     }
  
+    radarName = get_radar_name(PolarVolume_getSource(volume))
+    alldata -> misc.radarName = radarName;
+
     // reading radar wavelength from polar volume attribute
     // if present, overwrite options.radarWavelength with the value found.
     double wavelength = PolarVolume_getWavelength(volume);
