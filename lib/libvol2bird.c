@@ -3179,8 +3179,6 @@ static int verticalProfile_AddCustomField(VerticalProfile_t* self, RaveField_t* 
         return result;
 }
 
-const char *missing_values[] = {"", "NA", "NaN"};
-
 //----------------------------------------------------------//
 //   vpts exchange format https://aloftdata.eu/vpts-csv    //
 //---------------------------------------------------------//
