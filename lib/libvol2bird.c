@@ -3052,6 +3052,7 @@ void nanify_str(char* buff, const char* fmt, double v) {
     strcpy(buff, "nan");
   } else {
     sprintf(buff, fmt, v);
+    strtrim(buff); // Remove any extra white space
   }
 }
 
