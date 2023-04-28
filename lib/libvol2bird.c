@@ -3634,6 +3634,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
 
     float *rcs, *sd_vvp_thresh, *wavelength;
     int *vcp;
+    char *radar_name;
 
     rcs = &alldata->options.birdRadarCrossSection;
     sd_vvp_thresh = &alldata->options.stdDevMinBird;
