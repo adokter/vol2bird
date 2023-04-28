@@ -3202,6 +3202,26 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
     return result;    
 }
 
+void strtrim(char* str)
+{
+    char* start = str;
+    char* end = str + strlen(str) - 1;
+
+    while (*start && isspace((unsigned char) *start)) {
+        start++;
+    }
+
+    while (end > start && isspace((unsigned char) *end)) {
+        end--;
+    }
+
+    *(end + 1) = '\0';
+
+    if (start != str) {
+        memmove(str, start, (end - start) + 2);
+    }
+}
+
 void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
     
     // ----------------------------------------------------------------------------------------- //
