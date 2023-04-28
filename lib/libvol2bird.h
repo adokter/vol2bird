@@ -358,7 +358,7 @@ struct vol2birdMisc {
     // the volume coverage pattern of the polar volume input file (NEXRAD specific)
     int vcp;
     // the radar name extracted from the source string
-    char radarName[1000];
+    char* radarName;
 };
 typedef struct vol2birdMisc vol2birdMisc_t;
 
