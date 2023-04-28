@@ -19,7 +19,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
 #include <limits.h>
 #ifndef NOCONFUSE
 #include <confuse.h>
