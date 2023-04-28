@@ -3605,7 +3605,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* fileIn, PolarVolume_t* 
     latitude = PolarVolume_getLatitude(pvol) / (M_PI/180.0);
     height = (int)PolarVolume_getHeight(pvol);
     source = PolarVolume_getSource(pvol);
-    date= PolarVolume_getDate(pvol);
+    date = PolarVolume_getDate(pvol);
     time = PolarVolume_getTime(pvol);    
 
     FILE *fp;
