@@ -3255,7 +3255,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:00Z", date, date+4, date+6, time, time+2);
 
         //write to CSV format
-        fprintf(fp,"%s,%s,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%.2f,%.2f,%d,%f,%f,%d,%f,%s\n",
+        fprintf(fp,"%s,%s,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%.2f,%.2f,%d,%f,%f,%d,%f,\"%s\"\n",
         radar_name,                                                              //radar*
         datetime,                                                               //datetime*    
         (int)nanify(profileBio[0+iCopied]),                                     //height*
