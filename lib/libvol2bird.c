@@ -3639,6 +3639,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     sd_vvp_thresh = &alldata->options.stdDevMinBird;
     vcp = &alldata->misc.vcp;
     wavelength = &alldata->options.radarWavelength;
+    radar_name = &alldata->misc.radarName;
 
     // Extract the radar name from the source variable
     char* radarName = NULL;
