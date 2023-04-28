@@ -3037,6 +3037,25 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
 }
 
 
+void strtrim(char* str)
+{
+    char* start = str;
+    char* end = str + strlen(str) - 1;
+
+    while (*start && isspace((unsigned char) *start)) {
+        start++;
+    }
+
+    while (end > start && isspace((unsigned char) *end)) {
+        end--;
+    }
+
+    *(end + 1) = '\0';
+
+    if (start != str) {
+        memmove(str, start, (end - start) + 2);
+    }
+}
 
 // this function replaces NODATA and UNDETECT float values to NA and NAN
 double nanify(double value){
@@ -3201,25 +3220,6 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
     return result;    
 }
 
-void strtrim(char* str)
-{
-    char* start = str;
-    char* end = str + strlen(str) - 1;
-
-    while (*start && isspace((unsigned char) *start)) {
-        start++;
-    }
-
-    while (end > start && isspace((unsigned char) *end)) {
-        end--;
-    }
-
-    *(end + 1) = '\0';
-
-    if (start != str) {
-        memmove(str, start, (end - start) + 2);
-    }
-}
 
 void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
     
