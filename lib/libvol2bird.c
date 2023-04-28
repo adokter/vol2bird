@@ -5431,8 +5431,7 @@ int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata) {
         return -1;
     }
  
-    radarName = get_radar_name(PolarVolume_getSource(volume))
-    alldata -> misc.radarName = radarName;
+    alldata -> misc.radarName = get_radar_name(PolarVolume_getSource(volume))
 
     // reading radar wavelength from polar volume attribute
     // if present, overwrite options.radarWavelength with the value found.
