@@ -3626,18 +3626,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* fileIn, PolarVolume_t* 
     profileBio = vol2birdGetProfile(1, alldata);
     profileAll = vol2birdGetProfile(3, alldata);
 
-/*
-    const int num_fields = sizeof(fields) / sizeof(fields[0]);
-
-    union VptsValue {
-        int i;
-        double d;
-        char* c;
-    };
-
-    union VptsValue vpts_values[num_fields];
-*/
-
     float *rcs, *sd_vvp_thresh, *wavelength;
     int *vcp;
     char *radar_name, *fileIn;
