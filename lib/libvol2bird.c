@@ -3598,7 +3598,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* fileIn, PolarVolume_t* 
     // this function writes the vertical profile to CSV format https://aloftdata.eu/vpts-csv     //
     // ---------------------------------------------------------------------------------------- //
 
-
     //get attributes from polar volume
     double longitude, latitude;
     int height;
