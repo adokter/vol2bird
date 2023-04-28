@@ -3053,7 +3053,6 @@ void nanify_str(char* buff, const char* fmt, double v) {
     strcpy(buff, "nan");
   } else {
     sprintf(buff, fmt, v);
-    strtrim(buff); // Remove any extra white space
   }
 }
 
@@ -3065,8 +3064,8 @@ char* nanify_vpts(float value, const char* fmt) {
     strcpy(output, "NaN");
   } else {
     sprintf(output, fmt, value);
+    strtrim(output); // Remove any extra white space
   }
-  output[15] = '\0'; // Ensure output is null-terminated
   return output;
 }
 
