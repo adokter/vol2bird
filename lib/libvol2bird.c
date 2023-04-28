@@ -3232,6 +3232,9 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     vcp = &alldata->misc.vcp;
     wavelength = &alldata->options.radarWavelength;
 
+
+    printf("%s", source);
+
     // Extract the radar name from the source variable
     char* radarName = NULL;
     char* p = strstr(source, "radar_name:");
@@ -3239,6 +3242,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
         p += strlen("radar_name:");
         radarName = strtok(p, ",");
     }
+
     fprintf(fp, "radar, datetime, height, u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelenght,source_file\n");
 
     int iRowProfile;
