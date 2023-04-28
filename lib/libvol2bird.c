@@ -3598,9 +3598,11 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* fileIn, PolarVolume_t* 
     // this function writes the vertical profile to CSV format https://aloftdata.eu/vpts-csv     //
     // ---------------------------------------------------------------------------------------- //
 
+
+    //get attributes from polar volume
     double longitude, latitude;
     int height;
-    char *source, *date, *time;
+    char *source, *date, *time, *fileIn;
 
     longitude = PolarVolume_getLongitude(pvol) / (M_PI/180.0);
     latitude = PolarVolume_getLatitude(pvol) / (M_PI/180.0);
@@ -3616,14 +3618,15 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* fileIn, PolarVolume_t* 
         return;
     }
 
+    //get attributes from vertical profile
     int nRowsProfile = vol2birdGetNRowsProfile(alldata);
     int nColsProfile = vol2birdGetNColsProfile(alldata);
 
     float *profileBio, *profileAll;
-
     profileBio = vol2birdGetProfile(1, alldata);
     profileAll = vol2birdGetProfile(3, alldata);
 
+/*
     const int num_fields = sizeof(fields) / sizeof(fields[0]);
 
     union VptsValue {
@@ -3633,16 +3636,18 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* fileIn, PolarVolume_t* 
     };
 
     union VptsValue vpts_values[num_fields];
+*/
 
     float *rcs, *sd_vvp_thresh, *wavelength;
     int *vcp;
-    char *radar_name;
+    char *radar_name, *fileIn;
 
     rcs = &alldata->options.birdRadarCrossSection;
     sd_vvp_thresh = &alldata->options.stdDevMinBird;
     vcp = &alldata->misc.vcp;
     wavelength = &alldata->options.radarWavelength;
     radar_name = alldata->misc.radarName;
+    fileIn = alldata->misc.filename_pvol;
 
     fprintf(fp, "radar, datetime, height, u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelenght,source_file\n");
 
