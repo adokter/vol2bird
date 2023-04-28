@@ -3037,8 +3037,6 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     
 }
 
-
-
 // this function replaces NODATA and UNDETECT float values to NA and NAN
 double nanify(double value){
     double output = value;
@@ -3066,7 +3064,6 @@ void nanify_str_csv(char* buff, const char* fmt, double v) {
     sprintf(buff, fmt, v);
   }
 }
-
 
 void create_profile_printout_str(char* printbuffer, int buflen, const char* date, const char* time,
     float HGHT, float u, float v, float w, float ff, float dd,
@@ -3226,16 +3223,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
 
     profileBio = vol2birdGetProfile(1, alldata);
     profileAll = vol2birdGetProfile(3, alldata);
-
-    const int num_fields = sizeof(fields) / sizeof(fields[0]);
-
-    union VptsValue {
-        int i;
-        double d;
-        char* c;
-    };
-
-    union VptsValue vpts_values[num_fields];
 
     float *rcs, *sd_vvp_thresh, *wavelength;
     int *vcp;
