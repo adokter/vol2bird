@@ -3642,6 +3642,8 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     wavelength = &alldata->options.radarWavelength;
     radar_name = &alldata->misc.radarName;
 
+    printf("radar name: %s", radar_name);
+
 
     fprintf(fp, "radar, datetime, height, u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelenght,source_file\n");
 
