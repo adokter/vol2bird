@@ -434,6 +434,8 @@ int main(int argc, char **argv)
         float *rcs, *sd_vvp_thresh, *wavelength;
         int *vcp;
 
+        printf("alldata.misc.vcp = %d\n", alldata.misc.vcp);
+
         rcs = &alldata.options.birdRadarCrossSection;
         sd_vvp_thresh = &alldata.options.stdDevMinBird;
         vcp = &alldata.misc.vcp;
@@ -494,7 +496,7 @@ int main(int argc, char **argv)
             }
         }
     }
-
+    
     // tear down vol2bird, give memory back
     vol2birdTearDown(&alldata);
     RAVE_OBJECT_RELEASE(volume);
