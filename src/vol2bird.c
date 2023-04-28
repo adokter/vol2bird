@@ -469,7 +469,7 @@ int main(int argc, char **argv)
 
     if (formatCSV){
     
-        writeCSV(fileVpOut, &alldata, source, fileIn[0], date, time, volume);
+        writeCSV(fileVpOut, &alldata, fileIn[0], volume);
 
     } else {
     // ------------------------------------------------------------------- //
