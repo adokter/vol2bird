@@ -3642,13 +3642,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
     wavelength = &alldata->options.radarWavelength;
     radar_name = &alldata->misc.radarName;
 
-    // Extract the radar name from the source variable
-    char* radarName = NULL;
-    char* p = strstr(source, "radar_name:");
-    if (p != NULL) {
-        p += strlen("radar_name:");
-        radarName = strtok(p, ",");
-    }
 
     fprintf(fp, "radar, datetime, height, u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,DBZH,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelenght,source_file\n");
 
@@ -3696,7 +3689,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, char* source, char* fileIn, c
 
         //write to CSV format
         fprintf(fp,"%s,%s,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%.2f,%.2f,%d,%f,%f,%d,%f,%s\n",
-        radarName,                                                              //radar*
+        radar_name,                                                              //radar*
         datetime,                                                               //datetime*    
         (int)nanify(profileBio[0+iCopied]),                                     //height*
         nanify_vpts(profileBio[2 + iCopied],"%6.2f"),                           //u
