@@ -3067,9 +3067,9 @@ double nanify(double value){
 
 void nanify_str(char* buff, const char* fmt, double v) {
   if (v == NODATA) {
-    strcpy(buff, "na");
+    strcpy(buff, "");
   } else if (v == UNDETECT) {
-    strcpy(buff, "nan");
+    strcpy(buff, "NaN");
   } else {
     sprintf(buff, fmt, v);
   }
@@ -3089,14 +3089,15 @@ char* nanify_vpts(float value, const char* fmt) {
 }
 
 void create_profile_printout_str(char* printbuffer, int buflen, 
-    const char* radar_name, const char* datetime,
-    float HGHT, float u, float v, float w, float ff, float dd,
-    float sd_vvp_thresh, char gap, float dbz, float eta, float dens, 
-    float DBZH, float n, float n_dbz, float n_all, float n_dbz_all float rcs, 
-    int vcp, float latitude, float longitude, int height, float wavelength, const char* fileIn)
+    char* radar_name, char* datetime, float HGHT, float u, float v, 
+    float w, float ff, float dd, float sd_vvp, char* gap, float dbz, 
+    float eta, float dens, float DBZH, float n, float n_dbz, float n_all, 
+    float n_dbz_all float rcs, float sd_vvp_thresh, int vcp, float latitude,
+    float longitude, int height, float wavelength, const char* fileIn)
 {
-  char datetime[24], s_HGHT[16], s_u[16], s_v[16], s_w[16], s_ff[16], s_dd[16];
-  char s_sd_vvp[16], s_dbz[16], s_eta[16], s_dens[16], s_DBZH[16];
+  
+  char s_HGHT[16], s_u[16], s_v[16], s_w[16], s_ff[16], s_dd[16];
+  char s_dbz[16], s_eta[16], s_dens[16], s_DBZH[16];
   char s_n[16], s_n_dbz[16], s_n_all[16], s_n_dbz_all[16], s_rcs[16];
   char s_sd_vvp_thresh[16], s_vcp[16], s_lat[16], s_lon[16], s_height[16], s_wavelength[16];
 
@@ -3108,7 +3109,7 @@ void create_profile_printout_str(char* printbuffer, int buflen,
   nanify_str(s_w, "%7.2f", w);
   nanify_str(s_ff, "%5.2f", ff);
   nanify_str(s_dd, "%5.1f", dd);
-  nanify_str(s_sd_vvp, "%6.2f", sd_vvp);
+  nanify_str(s_sd_vvp, "%5.2f", sd_vvp);
   nanify_str(s_dbz, "%6.2f", dbz);
   nanify_str(s_eta, "%6.1f", eta);
   nanify_str(s_dens, "%6.2f", dens);
@@ -3118,16 +3119,16 @@ void create_profile_printout_str(char* printbuffer, int buflen,
   nanify_str(s_n_all, "%5.f", n_all);
   nanify_str(s_n_dbz_all, "%5.f", n_dbz_all);
   nanify_str(s_rcs, "%f", rcs); 
-  nanify_str(s_sd_vvp_thresh, "%3.f", sd_vvp_thresh);
-  nanify_str(s_vcp, "%d", vcp);
-  nanify_str(s_lat, "%.5f", latitude);
-  nanify_str(s_lon, "%.5f", longitude);
-  nanify_str(s_height, "%d", height);
-  nanify_str(s_wavelength, "%f", wavelength);
+  sprintf(s_sd_vvp_thresh, "%3.f", sd_vvp_thresh);
+  sprintf(s_vcp, "%d", vcp);
+  sprintf(s_lat, "%.5f", latitude);
+  sprintf(s_lon, "%.5f", longitude);
+  sprintf(s_height, "%d", height);
+  sprintf(s_wavelength, "%f", wavelength);
 
-  sprintf(printbuffer, "%s,%24s,%4s,%6s,%6s,%7s,%5s,%5s,%6s,%1c,%6s,%6s,%6s,%6s,%5s,%5s,%5s,%5s,%.2f,%.2f,%d,%f,%f,%d,%f,\"%s\"", radar_name, datetime, s_HGHT,
-      s_u, s_v, s_w, s_ff, s_dd, s_sd_vvp, gap, s_dbz, s_eta, s_dens, s_DBZH, s_n, s_n_dbz, s_n_all, s_n_dbz_all, s_rcs, s_sd_vvp_thresh, s_vcp,
-     s_lat, s_lon, s_height, s_wavelength, fileIn);
+  sprintf(printbuffer, "%s,%24s,%4s,%6s,%6s,%7s,%5s,%5s,%6s,%1c,%6s,%6s,%6s,%6s,%5s,%5s,%5s,%5s,%.2f,%.2f,%d,%f,%f,%d,%f,\"%s\"", 
+    radar_name, datetime, s_HGHT, s_u, s_v, s_w, s_ff, s_dd, s_sd_vvp, gap, s_dbz, s_eta, s_dens, s_DBZH, s_n, s_n_dbz,
+    s_n_all, s_n_dbz_all, s_rcs, s_sd_vvp_thresh, s_vcp, s_lat, s_lon, s_height, s_wavelength, fileIn);
 }
 
 static int profileArray2RaveField(vol2bird_t* alldata, int idx_profile, int idx_quantity, const char* quantity, RaveDataType raveType){
@@ -3279,7 +3280,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
     radar_name = alldata->misc.radarName;
     fileIn = alldata->misc.filename_pvol;
 
-    fprintf(fp, "radar,datetime,height,u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,dbz_all,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelenght,source_file\n");
+    fprintf(fp,"radar,datetime,height,u,v,w,ff,dd,sd_vvp,gap,dbz,eta,dens,dbz_all,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelenght,source_file\n");
 
     int iRowProfile;
     int iCopied = 0;
@@ -3291,7 +3292,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
 
         //write to CSV format
         create_profile_printout_str(
-        printbuffer, 
+        char printbuffer[1024],
         1024,
         radar_name,                                                             //radar*
         datetime,                                                               //datetime*    
@@ -3300,8 +3301,8 @@ void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
         profileBio[3 + iCopied],                                                //v
         profileBio[4 + iCopied],                                                //w
         profileBio[5 + iCopied],                                                //ff
-        profileBio[6 + iCopied]                                                 //dd
-        profileBio[7 + iCopied]                                                 //sd_vvp
+        profileBio[6 + iCopied],                                                //dd
+        profileBio[7 + iCopied],                                                //sd_vvp
         profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE",                     // gap
         profileBio[11 + iCopied],                                               // eta
         profileBio[12 + iCopied],                                               // dens
@@ -3313,6 +3314,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
         profileAll[13 + iCopied],                                               // n_dbz_all
         *rcs, *sd_vvp_thresh, *vcp, latitude, longitude, height, *wavelength, fileIn);
     
+        strtrim(printbuffer);
         fprintf(fb, "%s\n", printbuffer);
 
         }
