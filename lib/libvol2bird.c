@@ -3306,6 +3306,8 @@ int writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
         fprintf(fp, "%s\n", printbuffer);
         }
 
+    profileAll = NULL;
+    profileBio = NULL;
     free((void*) profileAll);
     free((void*) profileBio);
     
