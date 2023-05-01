@@ -3113,9 +3113,9 @@ void create_profile_printout_str(char* printbuffer, int buflen,
   nanify_str(s_height, "%d", height);
   nanify_str(s_wavelength, "%f", wavelength);
 
-  strtrim(sprintf(printbuffer, "%s,%24s,%4s,%6s,%6s,%7s,%5s,%5s,%6s,%s,%6s,%6s,%6s,%6s,%5s,%5s,%5s,%5s,%s,%s,%s,%s,%s,%s,%s,\"%s\"", 
+  sprintf(printbuffer, "%s,%24s,%4s,%6s,%6s,%7s,%5s,%5s,%6s,%s,%6s,%6s,%6s,%6s,%5s,%5s,%5s,%5s,%s,%s,%s,%s,%s,%s,%s,\"%s\"", 
     radar_name, datetime, s_HGHT, s_u, s_v, s_w, s_ff, s_dd, s_sd_vvp, gap, s_dbz, s_eta, s_dens, s_DBZH, s_n, s_n_dbz,
-    s_n_all, s_n_dbz_all, s_rcs, s_sd_vvp_thresh, s_vcp, s_lat, s_lon, s_height, s_wavelength, fileIn));
+    s_n_all, s_n_dbz_all, s_rcs, s_sd_vvp_thresh, s_vcp, s_lat, s_lon, s_height, s_wavelength, fileIn);
 }
 
 static int profileArray2RaveField(vol2bird_t* alldata, int idx_profile, int idx_quantity, const char* quantity, RaveDataType raveType){
@@ -3293,15 +3293,16 @@ int writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
         profileBio[7 + iCopied],                                                //sd_vvp
         profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE",                     // gap
         profileBio[11 + iCopied],                                               // eta
-    profileBio[12 + iCopied],                                               // dens
-    profileBio[9 + iCopied],                                                // dbz
-    profileAll[9 + iCopied],                                                // dbz_all
-    profileBio[10 + iCopied],                                               // n
-    profileBio[13 + iCopied],                                               // n_dbz
-    profileAll[10 + iCopied],                                               // n_all
-    profileAll[13 + iCopied],                                               // n_dbz_all
-    *rcs, *sd_vvp_thresh, *vcp, latitude, longitude, height, *wavelength, fileIn);
+        profileBio[12 + iCopied],                                               // dens
+        profileBio[9 + iCopied],                                                // dbz
+        profileAll[9 + iCopied],                                                // dbz_all
+        profileBio[10 + iCopied],                                               // n
+        profileBio[13 + iCopied],                                               // n_dbz
+        profileAll[10 + iCopied],                                               // n_all
+        profileAll[13 + iCopied],                                               // n_dbz_all
+        *rcs, *sd_vvp_thresh, *vcp, latitude, longitude, height, *wavelength, fileIn);
 
+    strtrim(printbuffer);
     fprintf(fp, "%s\n", printbuffer);
     }
 
