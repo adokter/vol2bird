@@ -3036,7 +3036,7 @@ int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata) {
     
 }
 
-
+/*  /trim whitespace at beginnging and end
 void strtrim(char* str)
 {
     char* start = str;
@@ -3055,6 +3055,19 @@ void strtrim(char* str)
     if (start != str) {
         memmove(str, start, (end - start) + 2);
     }
+}
+*/
+
+void strtrim(char* str)
+{
+    char* dst = str;
+    while (*str != '\0') {
+        if (!isspace((unsigned char)*str)) {
+            *dst++ = *str;
+        }
+        str++;
+    }
+    *dst = '\0';
 }
 
 // this function replaces NODATA and UNDETECT float values to NA and NAN
