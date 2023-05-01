@@ -3289,10 +3289,11 @@ void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
 
         char datetime[24];
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:00Z", date, date+4, date+6, time, time+2);
+        char printbuffer[1024];
 
         //write to CSV format
         create_profile_printout_str(
-        char printbuffer[1024],
+        printbuffer,
         1024,
         radar_name,                                                             //radar*
         datetime,                                                               //datetime*    
