@@ -3315,8 +3315,7 @@ void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
         *rcs, *sd_vvp_thresh, *vcp, latitude, longitude, height, *wavelength, fileIn);
     
         strtrim(printbuffer);
-        fprintf(fb, "%s\n", printbuffer);
-
+        fprintf(fp, "%s\n", printbuffer);
         }
 
     profileAll = NULL;
