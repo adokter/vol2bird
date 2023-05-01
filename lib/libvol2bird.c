@@ -3088,14 +3088,19 @@ char* nanify_vpts(float value, const char* fmt) {
   return output;
 }
 
-void create_profile_printout_str(char* printbuffer, int buflen, const char* date, const char* time,
+
+void create_profile_printout_str(char* printbuffer, int buflen, 
+    const char* radar_name, const char* datetime,
     float HGHT, float u, float v, float w, float ff, float dd,
-    float sd_vvp, char gap, float dbz, float eta, float dens, float DBZH,
-    float n, float n_dbz, float n_all, float n_dbz_all)
+    float sd_vvp_thresh, char gap, float dbz, float eta, float dens, 
+    float DBZH, float n, float n_dbz, float n_all, float n_dbz_all float rcs, 
+    int vcp, float latitude, float longitude, int height, float wavelength, const char* fileIn)
 {
-  char s_HGHT[16], s_u[16], s_v[16], s_w[16], s_ff[16], s_dd[16];
+  char datetime[24], s_HGHT[16], s_u[16], s_v[16], s_w[16], s_ff[16], s_dd[16];
   char s_sd_vvp[16], s_dbz[16], s_eta[16], s_dens[16], s_DBZH[16];
-  char s_n[16], s_n_dbz[16], s_n_all[16], s_n_dbz_all[16];
+  char s_n[16], s_n_dbz[16], s_n_all[16], s_n_dbz_all[16], s_rcs[16];
+  char s_sd_vvp_thresh[16], s_vcp[16], s_lat[16], s_lon[16], s_height[16], s_wavelength[16];
+
   memset(printbuffer, 0, sizeof(char)*buflen);
   sprintf(s_HGHT, "%4.f", HGHT);
   nanify_str(s_u, "%6.2f", u);
@@ -3112,8 +3117,17 @@ void create_profile_printout_str(char* printbuffer, int buflen, const char* date
   nanify_str(s_n_dbz, "%5.f", n_dbz);
   nanify_str(s_n_all, "%5.f", n_all);
   nanify_str(s_n_dbz_all, "%5.f", n_dbz_all);
-  sprintf(printbuffer, "%8s %.4s %4s %6s %6s %7s %5s %5s %6s %1c %6s %6s %6s %6s %5s %5s %5s %5s", date, time, s_HGHT,
-      s_u, s_v, s_w, s_ff, s_dd, s_sd_vvp, gap, s_dbz, s_eta, s_dens, s_DBZH, s_n, s_n_dbz, s_n_all, s_n_dbz_all);
+  nanify_str(s_rcs, "%f", rcs); 
+  nanify_str(s_sd_vvp_thresh, "%3.f", sd_vvp_thresh);
+  nanify_str(s_vcp, "%d", vcp);
+  nanify_str(s_lat, "%.5f", latitude);
+  nanify_str(s_lon, "%.5f", longitude);
+  nanify_str(s_height, "%d", height);
+  nanify_str(s_wavelength, "%f", wavelength);
+
+  sprintf(printbuffer, "%s,%24s,%4s,%6s,%6s,%7s,%5s,%5s,%6s,%1c,%6s,%6s,%6s,%6s,%5s,%5s,%5s,%5s,%.2f,%.2f,%d,%f,%f,%d,%f,\"%s\"", radar_name, datetime, s_HGHT,
+      s_u, s_v, s_w, s_ff, s_dd, s_sd_vvp, gap, s_dbz, s_eta, s_dens, s_DBZH, s_n, s_n_dbz, s_n_all, s_n_dbz_all, s_rcs, s_sd_vvp_thresh, s_vcp,
+     s_lat, s_lon, s_height, s_wavelength, fileIn);
 }
 
 static int profileArray2RaveField(vol2bird_t* alldata, int idx_profile, int idx_quantity, const char* quantity, RaveDataType raveType){
