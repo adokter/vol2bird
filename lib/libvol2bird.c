@@ -3092,7 +3092,7 @@ void create_profile_printout_str(char* printbuffer, int buflen,
     char* radar_name, char* datetime, float HGHT, float u, float v, 
     float w, float ff, float dd, float sd_vvp, char* gap, float dbz, 
     float eta, float dens, float DBZH, float n, float n_dbz, float n_all, 
-    float n_dbz_all float rcs, float sd_vvp_thresh, int vcp, float latitude,
+    float n_dbz_all, float rcs, float sd_vvp_thresh, int vcp, float latitude,
     float longitude, int height, float wavelength, const char* fileIn)
 {
   
