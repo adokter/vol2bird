@@ -3291,6 +3291,8 @@ void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
 
         //write to CSV format
         create_profile_printout_str(
+        printbuffer, 
+        1024,
         radar_name,                                                             //radar*
         datetime,                                                               //datetime*    
         profileBio[0 + iCopied],                                                //height*
@@ -3311,8 +3313,6 @@ void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
         profileAll[13 + iCopied],                                               // n_dbz_all
         *rcs, *sd_vvp_thresh, *vcp, latitude, longitude, height, *wavelength, fileIn);
     
-
-        create_profile_printout_str(printbuffer, 1024, date, time, HGHT, u, v, w, ff, dd, sd_vvp, gap, dbz, eta, dens, DBZH, n, n_dbz, n_all, n_dbz_all);
         fprintf(fb, "%s\n", printbuffer);
 
         }
