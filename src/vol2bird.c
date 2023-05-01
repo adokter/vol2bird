@@ -469,12 +469,10 @@ int main(int argc, char **argv)
     if (fileVpOut != NULL)
     {
         int result;
-        if(isCSV(fileVpOut))
-        {
+        if(isCSV(fileVpOut)){
             result = writeCSV(fileVpOut, &alldata, volume);
         }
-        else
-        {
+        else{
             result = saveToODIM((RaveCoreObject *)alldata.vp, fileVpOut);
         }
 
