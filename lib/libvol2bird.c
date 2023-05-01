@@ -3097,7 +3097,7 @@ void create_profile_printout_str(char* printbuffer, int buflen,
 {
   
   char s_HGHT[16], s_u[16], s_v[16], s_w[16], s_ff[16], s_dd[16];
-  char s_sd_vvp[16], char s_dbz[16], s_eta[16], s_dens[16], s_DBZH[16];
+  char s_sd_vvp[16], s_dbz[16], s_eta[16], s_dens[16], s_DBZH[16];
   char s_n[16], s_n_dbz[16], s_n_all[16], s_n_dbz_all[16], s_rcs[16];
   char s_sd_vvp_thresh[16], s_vcp[16], s_lat[16], s_lon[16], s_height[16], s_wavelength[16];
 
