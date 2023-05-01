@@ -3245,7 +3245,7 @@ int writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
     fp = fopen(filename, "w");
     if (fp == NULL) {
         printf("Failed to open file %s for writing.\n", filename);
-        return -1;
+        return 0;
     }
 
     //get attributes from vertical profile
@@ -3311,11 +3311,11 @@ int writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
     
     if (fclose(fp) != 0) {
         printf("Failed to close file %s.\n", filename);
-        return -1;
+        return 0;
     }
     
-    // If everything succeeds, return 0
-    return 0;
+    // If everything succeeds, return 1
+    return 1;
 
 }
 
