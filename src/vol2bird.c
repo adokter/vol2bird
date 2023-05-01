@@ -457,11 +457,27 @@ int main(int argc, char **argv)
     // printf("Number of names: %d\n", attnames);
     // printf("Number of values: %d\n", attvalues);
 
+    int isCSV(const char *filename) {
+        const char *dot = strrchr(filename, '.');
+        if (dot && !strcmp(dot, ".csv")) {
+            return 1;
+        }
+        return 0;
+    }
+
     // save rave profile to ODIM hdf5 file
     if (fileVpOut != NULL)
     {
         int result;
-        result = saveToODIM((RaveCoreObject *)alldata.vp, fileVpOut);
+        if(isCSV(fileVpOut))
+        {
+            result = writeCSV(fileVpOut, &alldata, volume);
+        }
+        else
+        {
+            result = saveToODIM((RaveCoreObject *)alldata.vp, fileVpOut);
+        }
+
         if (result == FALSE)
         {
             fprintf(stderr, "critical error, cannot write file %s\n", fileVpOut);
