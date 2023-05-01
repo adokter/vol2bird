@@ -3106,12 +3106,12 @@ void create_profile_printout_str(char* printbuffer, int buflen,
   nanify_str(s_n_all, "%5.f", n_all);
   nanify_str(s_n_dbz_all, "%5.f", n_dbz_all);
   nanify_str(s_rcs, "%f", rcs); 
-  sprintf(s_sd_vvp_thresh, "%3.f", sd_vvp_thresh);
-  sprintf(s_vcp, "%d", vcp);
-  sprintf(s_lat, "%.5f", latitude);
-  sprintf(s_lon, "%.5f", longitude);
-  sprintf(s_height, "%d", height);
-  sprintf(s_wavelength, "%f", wavelength);
+  nanify_str(s_sd_vvp_thresh, "%3.f", sd_vvp_thresh);
+  nanify_str(s_vcp, "%d", vcp);
+  nanify_str(s_lat, "%.5f", latitude);
+  nanify_str(s_lon, "%.5f", longitude);
+  nanify_str(s_height, "%d", height);
+  nanify_str(s_wavelength, "%f", wavelength);
 
   sprintf(printbuffer, "%s,%24s,%4s,%6s,%6s,%7s,%5s,%5s,%6s,%1c,%6s,%6s,%6s,%6s,%5s,%5s,%5s,%5s,%.2f,%.2f,%d,%f,%f,%d,%f,\"%s\"", 
     radar_name, datetime, s_HGHT, s_u, s_v, s_w, s_ff, s_dd, s_sd_vvp, gap, s_dbz, s_eta, s_dens, s_DBZH, s_n, s_n_dbz,
