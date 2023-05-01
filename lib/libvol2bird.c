@@ -3088,7 +3088,9 @@ void nanify_str(char* buff, const char* fmt, double v) {
   }
 }
 
-void create_profile_printout_str(char* printbuffer, int buflen, 
+
+
+void write_vpts_profile_line(char* printbuffer, int buflen, 
     char* radar_name, char* datetime, float HGHT, float u, float v, 
     float w, float ff, float dd, float sd_vvp, char* gap, float dbz, 
     float eta, float dens, float DBZH, float n, float n_dbz, float n_all, 
@@ -3292,7 +3294,7 @@ int writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
         char printbuffer[1024];
 
         //write to CSV format
-        create_profile_printout_str(
+        write_vpts_profile_line(
         printbuffer,
         1024,
         radar_name,                                                             //radar*
@@ -4544,10 +4546,6 @@ void vol2birdPrintPointsArraySimple(vol2bird_t* alldata) {
             vol2bird_err_printf( "\n");
     }    
 } // vol2birdPrintPointsArray
-
-
-
-
 
 
 void printProfile(vol2bird_t* alldata) {
