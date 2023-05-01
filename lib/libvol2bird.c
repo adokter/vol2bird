@@ -3088,7 +3088,6 @@ char* nanify_vpts(float value, const char* fmt) {
   return output;
 }
 
-
 void create_profile_printout_str(char* printbuffer, int buflen, 
     const char* radar_name, const char* datetime,
     float HGHT, float u, float v, float w, float ff, float dd,
@@ -3102,6 +3101,7 @@ void create_profile_printout_str(char* printbuffer, int buflen,
   char s_sd_vvp_thresh[16], s_vcp[16], s_lat[16], s_lon[16], s_height[16], s_wavelength[16];
 
   memset(printbuffer, 0, sizeof(char)*buflen);
+
   sprintf(s_HGHT, "%4.f", HGHT);
   nanify_str(s_u, "%6.2f", u);
   nanify_str(s_v, "%6.2f", v);
@@ -3290,27 +3290,32 @@ void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
         sprintf(datetime, "%.4s-%.2s-%.2sT%.2s:%.2s:00Z", date, date+4, date+6, time, time+2);
 
         //write to CSV format
-        fprintf(fp,"%s,%s,%d,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%.2f,%.2f,%d,%f,%f,%d,%f,\"%s\"\n",
-        radar_name,                                                              //radar*
+        create_profile_printout_str(
+        radar_name,                                                             //radar*
         datetime,                                                               //datetime*    
-        (int)nanify(profileBio[0+iCopied]),                                     //height*
-        nanify_vpts(profileBio[2 + iCopied],"%6.2f"),                           //u
-        nanify_vpts(profileBio[3 + iCopied], "%6.2f"),                          //v
-        nanify_vpts(profileBio[4 + iCopied], "%7.2f"),                          //w
-        nanify_vpts(profileBio[5 + iCopied], "%5.2f"),                          //ff
-        nanify_vpts(profileBio[6 + iCopied], "%5.1f"),                          //dd
-        nanify_vpts(profileBio[7 + iCopied],  "%6.2f"),                         //sd_vvp
+        profileBio[0 + iCopied],                                                //height*
+        profileBio[2 + iCopied],                                                //u
+        profileBio[3 + iCopied],                                                //v
+        profileBio[4 + iCopied],                                                //w
+        profileBio[5 + iCopied],                                                //ff
+        profileBio[6 + iCopied]                                                 //dd
+        profileBio[7 + iCopied]                                                 //sd_vvp
         profileBio[8 + iCopied] == TRUE ? "TRUE" : "FALSE",                     // gap
-        nanify_vpts(profileBio[11 + iCopied],  "%6.1f"),                        // eta
-        nanify_vpts(profileBio[12 + iCopied],  "%6.2f"),                        // dens
-        nanify_vpts(profileBio[9 + iCopied], "%6.2f"),                          // dbz
-        nanify_vpts(profileAll[9 + iCopied], "%6.2f"),                          // dbz_all
-        nanify_vpts(profileBio[10 + iCopied],  "%5.f"),                         // n
-        nanify_vpts(profileBio[13 + iCopied],  "%5.f"),                        // n_dbz
-        nanify_vpts(profileAll[10 + iCopied],  "%5.f"),                        // n_all
-        nanify_vpts(profileAll[13 + iCopied], "%5.f"),                         // n_dbz_all
+        profileBio[11 + iCopied],                                               // eta
+        profileBio[12 + iCopied],                                               // dens
+        profileBio[9 + iCopied],                                                // dbz
+        profileAll[9 + iCopied],                                                // dbz_all
+        profileBio[10 + iCopied],                                               // n
+        profileBio[13 + iCopied],                                               // n_dbz
+        profileAll[10 + iCopied],                                               // n_all
+        profileAll[13 + iCopied],                                               // n_dbz_all
         *rcs, *sd_vvp_thresh, *vcp, latitude, longitude, height, *wavelength, fileIn);
-    }
+    
+
+        create_profile_printout_str(printbuffer, 1024, date, time, HGHT, u, v, w, ff, dd, sd_vvp, gap, dbz, eta, dens, DBZH, n, n_dbz, n_all, n_dbz_all);
+        fprintf(fb, "%s\n", printbuffer);
+
+        }
 
     profileAll = NULL;
     profileBio = NULL;
