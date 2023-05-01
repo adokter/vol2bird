@@ -503,7 +503,7 @@ void write_line_vpts_profile(char* printbuffer, int buflen,
 
 int saveToODIM(RaveCoreObject* object, const char* filename);
 
-int writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol);
+int writeCSV(const char *filename, vol2bird_t* alldata, PolarVolume_t* pvol);
 
 int isCSV(const char *filename);
 
