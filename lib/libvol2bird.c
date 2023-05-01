@@ -3113,7 +3113,7 @@ void create_profile_printout_str(char* printbuffer, int buflen,
   nanify_str(s_height, "%d", height);
   nanify_str(s_wavelength, "%f", wavelength);
 
-  sprintf(printbuffer, "%s,%24s,%4s,%6s,%6s,%7s,%5s,%5s,%6s,%1c,%6s,%6s,%6s,%6s,%5s,%5s,%5s,%5s,%s,%s,%s,%s,%s,%s,%s,\"%s\"", 
+  sprintf(printbuffer, "%s,%24s,%4s,%6s,%6s,%7s,%5s,%5s,%6s,%s,%6s,%6s,%6s,%6s,%5s,%5s,%5s,%5s,%s,%s,%s,%s,%s,%s,%s,\"%s\"", 
     radar_name, datetime, s_HGHT, s_u, s_v, s_w, s_ff, s_dd, s_sd_vvp, gap, s_dbz, s_eta, s_dens, s_DBZH, s_n, s_n_dbz,
     s_n_all, s_n_dbz_all, s_rcs, s_sd_vvp_thresh, s_vcp, s_lat, s_lon, s_height, s_wavelength, fileIn);
 }
