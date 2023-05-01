@@ -145,16 +145,14 @@ int main(int argc, char **argv)
     }
 
     // interpret legacy command line input
-    if (commandLineFormat == 0)
-    {
+    if (commandLineFormat == 0){
         // check to see if we have the right number of input arguments
-        if (argc > 5)
-        {
+        if (argc > 4) {
             fprintf(stderr, "Error: Invalid command line arguments\n");
             usage(argv[0], 0);
             return -1;
         }
-
+        
         // ------------------------------------------------------------- //
         //                initialization of variables                    //
         // ------------------------------------------------------------- //
@@ -163,26 +161,18 @@ int main(int argc, char **argv)
         fileIn[0] = argv[1];
         nInputFiles = 1;
 
-        //to output to csv, add a --csv flag as the last argument 
-        if (argc == 4){
-            if (strcmp(argv[argc - 1], "--csv") == 0) {
-                formatCSV = 1;
-                fileVpOut = argv[2];
-            } else {
-                fileVpOut = argv[2];
-                fileVolOut = argv[3];
-            }
-        }
-        else if (argc == 3)
-        {
+        if (argc == 3){
             fileVpOut = argv[2];
             fileVolOut = NULL;
         }
-        else
-        {
+        else if (argc == 4){
+            fileVpOut = argv[2];
+            fileVolOut = argv[3];
+        }
+        else{
             fileVpOut = NULL;
             fileVolOut = NULL;
-        }
+        }        
     }
 
     else
