@@ -471,9 +471,7 @@ int main(int argc, char **argv)
         else{
             result = saveToODIM((RaveCoreObject *)alldata.vp, fileVpOut);
         }
-
-        if (result == FALSE)
-        {
+        if (result == FALSE){
             fprintf(stderr, "critical error, cannot write file %s\n", fileVpOut);
             return -1;
         }
