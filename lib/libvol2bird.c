@@ -3309,8 +3309,6 @@ int writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
     free((void*) profileAll);
     free((void*) profileBio);
     
-    fclose(fp);
-
     if (fclose(fp) != 0) {
         printf("Failed to close file %s.\n", filename);
         return -1;
