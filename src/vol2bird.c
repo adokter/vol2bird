@@ -452,11 +452,7 @@ int main(int argc, char **argv)
     // map vol2bird profile data to Rave profile object
     mapDataToRave(volume, &alldata);
 
-    // RaveList_t* attnames = VerticalProfile_getAttributeNames(alldata.vp);
-    // RaveObjectList_t* attvalues = VerticalProfile_getAttributeValues(alldata.vp);
-    // printf("Number of names: %d\n", attnames);
-    // printf("Number of values: %d\n", attvalues);
-
+    //check if file extension is csv
     int isCSV(const char *filename) {
         const char *dot = strrchr(filename, '.');
         if (dot && !strcmp(dot, ".csv")) {
@@ -465,7 +461,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    // save rave profile to ODIM hdf5 file
+    // save rave profile to ODIM hdf5 or generate VPTS csv based on existence of .csv extension
     if (fileVpOut != NULL)
     {
         int result;
