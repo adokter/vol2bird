@@ -3075,18 +3075,6 @@ void nanify_str(char* buff, const char* fmt, double v) {
   }
 }
 
-char* nanify_vpts(float value, const char* fmt) {
-  char* output = malloc(15 + 1); // Allocate enough memory for a 15-character float string plus null terminator
-  if (value == NODATA) {
-    strcpy(output, "");
-  } else if (value == UNDETECT) {
-    strcpy(output, "NaN");
-  } else {
-    sprintf(output, fmt, value);
-    strtrim(output); // Remove any extra white space
-  }
-  return output;
-}
 
 void create_profile_printout_str(char* printbuffer, int buflen, 
     char* radar_name, char* datetime, float HGHT, float u, float v, 
