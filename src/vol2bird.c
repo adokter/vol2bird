@@ -38,12 +38,7 @@
 #include "hlhdf.h"
 #include "hlhdf_debug.h"
 #include "rave_debug.h"
-#include <vertical_profile.h>
-#include "rave_list.h"
-#include "rave_utilities.h"
-#include "rave_alloc.h"
-#include "raveobject_list.h"
-#include "rave_attribute.h"
+
 
 void usage(char *programName, int verbose)
 {
