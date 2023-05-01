@@ -499,6 +499,6 @@ void create_profile_printout_str(char* printbuffer, int buflen,
 
 int saveToODIM(RaveCoreObject* object, const char* filename);
 
-void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol);
+int writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol);
 
 const char* libvol2bird_version(void);

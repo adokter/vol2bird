@@ -3223,7 +3223,7 @@ int saveToODIM(RaveCoreObject* object, const char* filename){
 }
 
 
-void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
+int writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
     
     // ----------------------------------------------------------------------------------------- //
     // this function writes the vertical profile to CSV format https://aloftdata.eu/vpts-csv     //
@@ -3310,9 +3310,9 @@ void writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
     profileBio = NULL;
     free((void*) profileAll);
     free((void*) profileBio);
-
     fclose(fp);
 }
+
 
 static void printCellProp(CELLPROP* cellProp, float elev, int nCells, int nCellsValid, vol2bird_t *alldata){
     
