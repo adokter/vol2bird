@@ -3319,6 +3319,14 @@ int writeCSV(char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
 
 }
 
+    //check if file extension is csv
+int isCSV(const char *filename) {
+    const char *dot = strrchr(filename, '.');
+    if (dot && !strcasecmp(dot, ".csv")) {
+        return 1;
+    }
+    return 0;
+}
 
 static void printCellProp(CELLPROP* cellProp, float elev, int nCells, int nCellsValid, vol2bird_t *alldata){
     
