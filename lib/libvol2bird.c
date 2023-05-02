@@ -3152,7 +3152,7 @@ void write_line_vpts_profile(char* printbuffer, int buflen,
   nanify_str(s_vcp, "%d", vcp);
   nanify_str(s_lat, "%.5f", latitude);
   nanify_str(s_lon, "%.5f", longitude);
-  nanify_str(s_height, "%d", height);
+  nanify_str(s_height, "%5.f", height);
   nanify_str(s_wavelength, "%f", wavelength);
 
   sprintf(printbuffer, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,\"%s\"", 
