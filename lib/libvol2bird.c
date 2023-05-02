@@ -3286,7 +3286,7 @@ int saveToCSV(const char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
     FILE *fp;
     fp = fopen(filename, "w");
     if (fp == NULL) {
-        printf("Failed to open file %s for writing.\n", filename);
+        vol2bird_printf("Failed to open file %s for writing.\n", filename);
         return 0;
     }
 
@@ -3354,7 +3354,7 @@ int saveToCSV(const char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
     free((void*) profileBio);
     
     if (fclose(fp) != 0) {
-        printf("Failed to close file %s.\n", filename);
+        vol2bird_printf("Failed to close file %s.\n", filename);
         return 0;
     }
     
