@@ -3149,7 +3149,7 @@ void write_line_vpts_profile(char* printbuffer, int buflen,
   nanify_str(s_n_dbz_all, "%5.f", n_dbz_all);
   nanify_str(s_rcs, "%f", rcs); 
   nanify_str(s_sd_vvp_thresh, "%3.f", sd_vvp_thresh);
-  nanify_str(s_vcp, "%d", vcp);
+  nanify_str(s_vcp, "%5.f", vcp);
   nanify_str(s_lat, "%.5f", latitude);
   nanify_str(s_lon, "%.5f", longitude);
   nanify_str(s_height, "%5.f", height);
