@@ -457,7 +457,7 @@ int main(int argc, char **argv)
     {
         int result;
         if(isCSV(fileVpOut)){
-            result = writeCSV(fileVpOut, &alldata, volume);
+            result = saveToCSV(fileVpOut, &alldata, volume);
         }
         else{
             result = saveToODIM((RaveCoreObject *)alldata.vp, fileVpOut);
