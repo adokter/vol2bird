@@ -419,10 +419,11 @@ PolarVolume_t* PolarVolume_RSL2Rave(Radar* radar, float rangeMax){
     // first, copy metadata stored in radar header
     char pvtime[7];
     char pvdate[9];
-    char *pvsource = malloc(strlen(radar->h.name)+strlen(radar->h.city)+strlen(radar->h.state)+strlen(radar->h.radar_name)+30);
-    sprintf(pvtime, "%02i%02i%02i",radar->h.hour,radar->h.minute,ROUND(radar->h.sec));
-    sprintf(pvdate, "%04i%02i%02i",radar->h.year,radar->h.month,radar->h.day);
-    sprintf(pvsource, "RAD:%s,PLC:%s,state:%s,radar_name:%s",radar->h.name,radar->h.city,radar->h.state,radar->h.radar_name);
+    int pvsource_len = strlen(radar->h.name)+strlen(radar->h.city)+strlen(radar->h.state)+strlen(radar->h.radar_name)+30;
+    char *pvsource = malloc(pvsource_len);
+    snprintf(pvtime, 7, "%02i%02i%02i",radar->h.hour,radar->h.minute,ROUND(radar->h.sec));
+    snprintf(pvdate, 9, "%04i%02i%02i",radar->h.year,radar->h.month,radar->h.day);
+    snprintf(pvsource, pvsource_len, "RAD:%s,PLC:%s,state:%s,radar_name:%s",radar->h.name,radar->h.city,radar->h.state,radar->h.radar_name);
     vol2bird_err_printf("Reading RSL polar volume with nominal time %s-%s, source: %s\n",pvdate,pvtime,pvsource);
     PolarVolume_setTime(volume,pvtime);
     PolarVolume_setDate(volume,pvdate);
