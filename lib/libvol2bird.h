@@ -507,6 +507,6 @@ int saveToCSV(const char *filename, vol2bird_t* alldata, PolarVolume_t* pvol);
 
 int isCSV(const char *filename);
 
-const char *get_filename(const char *path)
+const char *get_filename(const char *path);
 
 const char* libvol2bird_version(void);
