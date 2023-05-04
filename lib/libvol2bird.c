@@ -3141,7 +3141,7 @@ void write_line_vpts_profile(char* printbuffer, int buflen,
 
   memset(printbuffer, 0, sizeof(char)*buflen);
 
-  sprintf(s_HGHT, "%4.f", HGHT);
+  snprintf(s_HGHT, 16, "%4.f", HGHT);
   nanify_str(s_u, "%6.2f", u);
   nanify_str(s_v, "%6.2f", v);
   nanify_str(s_w, "%7.2f", w);
