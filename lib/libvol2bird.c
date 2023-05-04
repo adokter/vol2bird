@@ -3164,7 +3164,7 @@ void write_line_vpts_profile(char* printbuffer, int buflen,
   nanify_str(s_height, "%5.f", height);
   nanify_str(s_wavelength, "%5.1f", wavelength);
 
-  sprintf(printbuffer, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,\"%s\"", 
+  snprintf(printbuffer, buflen, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,\"%s\"", 
     radar_name, datetime, s_HGHT, s_u, s_v, s_w, s_ff, s_dd, s_sd_vvp, gap, s_dbz, s_eta, s_dens, s_DBZH, s_n, s_n_dbz,
     s_n_all, s_n_dbz_all, s_rcs, s_sd_vvp_thresh, s_vcp, s_lat, s_lon, s_height, s_wavelength, get_filename(fileIn));
 }
