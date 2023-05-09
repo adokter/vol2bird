@@ -357,7 +357,7 @@ struct vol2birdMisc {
     // the volume coverage pattern of the polar volume input file (NEXRAD specific)
     int vcp;
     // the radar name extracted from the source string
-    char* radarName;
+    char radarName[100];
 };
 typedef struct vol2birdMisc vol2birdMisc_t;
 
@@ -478,7 +478,7 @@ int vol2birdLoadConfig(vol2bird_t* alldata, const char* optionsFile);
 
 int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata);
 
-char* get_radar_name(char* source);
+int get_radar_name(const char* source, char* radarName, size_t radarNameLength);
 
 void vol2birdTearDown(vol2bird_t* alldata);
 
@@ -488,7 +488,7 @@ double nanify(double value);
 
 void nanify_str(char* buff, const char* fmt, double v);
 
-char* nanify_vpts(float value, const char* fmt);
+void nanify_vpts(char* buff, const char* fmt, double v);
 
 void create_profile_printout_str(char* printbuffer, int buflen, const char* date, const char* time,
     float HGHT, float u, float v, float w, float ff, float dd, float sd_vvp, char gap, float dbz,
@@ -507,6 +507,6 @@ int saveToCSV(const char *filename, vol2bird_t* alldata, PolarVolume_t* pvol);
 
 int isCSV(const char *filename);
 
-const char *get_filename(const char *path);
-
 const char* libvol2bird_version(void);
+
+const char *get_filename(const char *path);
