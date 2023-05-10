@@ -24,6 +24,7 @@
 #define DEG2RAD 0.01745329251994329576 // Degrees to radians.
 #define RAD2DEG (57.29578)    // Radians to degrees.
 
+
 // ****************************************************************************
 // Definition of general macros:
 // ****************************************************************************
@@ -355,6 +356,8 @@ struct vol2birdMisc {
     char filename_vp[1000]; 
     // the volume coverage pattern of the polar volume input file (NEXRAD specific)
     int vcp;
+    // the radar name extracted from the source string
+    char radarName[100];
 };
 typedef struct vol2birdMisc vol2birdMisc_t;
 
@@ -415,6 +418,27 @@ typedef enum radarDataFormat {
   radarDataFormat_IRIS = 3    /** Vaisala IRIS */
 } radarDataFormat;
 
+typedef struct {
+    // Field metadata
+    const char *name;
+    const char **name_alternatives;  // NULL-terminated array of alternative names
+    const char *description;
+    const char *type;
+    const char *format;
+    const char *example;
+    bool required;
+
+    // Constraints
+    struct {
+        bool required;
+        double minimum;
+        double maximum;
+        const char **allowed_values;  // NULL-terminated array of allowed values
+        const char *pattern;
+    } constraints;
+} field_t;
+
+
 
 // *****************************************************************************
 // Public function prototypes
@@ -454,18 +478,35 @@ int vol2birdLoadConfig(vol2bird_t* alldata, const char* optionsFile);
 
 int vol2birdSetUp(PolarVolume_t* volume, vol2bird_t* alldata);
 
+int get_radar_name(const char* source, char* radarName, size_t radarNameLength);
+
 void vol2birdTearDown(vol2bird_t* alldata);
 
 int mapDataToRave(PolarVolume_t* volume, vol2bird_t* alldata);
 
-float nanify(float value);
+double nanify(double value);
 
 void nanify_str(char* buff, const char* fmt, double v);
+
+void nanify_vpts(char* buff, const char* fmt, double v);
 
 void create_profile_printout_str(char* printbuffer, int buflen, const char* date, const char* time,
     float HGHT, float u, float v, float w, float ff, float dd, float sd_vvp, char gap, float dbz,
     float eta, float dens, float DBZH, float n, float n_dbz, float n_all, float n_dbz_all);
 
+void write_line_vpts_profile(char* printbuffer, int buflen, 
+    char* radar_name, char* datetime, float HGHT, float u, float v, 
+    float w, float ff, float dd, float sd_vvp, char* gap, float dbz, 
+    float eta, float dens, float DBZH, float n, float n_dbz, float n_all, 
+    float n_dbz_all, float rcs, float sd_vvp_thresh, int vcp, float latitude,
+    float longitude, int height, float wavelength, const char* fileIn);
+
 int saveToODIM(RaveCoreObject* object, const char* filename);
 
+int saveToCSV(const char *filename, vol2bird_t* alldata, PolarVolume_t* pvol);
+
+int isCSV(const char *filename);
+
 const char* libvol2bird_version(void);
+
+const char *get_filename(const char *path);
