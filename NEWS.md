@@ -1,5 +1,6 @@
 # vol2bird 0.5.XXXX
 * fixes a bug occurring with missing scan parameter data (#195,#196)
+* add the timestamp seconds in VPTS CSV output (#202)
 
 # vol2bird 0.5.0
 All issues included in this release can be found [here](https://github.com/adokter/vol2bird/milestone/1?closed=1)
