@@ -3336,7 +3336,7 @@ int saveToCSV(const char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
         iCopied=iRowProfile*nColsProfile;
 
         char datetime[24];
-        snprintf(datetime, sizeof(datetime), "%.4s-%.2s-%.2sT%.2s:%.2s:00Z", date, date+4, date+6, time, time+2);
+        snprintf(datetime, sizeof(datetime), "%.4s-%.2s-%.2sT%.2s:%.2s:%.2sZ", date, date+4, date+6, time, time+2, time+4);
         char printbuffer[1024];
 
         //write to CSV format
