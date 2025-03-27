@@ -288,9 +288,19 @@ PolarScan_t* PolarScan_RSL2Rave(Radar *radar, int iScan, float rangeMax){
 
     // add attribute Nyquist velocity to scan (from radial velocity sweep)
     rslRay = RSL_get_first_ray_of_sweep(radar->v[VR_INDEX]->sweep[iScan]);
-    nyq_vel = rslRay->h.nyq_vel;
+    if (rslRay == NULL){
+        vol2bird_err_printf("Warning: could not read Nyquist velocity of scan %i, trying polar volume attribute.\n", iScan);
+    }
+    else{
+        nyq_vel = rslRay->h.nyq_vel;
+    }
     // continue with ray from reflectivity sweep
     rslRay = RSL_get_first_ray_of_sweep(radar->v[DZ_INDEX]->sweep[iScan]);
+    if (rslRay == NULL){
+        vol2bird_err_printf("Error: could not read first ray of reflectivity sweep of scan %i.\n", iScan);
+        RAVE_OBJECT_RELEASE(scan);
+        return(NULL);
+    }
     
     // if no nyquist velocity found, try it with the native RSL function
     if(nyq_vel == 0){
