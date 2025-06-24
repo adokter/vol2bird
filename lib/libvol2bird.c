@@ -2001,7 +2001,7 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
             dbzValueType = PolarScanParam_getConvertedValue(dbzParam, iRang, iAzim, &dbzValue);
             PolarScanParam_getValue(cellParam, iRang, iAzim, &cellValue);
             if (alldata->options.useClutterMap){
-                PolarScanParam_getValue(clutParam, iRang, iAzim, &clutValue);
+                PolarScanParam_getConvertedValue(clutParam, iRang, iAzim, &clutValue);
             }
 
             // in the points array, store missing reflectivity values as the lowest possible reflectivity
@@ -2039,7 +2039,7 @@ static int getListOfSelectedGates(PolarScan_t* scan, vol2birdScanUse_t scanUse, 
             // store the corresponding observed vrad value for now (to be dealiased later)
             points_local[iRowPoints * nColsPoints_local + alldata->points.vraddValueCol] = (float) vradValue;
 
-            // store the corresponding observed vrad value for now (to be dealiased later)
+            // store the corresponding observed clutter value
             points_local[iRowPoints * nColsPoints_local + alldata->points.clutValueCol] = (float) clutValue;
 
             // raise the row counter by 1
