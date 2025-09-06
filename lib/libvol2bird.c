@@ -17,6 +17,7 @@
  *
  */
 
+#include <stdint.h>  // For SIZE_MAX
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
@@ -3327,7 +3328,7 @@ int saveToCSV(const char *filename, vol2bird_t* alldata, PolarVolume_t* pvol){
     wavelength = &alldata->options.radarWavelength;
     radar_name = alldata->misc.radarName;
     fileIn = alldata->misc.filename_pvol;
-
+    
     fprintf(fp,"radar,datetime,height,u,v,w,ff,dd,sd_vvp,gap,eta,dens,dbz,dbz_all,n,n_dbz,n_all,n_dbz_all,rcs,sd_vvp_threshold,vcp,radar_latitude,radar_longitude,radar_height,radar_wavelength,source_file\n");
 
     int iRowProfile;
@@ -3801,7 +3802,11 @@ static int removeDroppedCells(CELLPROP *cellProp, const int nCells) {
     vol2bird_err_printf("end of list\n");
     #endif
 
-
+    // Overflow check before malloc
+    if (nCells > SIZE_MAX / sizeof(CELLPROP)) {
+        vol2bird_err_printf("Requested memory size is too large in removeDroppedCells!\n");
+        return -1;
+    }
     
     cellPropCopy = (CELLPROP*) malloc(sizeof(CELLPROP) * nCells);
     if (!cellPropCopy) {
@@ -4805,7 +4810,9 @@ PolarVolume_t* vol2birdGetODIMVolume(char* filenames[], int nInputFiles) {
         RaveIO_t* raveio = RaveIO_open(filenames[i], 0, NULL);
 
         if(raveio == NULL){
-            vol2bird_err_printf( "Warning: failed to read file %s in ODIM format, ignoring.\n", filenames[i]);
+            vol2bird_err_printf( "Warning: Failed to read file %s in ODIM format, ignoring.\n         "
+                                 "Check the file structure and make sure data/attribute types "
+                                 "adhere to the ODIM hdf5 specifications.\n", filenames[i]);
             continue;
         }
         
